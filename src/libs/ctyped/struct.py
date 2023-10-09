@@ -4815,6 +4815,187 @@ class ChromaSDK:
         Data: RZEFFECTID
 
 
+class Microsoft:
+    class UI:
+        @_struct
+        class DisplayId:
+            Value: _type.UINT64
+
+        @_struct
+        class IconId:
+            Value: _type.UINT64
+
+        @_struct
+        class WindowId:
+            Value: _type.UINT64
+
+        class Input:
+            @_struct
+            class CrossSlideThresholds:
+                SelectionStart: _type.FLOAT
+                SpeedBumpStart: _type.FLOAT
+                SpeedBumpEnd: _type.FLOAT
+                RearrangeStart: _type.FLOAT
+
+            @_struct
+            class ManipulationDelta:
+                Translation: Windows.Foundation.Point
+                Scale: _type.FLOAT
+                Rotation: _type.FLOAT
+                Expansion: _type.FLOAT
+
+            @_struct
+            class ManipulationVelocities:
+                Linear: Windows.Foundation.Point
+                Angular: _type.FLOAT
+                Expansion: _type.FLOAT
+
+            @_struct
+            class PhysicalKeyStatus:
+                RepeatCount: _type.UINT32
+                ScanCode: _type.UINT32
+                IsExtendedKey: _type.boolean
+                IsMenuKeyDown: _type.boolean
+                WasKeyDown: _type.boolean
+                IsKeyReleased: _type.boolean
+
+        class Xaml:
+            @_struct
+            class CornerRadius:
+                TopLeft: _type.DOUBLE
+                TopRight: _type.DOUBLE
+                BottomRight: _type.DOUBLE
+                BottomLeft: _type.DOUBLE
+
+            @_struct
+            class Duration:
+                TimeSpan: Windows.Foundation.TimeSpan
+                Type: _enum.Microsoft.UI.Xaml.DurationType
+
+            @_struct
+            class GridLength:
+                Value: _type.DOUBLE
+                GridUnitType: _enum.Microsoft.UI.Xaml.GridUnitType
+
+            @_struct
+            class Thickness:
+                Left: _type.DOUBLE
+                Top: _type.DOUBLE
+                Right: _type.DOUBLE
+                Bottom: _type.DOUBLE
+
+            class Automation:
+                class Peers:
+                    @_struct
+                    class RawElementProviderRuntimeId:
+                        Part1: _type.UINT32
+                        Part2: _type.UINT32
+
+            class Controls:
+                class Primitives:
+                    @_struct
+                    class GeneratorPosition:
+                        Index: _type.INT32
+                        Offset: _type.INT32
+
+            class Data:
+                @_struct
+                class LoadMoreItemsResult:
+                    Count: _type.UINT32
+
+            class Documents:
+                @_struct
+                class TextRange:
+                    StartIndex: _type.INT32
+                    Length: _type.INT32
+
+            class Markup:
+                @_struct
+                class XamlBinaryWriterErrorInformation:
+                    InputStreamIndex: _type.UINT32
+                    LineNumber: _type.UINT32
+                    LinePosition: _type.UINT32
+
+                @_struct
+                class XmlnsDefinition:
+                    XmlNamespace: _type.HSTRING
+                    Namespace: _type.HSTRING
+
+            class Media:
+                @_struct
+                class Matrix:
+                    M11: _type.DOUBLE
+                    M12: _type.DOUBLE
+                    M21: _type.DOUBLE
+                    M22: _type.DOUBLE
+                    OffsetX: _type.DOUBLE
+                    OffsetY: _type.DOUBLE
+
+                class Animation:
+                    @_struct
+                    class KeyTime:
+                        TimeSpan: Windows.Foundation.TimeSpan
+
+                    @_struct
+                    class RepeatBehavior:
+                        Count: _type.DOUBLE
+                        Duration: Windows.Foundation.TimeSpan
+                        Type: _enum.Microsoft.UI.Xaml.Media.Animation.RepeatBehaviorType
+
+                class Media3D:
+                    @_struct
+                    class Matrix3D:
+                        M11: _type.DOUBLE
+                        M12: _type.DOUBLE
+                        M13: _type.DOUBLE
+                        M14: _type.DOUBLE
+                        M21: _type.DOUBLE
+                        M22: _type.DOUBLE
+                        M23: _type.DOUBLE
+                        M24: _type.DOUBLE
+                        M31: _type.DOUBLE
+                        M32: _type.DOUBLE
+                        M33: _type.DOUBLE
+                        M34: _type.DOUBLE
+                        OffsetX: _type.DOUBLE
+                        OffsetY: _type.DOUBLE
+                        OffsetZ: _type.DOUBLE
+                        M44: _type.DOUBLE
+
+    class Web:
+        class WebView2:
+            class Core:
+                @_struct
+                class CoreWebView2PhysicalKeyStatus:
+                    RepeatCount: _type.UINT32
+                    ScanCode: _type.UINT32
+                    IsExtendedKey: _type.INT32
+                    IsMenuKeyDown: _type.INT32
+                    WasKeyDown: _type.INT32
+                    IsKeyReleased: _type.INT32
+
+    class Windows:
+        class ApplicationModel:
+            class DynamicDependency:
+                @_struct
+                class PackageDependencyContextId:
+                    Id: _type.UINT64
+
+        class PushNotifications:
+            @_struct
+            class PushNotificationCreateChannelStatus:
+                status: _enum.Microsoft.Windows.PushNotifications.PushNotificationChannelStatus
+                extendedError: _type.HRESULT
+                retryCount: _type.UINT32
+
+        class Security:
+            class AccessControl:
+                @_struct
+                class AppContainerNameAndAccess:
+                    appContainerName: _type.HSTRING
+                    accessMask: _type.UINT32
+
+
 class _NamespaceMeta(type):
     def __new__(mcs, *args, **kwargs):
         cls = super().__new__(mcs, *args, **kwargs)

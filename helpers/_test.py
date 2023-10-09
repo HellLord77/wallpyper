@@ -29,6 +29,7 @@ from libs import ctyped
 # noinspection PyUnresolvedReferences
 from libs import sgml
 from libs.ctyped.const import error
+from libs.ctyped.const import runtimeclass
 from libs.ctyped.interface.um import ShObjIdl_core
 from libs.ctyped.interface.um import d2d1
 from libs.ctyped.interface.um import dwrite
@@ -559,14 +560,6 @@ def _test_progress():
         taskbar.SetProgressState(hwnd, ctyped.enum.TBPFLAG.NOPROGRESS)
 
 
-def _test_inheritance():
-    from libs.ctyped.interface.winrt.Windows import Storage as Windows_Storage
-    from libs.ctyped.const import runtimeclass
-    typ = ctyped.interface.WinRT[Windows_Storage.IStorageFileStatics](
-        runtimeclass.Windows.Storage.StorageFile)
-    print(typ, bool(typ))
-
-
 def _test_toast():
     from libs.ctyped.interface.winrt.Windows.UI import Notifications as Windows_UI_Notifications
     from libs.ctyped.const import runtimeclass
@@ -592,13 +585,23 @@ def _test_toast():
 
 
 def _test():
-    ctyped.lib.add_path(r'D:\Projects\wallpyper\helpers')
+    ctyped.lib.add_path(r'D:\Projects\wallpyper\helpers\microsoft.windowsappsdk.1.4.230913002\runtimes\win10-x64\native')
+
     from libs.ctyped.lib import Microsoft_WindowsAppRuntime_Bootstrap
     from libs.ctyped.const import WindowsAppSDK
-    hr = Microsoft_WindowsAppRuntime_Bootstrap.Initialize2(WindowsAppSDK.Release.MajorMinor, WindowsAppSDK.Release.VersionTag, ctyped.struct.PACKAGE_VERSION(
-        ctyped.union.PACKAGE_VERSION_U(WindowsAppSDK.Runtime.Version.UInt64)), ctyped.enum.MddBootstrapInitializeOptions.OnNoMatch_ShowUI)
-    print(hr)
-    if ctyped.macro.SUCCEEDED(hr):
+    from libs.ctyped.interface.winrt.Microsoft.Windows.System import Power as Microsoft_Windows_System_Power
+
+    if ctyped.macro.SUCCEEDED(Microsoft_WindowsAppRuntime_Bootstrap.Initialize2(
+            WindowsAppSDK.Release.MajorMinor, WindowsAppSDK.Release.VersionTag, ctyped.struct.PACKAGE_VERSION(
+                ctyped.union.PACKAGE_VERSION_U(WindowsAppSDK.Runtime.Version.UInt64)),
+            ctyped.enum.MddBootstrapInitializeOptions.OnNoMatch_ShowUI)):
+        status = ctyped.enum.Microsoft.Windows.System.Power.DisplayStatus()
+        p_manager = ctyped.interface.WinRT[Microsoft_Windows_System_Power.IPowerManagerStatics](
+            runtimeclass.Microsoft.Windows.System.Power.PowerManager)
+        if p_manager:
+            with p_manager as manager:
+                if ctyped.macro.SUCCEEDED(manager.get_DisplayStatus(ctyped.byref(status))):
+                    print(status)
         Microsoft_WindowsAppRuntime_Bootstrap.Shutdown()
 
 

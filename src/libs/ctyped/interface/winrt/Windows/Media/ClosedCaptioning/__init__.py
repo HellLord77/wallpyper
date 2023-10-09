@@ -2,6 +2,7 @@ from __future__ import annotations as _
 
 from typing import Callable as _Callable
 
+from ... import Foundation as _Windows_Foundation
 from .... import inspectable as _inspectable
 from ...... import enum as _enum
 from ...... import struct as _struct
@@ -34,3 +35,11 @@ class IClosedCaptionPropertiesStatics(_inspectable.IInspectable, factory=True):
                                        _type.HRESULT]
     get_RegionOpacity: _Callable[[_Pointer[_enum.Windows.Media.ClosedCaptioning.ClosedCaptionOpacity]],  # value
                                  _type.HRESULT]
+
+
+class IClosedCaptionPropertiesStatics2(_inspectable.IInspectable, factory=True):
+    add_PropertiesChanged: _Callable[[_Windows_Foundation.IEventHandler[_inspectable.IInspectable],  # handler
+                                      _Pointer[_struct.EventRegistrationToken]],  # token
+                                     _type.HRESULT]
+    remove_PropertiesChanged: _Callable[[_struct.EventRegistrationToken],  # token
+                                        _type.HRESULT]

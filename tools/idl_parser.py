@@ -5,7 +5,10 @@ import io
 import ntpath
 import os
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 import warnings
 from typing import Any
 from typing import Callable
@@ -16,8 +19,13 @@ import markdown
 
 from libs import ctyped
 
-SDK_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0'
-DOC_DIR = r'D:\Projects\winrt-api'
+# SDK_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0'
+SDK_PATH = r'D:\Projects\wallpyper\tools'
+# DOC_DIR = r'D:\Projects\winrt-api'
+DOC_DIR = r'D:\Projects\winapps-winrt-api'
+# DOC_LINK_PREFIX = 'https://learn.microsoft.com/en-us/uwp/api/'
+DOC_LINK_PREFIX = 'https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/'
+WINMDIDL_DIR = r'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64'
 TYPE_MAP = {
     'IUnknown':                                               '_Unknwnbase.IUnknown',
     'IInspectable':                                           '_inspectable.IInspectable',
@@ -371,7 +379,6 @@ class IVectorChangedEventArgs(_inspectable.IInspectable):
 '''}
 GEN_DOC = True
 
-_DOC_LINK_PREFIX = 'https://learn.microsoft.com/en-us/uwp/api/'
 _CURRENT: list[str] = []
 _FACTORIES: set[str] = set()
 _REL_IMPORTS: list[str] = []
@@ -580,7 +587,7 @@ def print_enum(enums: dict, __namespaces: Optional[list[str]] = None):
                 if doc_[1]:
                     doc += f'\n**Remarks:**\n    *{doc_[1]}*\n\n'
                 docs = doc_[2]
-                doc += f'\n**Documentation:**\n    `{namespace}.{name} <{_DOC_LINK_PREFIX}{namespace.lower()}.{name.lower()}>`_\n\n'
+                doc += f'\n**Documentation:**\n    `{namespace}.{name} <{DOC_LINK_PREFIX}{namespace.lower()}.{name.lower()}>`_\n\n'
                 print(indent, '    ', f'\n{indent}    '.join(f'"""\n{doc.strip()}\n"""'.splitlines()), sep='')
             for name_, value_ in value.items():
                 print(f'{indent}    {"None_" if name_ == "None" else name_} = {value_}')
@@ -730,7 +737,7 @@ def print_runtimeclass(runtimeclasses: dict, __namespaces: Optional[list[str]] =
             doc += f'\n**Description:**\n    {doc_[0]}\n\n'
         # if doc_[1]:
         #     doc += f'\n**Remarks:**\n    *{doc_[1]}*\n\n'
-        doc += f'\n**Documentation:**\n    `{namespace} <{_DOC_LINK_PREFIX}{namespace.lower()}>`_\n\n'
+        doc += f'\n**Documentation:**\n    `{namespace} <{DOC_LINK_PREFIX}{namespace.lower()}>`_\n\n'
         print(indent, f'\n{indent}'.join(f'"""\n{doc.strip()}\n"""'.splitlines()), sep='')
     for name, value in runtimeclasses.items():
         __namespaces.append(name)
@@ -761,28 +768,28 @@ def print_runtimeclass(runtimeclasses: dict, __namespaces: Optional[list[str]] =
                             doc += ' *****'
                         doc += '\n\n'
                 if doc_:
-                    doc += f'\n**Documentation:**\n    `{runtimeclass} <{_DOC_LINK_PREFIX}{runtimeclass.lower()}>`_\n\n'
+                    doc += f'\n**Documentation:**\n    `{runtimeclass} <{DOC_LINK_PREFIX}{runtimeclass.lower()}>`_\n\n'
                 print(indent, f'\n{indent}'.join(f'"""\n{doc.strip()}\n"""'.splitlines()), sep='')
         del __namespaces[-1]
 
 
-def dump(pattern: str = '*.idl', p_enum: bool = False, p_struct: bool = False,
-         p_iid: bool = False, p_interface: bool = False, p_runtimeclass: bool = False, o_interface: str = ''):
+def dump(*, p_enum: bool = False, p_struct: bool = False, p_iid: bool = False,
+         p_interface: bool = False, p_runtimeclass: bool = False, o_interface: str = ''):
     data = ''
-    assert pattern.endswith('.idl')
-    for file in glob.glob(ntpath.join(SDK_PATH, 'winrt', pattern)):  # TODO include form import
+    for file in glob.glob(ntpath.join(SDK_PATH, 'winrt', '*.idl')):  # TODO include form import
         if '.' in ntpath.splitext(ntpath.basename(file))[0]:
             with open(file) as stream:
                 data += f'\n{stream.read()}'
 
-    re_namespace = re.compile(r'namespace (\S+)')
+    re_namespace = re.compile(r'namespace (\S+)')  # namespace Microsoft
     re_enum = re.compile(r'enum (\S+)')
     re_enum_member = re.compile(r'(\S+)(\s*)=\s((0x)?\d*),?')
     re_struct = re.compile(r'struct (\S+)')
     re_struct_field = re.compile(r'(\S+)\s(.*);')
-    re_iid = re.compile(r'\[uuid\(([\dA-F]{8}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{12})\)]')
+    re_version = re.compile(r'\[version\((.*)\)]')  # [version(0x00000001)]
+    re_iid = re.compile(r'\[uuid\(([\dA-F]{8}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{12})\)]')  # [uuid(CC107CDC-558F-5D1A-96A5-A735AC04386B)]
     re_delegate = re.compile(r'delegate')
-    re_interface = re.compile(r'interface (\S+) : (\S+)')
+    re_interface = re.compile(r'interface (\S+) : (\S+)')  # interface ICompositorController : IInspectable
     re_func = re.compile(r'(\S+) (\S+?)\((.*)\);')
     re_template = re.compile(r'declare')
     re_runtimeclass = re.compile(r'runtimeclass (\S+)')
@@ -835,7 +842,10 @@ def dump(pattern: str = '*.idl', p_enum: bool = False, p_struct: bool = False,
             get_datas(iids, namespaces)[func] = re_iid.fullmatch(lines[line_num - 1].strip()).groups()[0]
             get_datas(interfaces, namespaces)[(func, 'IUnknown')] = {'Invoke': (get_args(match_.groups()[2]), match_.groups()[0])}
         elif match := re_interface.fullmatch(line):
-            get_datas(iids, namespaces)[match.groups()[0]] = re_iid.fullmatch(lines[line_num - 1].strip()).groups()[0]
+            line_ = lines[line_num - 1].strip()
+            if re_version.fullmatch(line_):
+                line_ = lines[line_num - 2].strip()
+            get_datas(iids, namespaces)[match.groups()[0]] = re_iid.fullmatch(line_).groups()[0]
             interface = {}
             while not lines[line_num].strip().startswith('{'):
                 line_num += 1
@@ -916,13 +926,26 @@ def dump(pattern: str = '*.idl', p_enum: bool = False, p_struct: bool = False,
     #     print(json.dumps(runtimeclasses, indent=4))
 
 
+def dump_idl(pattern: str):
+    winmdidl = ntpath.join(WINMDIDL_DIR, 'winmdidl.exe')
+    output = f'/outdir:{ntpath.realpath("winrt")}'
+    with tempfile.TemporaryDirectory() as temp:
+        for winmd in glob.glob(pattern, recursive=True):
+            shutil.copy(winmd, ntpath.join(temp, ntpath.basename(winmd)))
+        for file in glob.glob(ntpath.join(temp, '*.winmd')):
+            args = winmdidl, output, r'/metadata_dir:C:\Windows\System32\WinMetadata', file
+            print(args)
+            subprocess.run(args)
+
+
 def main():
+    # dump_idl(r'D:\Projects\wallpyper\helpers\microsoft.windowsappsdk.1.4.230913002\**\*.winmd')
     # with open('idl.py', 'w', encoding='utf-8') as file, contextlib.redirect_stdout(file):
-    #     # dump(p_enum=True)
-    #     # dump(p_struct=True)
+    #     dump(p_enum=True)
+    #     dump(p_struct=True)
     #     dump(p_iid=True)
-    #     # dump(p_runtimeclass=True)
-    dump(p_interface=True, o_interface='winrt')
+    #     dump(p_runtimeclass=True)
+    dump(p_interface=True, o_interface='output')
 
 
 if __name__ == '__main__':

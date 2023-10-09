@@ -16,8 +16,7 @@ from libs import ctyped
 from libs.ctyped.enum import libclang as enum_libclang
 from libs.ctyped.lib import libclang
 
-# SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\NotificationActivationCallback.h'
-SOURCE_PATH = r'D:\Projects\WinUI3\packages\Microsoft.WindowsAppSDK.1.4.230913002\include\MddBootstrap.h'
+SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\d2d1_3.h'
 INCLUDES = ('<Windows.h>',)
 INCLUDE_DIRS = ()
 CLANG_DIR = r'C:\msys64\mingw64\bin'
@@ -49,9 +48,9 @@ MSVC_INCLUDE_DIRS = (
     r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt')
 VCPKG_INCLUDE_DIRS = r'D:\Projects\vcpkg\installed\x64-windows\include',
 
-ENUM = True
+ENUM = False
 FUNCTION = False
-INTERFACE = False
+INTERFACE = True
 GUID = False
 AST = False
 
@@ -427,18 +426,19 @@ def print_functions(unit: clang.cindex.TranslationUnit):
         print(str_function(spelling, data))
 
 
-def get_interfaces(cursor: clang.cindex.Cursor, **kwargs) -> dict[str, tuple[Optional[clang.cindex.Type], dict[str, _TFunctionData]]]:
+def get_interfaces(cursor: clang.cindex.Cursor, **kwargs) -> dict[str, tuple[Optional[clang.cindex.Type], dict[str, list[_TFunctionData]]]]:
     interfaces = {}
     for cursor in find_cursors(cursor.get_children(), clang.cindex.CursorKind.STRUCT_DECL, filter=is_interface, **kwargs):
         base = find_cursor(cursor.get_children(), clang.cindex.CursorKind.CXX_BASE_SPECIFIER)
         _, interface = interfaces[cursor.spelling] = (None if base is None else base.type), {}
         for cursor_method in find_cursors(cursor.get_children(), type=clang.cindex.TypeKind.FUNCTIONPROTO,
                                           filter=clang.cindex.Cursor.is_pure_virtual_method):
-            interface[cursor_method.spelling] = _get_function_data(cursor_method)
+            interface.setdefault(cursor_method.spelling, []).insert(0, _get_function_data(cursor_method))
+    # TODO rename inherited + overloaded
     return interfaces
 
 
-def str_interface(spelling: str, data: tuple[Optional[clang.cindex.Type], dict[str, _TFunctionData]], depth: int = 0) -> str:
+def str_interface(spelling: str, data: tuple[Optional[clang.cindex.Type], dict[str, list[_TFunctionData]]], depth: int = 0) -> str:
     is_delegate = len(data[1]) == 1 and next(iter(data[1])) == 'Invoke'
     base = data[0]
     if base is None:
@@ -447,8 +447,11 @@ def str_interface(spelling: str, data: tuple[Optional[clang.cindex.Type], dict[s
         str_base = KIND_INTERFACE.format(_interface_location(base.get_declaration().location.file.name), base.spelling)
     formatted = f'{INDENT * depth}{INTERFACE_DECL_DELEGATE.format(spelling) if is_delegate else INTERFACE_DECL.format(spelling, str_base)}\n'
     depth += 1
-    for function_spelling, function_data in data[1].items():
-        formatted += f'{str_function(function_spelling, function_data, depth)}\n'
+    for function_spelling, function_datas in data[1].items():
+        spelling_suffix = ''
+        for function_data in function_datas:
+            formatted += f'{str_function(function_spelling + spelling_suffix, function_data, depth)}\n'
+            spelling_suffix += '_'
     if not data[1]:
         formatted += f'{INDENT * depth}pass\n'
     if is_delegate:

@@ -231,6 +231,18 @@ class IStoreContext4(_inspectable.IInspectable):
                                                                 _type.HRESULT]
 
 
+class IStoreContext5(_inspectable.IInspectable):
+    GetUserPurchaseHistoryAsync: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # productKinds
+                                            _Pointer[_Windows_Foundation.IAsyncOperation[IStoreProductQueryResult]]],  # operation
+                                           _type.HRESULT]
+    GetAssociatedStoreProductsByInAppOfferTokenAsync: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # inAppOfferTokens
+                                                                 _Pointer[_Windows_Foundation.IAsyncOperation[IStoreProductQueryResult]]],  # operation
+                                                                _type.HRESULT]
+    RequestPurchaseByInAppOfferTokenAsync: _Callable[[_type.HSTRING,  # inAppOfferToken
+                                                      _Pointer[_Windows_Foundation.IAsyncOperation[IStorePurchaseResult]]],  # operation
+                                                     _type.HRESULT]
+
+
 class IStoreContextStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IStoreContext]],  # value
                           _type.HRESULT]
@@ -318,6 +330,15 @@ class IStorePrice(_inspectable.IInspectable):
                                 _type.HRESULT]
     get_FormattedRecurrencePrice: _Callable[[_Pointer[_type.HSTRING]],  # value
                                             _type.HRESULT]
+
+
+class IStorePrice2(_inspectable.IInspectable):
+    get_UnformattedBasePrice: _Callable[[_Pointer[_type.HSTRING]],  # value
+                                        _type.HRESULT]
+    get_UnformattedPrice: _Callable[[_Pointer[_type.HSTRING]],  # value
+                                    _type.HRESULT]
+    get_UnformattedRecurrencePrice: _Callable[[_Pointer[_type.HSTRING]],  # value
+                                              _type.HRESULT]
 
 
 class IStoreProduct(_inspectable.IInspectable):

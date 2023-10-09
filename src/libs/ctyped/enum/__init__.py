@@ -10654,7 +10654,7 @@ class Windows:
             """
             Developer = 1
             """
-            The package is signed with a trusted certificate that is not categorized as Enterirse, Store, or System. For example, an application signed by an ISV for distrubution outside of the Microsoft Store.
+            The package is signed with a trusted certificate that is not categorized as Enterprise, Store, or System. For example, an application signed by an ISV for distrubution outside of the Microsoft Store.
             """
             Enterprise = 2
             """
@@ -10903,7 +10903,7 @@ class Windows:
                 """
                 BarcodeScannerProvider = 1022
                 """
-                The app was activated as a barcode scanner provider. 
+                The app was activated as a barcode scanner provider.
                 """
                 PrintSupportJobUI = 1023
                 """
@@ -21324,7 +21324,7 @@ class Windows:
 
 
                 **Remarks:**
-                    *It is likely this list will expand in the future, so avoid placing error checks that validate a Kind is within the current bounds. Preferred approach is to compare against the subset of Kinds the application supports.*
+                    *Avoid placing error checks that validate LampArrayKind within the current bounds, because this list might expand over time. Rather, compare against the subset of LampArrayKind that your application supports.*
 
 
                 **Documentation:**
@@ -21372,7 +21372,7 @@ class Windows:
                 """
                 Art = 10
                 """
-                Is embedded in an artwork (for example, painting, sculpture).
+                Is embedded in an artwork (for example, painting or sculpture).
                 """
 
             class LampPurposes(_Enum):
@@ -26105,7 +26105,7 @@ class Windows:
                 **Remarks:**
                     *When an Event Tracing for Windows (ETW) payload is decoded by an event processing tool such as xperf or Windows Performance Analyzer (WPA), the tool may make use of formatting hints to interpret the field. Formatting hints are optional parameters to LoggingFields.Add.*
 
-                    *For example, an int32 field may specify the Hexadecimal  format to indicate that it should be displayed in unsigned-hexadecimal. A byte-array field may specify the Signed format to indicate that it should be treated as a series of signed decimal integers, or it may specify the String format to indicate that it should be treated as an MBCS (8-bit character) string.*
+                    *For example, an int32 field may specify the Hexadecimal ** format to indicate that it should be displayed in unsigned-hexadecimal. A byte-array field may specify the Signed format to indicate that it should be treated as a series of signed decimal integers, or it may specify the String** format to indicate that it should be treated as an MBCS (8-bit character) string.*
 
 
                 **Documentation:**
@@ -28779,7 +28779,7 @@ class Windows:
             class ResolutionScale(_Enum):
                 """
                 **Description:**
-                    Describes the scale factor of the immersive environment. The scale factor is determined by the operating system in response to high pixel density screens.
+                    Describes the scale factor of the app window. The scale factor is determined by the operating system in response to high pixel density screens.
 
 
                 **Remarks:**
@@ -31785,7 +31785,7 @@ class Windows:
                 """
                 Binary = 1
                 """
-                The policy is represented by a binary.
+                The policy is represented by binary data (a sequence of bytes).
                 """
                 Boolean = 2
                 """
@@ -39495,7 +39495,7 @@ class Windows:
                 """
                 LteAdvanced = 0x20
                 """
-                The device supports the HSDPA Lite data service implemented by GSM providers.
+                The device supports the LTE Advanced (LTE+) data service implemented by GSM providers.
                 """
                 NewRadioNonStandalone = 0x40
                 """
@@ -41708,7 +41708,7 @@ class Windows:
             class XboxLiveEndpointPairCreationBehaviors(_Enum):
                 """
                 **Description:**
-                    This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                    Defines constants that specify creation behavior options for an XboxLiveEndpointPair creation operation.
 
 
                 **Documentation:**
@@ -41716,17 +41716,17 @@ class Windows:
                 """
                 None_ = 0x0
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Specifies the default operation. If XboxLiveEndpointPairTemplate.CreateEndpointPairAsync or XboxLiveEndpointPairTemplate.CreateEndpointPairForPortsAsync are called with a template that has already been used to establish an XboxLiveEndpointPair to the remote XboxLiveDeviceAddress, then the same XboxLiveEndpointPair is returned, and no XboxLiveEndpointPairTemplate.InboundEndpointPairCreated event is raised.
                 """
                 ReevaluatePath = 0x1
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Specifies that, if XboxLiveEndpointPairTemplate.CreateEndpointPairAsync or XboxLiveEndpointPairTemplate.CreateEndpointPairForPortsAsync are called with a template that has already been used to establish an XboxLiveEndpointPair to the remote XboxLiveDeviceAddress, then the method re-evaluates all potential network paths according to the template's quality requirements. If the same network path is selected again, then the same XboxLiveEndpointPair is returned. If a new path is found, then the old XboxLiveEndpointPair is destroyed, and a new one returned.
                 """
 
             class XboxLiveEndpointPairCreationStatus(_Enum):
                 """
                 **Description:**
-                    This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                    Defines constants that specify the status of an XboxLiveEndpointPair creation operation.
 
 
                 **Documentation:**
@@ -41734,45 +41734,45 @@ class Windows:
                 """
                 Succeeded = 0
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Creating succeeded.
                 """
                 NoLocalNetworks = 1
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Creation failed because the local device is not connected to a network.
                 """
                 NoCompatibleNetworkPaths = 2
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Creation failed because there are no compatible network paths.
                 """
                 LocalSystemNotAuthorized = 3
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Creation failed because the local system's authorization was deemed unacceptable by the remote system.
                 """
                 Canceled = 4
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Creation failed because the user chose to cancel it.
                 """
                 TimedOut = 5
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Creation failed because it did not complete within the timeout period.
                 """
                 RemoteSystemNotAuthorized = 6
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Creation failed because the remote system's authorization was deemed unacceptable by the local system or by your app.
                 """
                 RefusedDueToConfiguration = 7
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Creation failed because the remote system has a different, incompatible configuration (mismatched template definitions), and has actively refused the connection.
                 """
                 UnexpectedInternalError = 8
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Creation failed due to an internal error.
                 """
 
             class XboxLiveEndpointPairState(_Enum):
                 """
                 **Description:**
-                    This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                    Defines constants that specify the status of an XboxLiveEndpointPair instance.
 
 
                 **Documentation:**
@@ -41780,37 +41780,37 @@ class Windows:
                 """
                 Invalid = 0
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The endpoint pair is in an invalid state.
                 """
                 CreatingOutbound = 1
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The endpoint pair is being created, initiated by this device.
                 """
                 CreatingInbound = 2
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The endpoint pair is being created, initiated by a remote device.
                 """
                 Ready = 3
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The endpoint pair is ready to be used.
                 """
                 DeletingLocally = 4
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The endpoint pair is in the process of being deleted. Deletion was initiated locally.
                 """
                 RemoteEndpointTerminating = 5
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The endpoint pair is in the process of being deleted because the remote endpoint initiated deletion.
                 """
                 Deleted = 6
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The endpoint pair has been deleted.
                 """
 
             class XboxLiveNetworkAccessKind(_Enum):
                 """
                 **Description:**
-                    This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                    Defines constants that specify the different levels of peer-to-peer network access observed for XboxLiveEndpointPair communication. XboxLiveNetworkAccessKind is used to describe peer-to-peer connections established through the Xbox Live Multiplayer Networking API, and is not applicable to connections to Xbox Live web services or to peer-to-peer connections established outside of the Xbox Live Multiplayer Networking API.
 
 
                 **Documentation:**
@@ -41818,21 +41818,21 @@ class Windows:
                 """
                 Open = 0
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                NAT type is open. Players behind these network address translation (NAT) types can usually connect to any other player.
                 """
                 Moderate = 1
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                NAT type is moderate. Players behind these NAT types can usually connect to others behind Open or Moderate types.
                 """
                 Strict = 2
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                NAT type is strict. Players behind this NAT type frequently experience connectivity problems with others unless those players are behind Open type devices.
                 """
 
             class XboxLiveQualityOfServiceMeasurementStatus(_Enum):
                 """
                 **Description:**
-                    This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                    Defines constants that specify the status of a Quality of Service (QoS) measurement.
 
 
                 **Documentation:**
@@ -41840,57 +41840,57 @@ class Windows:
                 """
                 NotStarted = 0
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The measurement has not been started.
                 """
                 InProgress = 1
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The measurement is in progress.
                 """
                 InProgressWithProvisionalResults = 2
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The measurement is in progress, and provisional results are available.
                 """
                 Succeeded = 3
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The measurement has completed successfully.
                 """
                 NoLocalNetworks = 4
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The measurement failed because the local device has no network connections.
                 """
                 NoCompatibleNetworkPaths = 5
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The measurement failed because there are no compatible network paths to the target device.
                 """
                 LocalSystemNotAuthorized = 6
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Creation failed because the local system's authorization was deemed unacceptable by the remote system.
                 """
                 Canceled = 7
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The measurement was canceled.
                 """
                 TimedOut = 8
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The measurement timed out.
                 """
                 RemoteSystemNotAuthorized = 9
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Creation failed because the remote system's authorization was deemed unacceptable by the local system or by your app.
                 """
                 RefusedDueToConfiguration = 10
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Creation failed because the remote system has a different, incompatible configuration, and has actively refused the connection.
                 """
                 UnexpectedInternalError = 11
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                The measurement failed due to an internal system error.
                 """
 
             class XboxLiveQualityOfServiceMetric(_Enum):
                 """
                 **Description:**
-                    This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                    Defines constants that specify the different Quality of Service (QoS) metrics that can be measured in this API.
 
 
                 **Documentation:**
@@ -41898,45 +41898,45 @@ class Windows:
                 """
                 AverageLatencyInMilliseconds = 0
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Average latency, in milliseconds.
                 """
                 MinLatencyInMilliseconds = 1
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Minimum latency, in milliseconds.
                 """
                 MaxLatencyInMilliseconds = 2
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Maximum latency, in milliseconds.
                 """
                 AverageOutboundBitsPerSecond = 3
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Average outbound bits per second.
                 """
                 MinOutboundBitsPerSecond = 4
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Minimum outbound bits per second.
                 """
                 MaxOutboundBitsPerSecond = 5
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Maximum outbound bits per second.
                 """
                 AverageInboundBitsPerSecond = 6
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Average inbound bits per second.
                 """
                 MinInboundBitsPerSecond = 7
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Minimum inbound bits per second.
                 """
                 MaxInboundBitsPerSecond = 8
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Maximum inbound bits per second.
                 """
 
             class XboxLiveSocketKind(_Enum):
                 """
                 **Description:**
-                    This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                    Defines constants that specify the kinds of sockets recognized by this API.
 
 
                 **Documentation:**
@@ -41944,15 +41944,15 @@ class Windows:
                 """
                 None_ = 0
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                No socket kind is specified. This value should be used in your code only for data validation purposes.
                 """
                 Datagram = 1
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Datagram (UDP).
                 """
                 Stream = 2
                 """
-                This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, calls to these APIs will fail at runtime.
+                Stream (TCP).
                 """
 
     class Perception:
@@ -44614,17 +44614,20 @@ class Windows:
                 """
                 None_ = 0x0
                 """
-                Does not allow any content
+                Does not allow any content.
                 """
                 Text = 0x1
                 """
-                Allow text content
+                Allow text content.
                 """
                 Image = 0x2
                 """
-                Allow image content
+                Allow image content.
                 """
                 Rtf = 0x4
+                """
+                Allow rich text format (RTF) content.
+                """
 
             class IsolatedWindowsEnvironmentAvailablePrinters(_Enum):
                 """
@@ -44701,8 +44704,22 @@ class Windows:
                 """
 
             class IsolatedWindowsEnvironmentCreationPriority(_Enum):
+                """
+                **Description:**
+                    Represents the priority of an isolated environment.
+
+
+                **Documentation:**
+                    `Windows.Security.Isolation.IsolatedWindowsEnvironmentCreationPriority <https://learn.microsoft.com/en-us/uwp/api/windows.security.isolation.isolatedwindowsenvironmentcreationpriority>`_
+                """
                 Low = 0
+                """
+                Low priority.
+                """
                 Normal = 1
+                """
+                Normal priority.
+                """
 
             class IsolatedWindowsEnvironmentHostError(_Enum):
                 """
@@ -44845,7 +44862,7 @@ class Windows:
             class IsolatedWindowsEnvironmentProgressState(_Enum):
                 """
                 **Description:**
-                    Return during Isolated Windows Environment creation that represents the state of Environment creation.
+                    Returned during Isolated Windows Environment creation, it represents the state of the creation process.
 
 
                 **Documentation:**
@@ -44857,16 +44874,28 @@ class Windows:
                 """
                 Processing = 1
                 """
-                Isolated Windows Environment creation is processing.
+                Isolated Windows Environment creation is preparing to start.
                 """
                 Completed = 2
                 """
                 Isolated Windows Environment creation has completed.
                 """
                 Creating = 3
+                """
+                Isolated Windows Environment creation is in progress.
+                """
                 Retrying = 4
+                """
+                Something went wrong while creating the Isolated Windows Environment. The creation is being retried.
+                """
                 Starting = 5
+                """
+                Isolated Windows Environment is starting.
+                """
                 Finalizing = 6
+                """
+                Isolated Windows Environment settings are being configured.
+                """
 
             class IsolatedWindowsEnvironmentShareFileStatus(_Enum):
                 """
@@ -44933,12 +44962,42 @@ class Windows:
                 """
 
             class IsolatedWindowsEnvironmentSignInProgress(_Enum):
+                """
+                **Description:**
+                    Specifies the progress of a sign-in operation.
+
+
+                **Remarks:**
+                    *The progress state values are expected to arrive in order (Connecting -> Connected -> Authenticating -> SettingUpAccount -> Finalizing -> Completed), but may skip states if TryWaitForSignInWithProgressAsync is called while sign-in is already underway.*
+
+
+                **Documentation:**
+                    `Windows.Security.Isolation.IsolatedWindowsEnvironmentSignInProgress <https://learn.microsoft.com/en-us/uwp/api/windows.security.isolation.isolatedwindowsenvironmentsigninprogress>`_
+                """
                 Connecting = 0
+                """
+                Connecting to the Isolated Windows Environment.
+                """
                 Connected = 1
+                """
+                Established connection to the Isolated Windows Environment.
+                """
                 Authenticating = 2
+                """
+                Signing in to the Isolated Windows Environment.
+                """
                 SettingUpAccount = 3
+                """
+                Setting up user session in the Isolated Windows Environment.
+                """
                 Finalizing = 4
+                """
+                Configuring user session settings in the Isolated Windows Environment.
+                """
                 Completed = 5
+                """
+                Sign-in to the Isolated Windows Environment is complete.
+                """
 
             class IsolatedWindowsEnvironmentStartProcessStatus(_Enum):
                 """
@@ -47886,7 +47945,7 @@ class Windows:
                 """
                 Error = 3
                 """
-                The storage provider has encountered errors. 
+                The storage provider has encountered errors.
                 """
                 Warning = 4
                 """
@@ -50164,6 +50223,14 @@ class Windows:
                 """
                 The system has indicated that the capability is not available
                 """
+
+        class RemoteDesktop:
+            class Provider:
+                class RemoteDesktopConnectionStatus(_Enum):
+                    Connecting = 0
+                    Connected = 1
+                    UserInputNeeded = 2
+                    Disconnected = 3
 
         class RemoteSystems:
             class RemoteSystemAccessStatus(_Enum):
@@ -54996,7 +55063,7 @@ class Windows:
                 """
                 Square71x71 = 6
                 """
-                 only: The small tile used on the Start screen. Note that you cannot specify the size of a pinned secondary tile on Windows Phone 8.1, so this value currently has no use.
+                ** only**: The small tile used on the Start screen. Note that you cannot specify the size of a pinned secondary tile on Windows Phone 8.1, so this value currently has no use.
                 """
                 Square44x44 = 7
                 """
@@ -56511,7 +56578,7 @@ class Windows:
                     """
                     UserName = 6
                     """
-                    Expected input is a log-in name and a domain (<accountname> or <domain>@<accountname>).
+                    Expected input is a log-in name and a domain (<accountname> or <domain>\\<accountname>).
                     """
                     PersonalFullName = 7
                     """
@@ -56719,7 +56786,7 @@ class Windows:
                     """
                     EmailUserNameOrAddress = 60
                     """
-                    Expected input is an email user name (<accountname>) or full email address (<accountname>@<host>).
+                    Expected input is an email user name (\\) or full email address (\\@\\).
                     """
                     Private = 61
                     """
@@ -61498,11 +61565,11 @@ class Windows:
                     **Remarks:**
                         *For panning actions, there are often natural stopping places. Snap points provide a way to indicate where these places are. Then, when a user swipes, the manipulation result favors that natural point using behavior as expressed by a SnapPointsType value. The proximity determination is made by the Direct Manipulation subsystem that supports the manipulation handling for a XAML ScrollViewer. The Single variations factor in both the inertia and the release point.*
 
-                        *Proximity points (Optional and OptionalSingle):
-                     When a user is going to naturally stop the manipulation in the proximity of a snap point, proximity points help the user land at the natural stopping place. Because the user has to land in proximity to the snap point to cause it to stop there, the user will sometimes have to perform another swipe to reach a snap point.*
+                        *Proximity points (Optional and OptionalSingle**):
+                    ** When a user is going to naturally stop the manipulation in the proximity of a snap point, proximity points help the user land at the natural stopping place. Because the user has to land in proximity to the snap point to cause it to stop there, the user will sometimes have to perform another swipe to reach a snap point.*
 
-                        *Mandatory snap points (Mandatory and MandatorySingle):
-                     In contrast to proximity, mandatory snap points ensure that the content is adjusted to always land on a snap point. Even if the user releases the manipulation halfway between two snap-points, it will always move to one of the snap points.*
+                        *Mandatory snap points (Mandatory and MandatorySingle)**:
+                    ** In contrast to proximity, mandatory snap points ensure that the content is adjusted to always land on a snap point. Even if the user releases the manipulation halfway between two snap-points, it will always move to one of the snap points.*
 
                         *The SnapPointsType enumeration is used as a value for the ScrollViewer.HorizontalSnapPointsType and ScrollViewer.VerticalSnapPointsType properties.*
 
@@ -74539,3 +74606,3144 @@ class Windows:
                     """
                     The process is enabled.
                     """
+
+
+class Microsoft:
+    class Graphics:
+        class DirectX:
+            class DirectXAlphaMode(_Enum):
+                Unspecified = 0
+                Premultiplied = 1
+                Straight = 2
+                Ignore = 3
+
+            class DirectXColorSpace(_Enum):
+                RgbFullG22NoneP709 = 0
+                RgbFullG10NoneP709 = 1
+                RgbStudioG22NoneP709 = 2
+                RgbStudioG22NoneP2020 = 3
+                Reserved = 4
+                YccFullG22NoneP709X601 = 5
+                YccStudioG22LeftP601 = 6
+                YccFullG22LeftP601 = 7
+                YccStudioG22LeftP709 = 8
+                YccFullG22LeftP709 = 9
+                YccStudioG22LeftP2020 = 10
+                YccFullG22LeftP2020 = 11
+                RgbFullG2084NoneP2020 = 12
+                YccStudioG2084LeftP2020 = 13
+                RgbStudioG2084NoneP2020 = 14
+                YccStudioG22TopLeftP2020 = 15
+                YccStudioG2084TopLeftP2020 = 16
+                RgbFullG22NoneP2020 = 17
+                YccStudioGHlgTopLeftP2020 = 18
+                YccFullGHlgTopLeftP2020 = 19
+                RgbStudioG24NoneP709 = 20
+                RgbStudioG24NoneP2020 = 21
+                YccStudioG24LeftP709 = 22
+                YccStudioG24LeftP2020 = 23
+                YccStudioG24TopLeftP2020 = 24
+
+            class DirectXPixelFormat(_Enum):
+                Unknown = 0
+                R32G32B32A32Typeless = 1
+                R32G32B32A32Float = 2
+                R32G32B32A32UInt = 3
+                R32G32B32A32Int = 4
+                R32G32B32Typeless = 5
+                R32G32B32Float = 6
+                R32G32B32UInt = 7
+                R32G32B32Int = 8
+                R16G16B16A16Typeless = 9
+                R16G16B16A16Float = 10
+                R16G16B16A16UIntNormalized = 11
+                R16G16B16A16UInt = 12
+                R16G16B16A16IntNormalized = 13
+                R16G16B16A16Int = 14
+                R32G32Typeless = 15
+                R32G32Float = 16
+                R32G32UInt = 17
+                R32G32Int = 18
+                R32G8X24Typeless = 19
+                D32FloatS8X24UInt = 20
+                R32FloatX8X24Typeless = 21
+                X32TypelessG8X24UInt = 22
+                R10G10B10A2Typeless = 23
+                R10G10B10A2UIntNormalized = 24
+                R10G10B10A2UInt = 25
+                R11G11B10Float = 26
+                R8G8B8A8Typeless = 27
+                R8G8B8A8UIntNormalized = 28
+                R8G8B8A8UIntNormalizedSrgb = 29
+                R8G8B8A8UInt = 30
+                R8G8B8A8IntNormalized = 31
+                R8G8B8A8Int = 32
+                R16G16Typeless = 33
+                R16G16Float = 34
+                R16G16UIntNormalized = 35
+                R16G16UInt = 36
+                R16G16IntNormalized = 37
+                R16G16Int = 38
+                R32Typeless = 39
+                D32Float = 40
+                R32Float = 41
+                R32UInt = 42
+                R32Int = 43
+                R24G8Typeless = 44
+                D24UIntNormalizedS8UInt = 45
+                R24UIntNormalizedX8Typeless = 46
+                X24TypelessG8UInt = 47
+                R8G8Typeless = 48
+                R8G8UIntNormalized = 49
+                R8G8UInt = 50
+                R8G8IntNormalized = 51
+                R8G8Int = 52
+                R16Typeless = 53
+                R16Float = 54
+                D16UIntNormalized = 55
+                R16UIntNormalized = 56
+                R16UInt = 57
+                R16IntNormalized = 58
+                R16Int = 59
+                R8Typeless = 60
+                R8UIntNormalized = 61
+                R8UInt = 62
+                R8IntNormalized = 63
+                R8Int = 64
+                A8UIntNormalized = 65
+                R1UIntNormalized = 66
+                R9G9B9E5SharedExponent = 67
+                R8G8B8G8UIntNormalized = 68
+                G8R8G8B8UIntNormalized = 69
+                BC1Typeless = 70
+                BC1UIntNormalized = 71
+                BC1UIntNormalizedSrgb = 72
+                BC2Typeless = 73
+                BC2UIntNormalized = 74
+                BC2UIntNormalizedSrgb = 75
+                BC3Typeless = 76
+                BC3UIntNormalized = 77
+                BC3UIntNormalizedSrgb = 78
+                BC4Typeless = 79
+                BC4UIntNormalized = 80
+                BC4IntNormalized = 81
+                BC5Typeless = 82
+                BC5UIntNormalized = 83
+                BC5IntNormalized = 84
+                B5G6R5UIntNormalized = 85
+                B5G5R5A1UIntNormalized = 86
+                B8G8R8A8UIntNormalized = 87
+                B8G8R8X8UIntNormalized = 88
+                R10G10B10XRBiasA2UIntNormalized = 89
+                B8G8R8A8Typeless = 90
+                B8G8R8A8UIntNormalizedSrgb = 91
+                B8G8R8X8Typeless = 92
+                B8G8R8X8UIntNormalizedSrgb = 93
+                BC6HTypeless = 94
+                BC6H16UnsignedFloat = 95
+                BC6H16Float = 96
+                BC7Typeless = 97
+                BC7UIntNormalized = 98
+                BC7UIntNormalizedSrgb = 99
+                Ayuv = 100
+                Y410 = 101
+                Y416 = 102
+                NV12 = 103
+                P010 = 104
+                P016 = 105
+                Opaque420 = 106
+                Yuy2 = 107
+                Y210 = 108
+                Y216 = 109
+                NV11 = 110
+                AI44 = 111
+                IA44 = 112
+                P8 = 113
+                A8P8 = 114
+                B4G4R4A4UIntNormalized = 115
+                P208 = 130
+                V208 = 131
+                V408 = 132
+                SamplerFeedbackMinMipOpaque = 189
+                SamplerFeedbackMipRegionUsedOpaque = 190
+
+            class DirectXPrimitiveTopology(_Enum):
+                Undefined = 0
+                PointList = 1
+                LineList = 2
+                LineStrip = 3
+                TriangleList = 4
+                TriangleStrip = 5
+
+        class Display:
+            class DisplayAdvancedColorKind(_Enum):
+                StandardDynamicRange = 0
+                WideColorGamut = 1
+                HighDynamicRange = 2
+
+            class DisplayHdrMetadataFormat(_Enum):
+                Hdr10 = 0
+                Hdr10Plus = 1
+
+    class UI:
+        class Composition:
+            class AnimationControllerProgressBehavior(_Enum):
+                Default = 0
+                IncludesDelayTime = 1
+
+            class AnimationDelayBehavior(_Enum):
+                SetInitialValueAfterDelay = 0
+                SetInitialValueBeforeDelay = 1
+
+            class AnimationDirection(_Enum):
+                Normal = 0
+                Reverse = 1
+                Alternate = 2
+                AlternateReverse = 3
+
+            class AnimationIterationBehavior(_Enum):
+                Count = 0
+                Forever = 1
+
+            class AnimationPropertyAccessMode(_Enum):
+                None_ = 0
+                ReadOnly = 1
+                WriteOnly = 2
+                ReadWrite = 3
+
+            class AnimationStopBehavior(_Enum):
+                LeaveCurrentValue = 0
+                SetToInitialValue = 1
+                SetToFinalValue = 2
+
+            class CompositionBackfaceVisibility(_Enum):
+                Inherit = 0
+                Visible = 1
+                Hidden = 2
+
+            class CompositionBatchTypes(_Enum):
+                None_ = 0x0
+                Animation = 0x1
+                Effect = 0x2
+                InfiniteAnimation = 0x4
+                AllAnimations = 0x5
+
+            class CompositionBitmapInterpolationMode(_Enum):
+                NearestNeighbor = 0
+                Linear = 1
+                MagLinearMinLinearMipLinear = 2
+                MagLinearMinLinearMipNearest = 3
+                MagLinearMinNearestMipLinear = 4
+                MagLinearMinNearestMipNearest = 5
+                MagNearestMinLinearMipLinear = 6
+                MagNearestMinLinearMipNearest = 7
+                MagNearestMinNearestMipLinear = 8
+                MagNearestMinNearestMipNearest = 9
+
+            class CompositionBorderMode(_Enum):
+                Inherit = 0
+                Soft = 1
+                Hard = 2
+
+            class CompositionColorSpace(_Enum):
+                Auto = 0
+                Hsl = 1
+                Rgb = 2
+                HslLinear = 3
+                RgbLinear = 4
+
+            class CompositionCompositeMode(_Enum):
+                Inherit = 0
+                SourceOver = 1
+                DestinationInvert = 2
+                MinBlend = 3
+
+            class CompositionDropShadowSourcePolicy(_Enum):
+                Default = 0
+                InheritFromVisualContent = 1
+
+            class CompositionEasingFunctionMode(_Enum):
+                In = 0
+                Out = 1
+                InOut = 2
+
+            class CompositionEffectFactoryLoadStatus(_Enum):
+                Success = 0
+                EffectTooComplex = 1
+                Pending = 2
+
+            class CompositionGetValueStatus(_Enum):
+                Succeeded = 0
+                TypeMismatch = 1
+                NotFound = 2
+
+            class CompositionGradientExtendMode(_Enum):
+                Clamp = 0
+                Wrap = 1
+                Mirror = 2
+
+            class CompositionMappingMode(_Enum):
+                Absolute = 0
+                Relative = 1
+
+            class CompositionStretch(_Enum):
+                None_ = 0
+                Fill = 1
+                Uniform = 2
+                UniformToFill = 3
+
+            class CompositionStrokeCap(_Enum):
+                Flat = 0
+                Square = 1
+                Round = 2
+                Triangle = 3
+
+            class CompositionStrokeLineJoin(_Enum):
+                Miter = 0
+                Bevel = 1
+                Round = 2
+                MiterOrBevel = 3
+
+            class Diagnostics:
+                class CompositionDebugOverdrawContentKinds(_Enum):
+                    None_ = 0x0
+                    OffscreenRendered = 0x1
+                    Colors = 0x2
+                    Effects = 0x4
+                    Shadows = 0x8
+                    Lights = 0x10
+                    Surfaces = 0x20
+                    SwapChains = 0x40
+
+            class Effects:
+                class SceneLightingEffectReflectanceModel(_Enum):
+                    BlinnPhong = 0
+                    PhysicallyBasedBlinnPhong = 1
+
+            class Interactions:
+                class InteractionBindingAxisModes(_Enum):
+                    None_ = 0x0
+                    PositionX = 0x1
+                    PositionY = 0x2
+                    Scale = 0x4
+
+                class InteractionChainingMode(_Enum):
+                    Auto = 0
+                    Always = 1
+                    Never = 2
+
+                class InteractionSourceMode(_Enum):
+                    Disabled = 0
+                    EnabledWithInertia = 1
+                    EnabledWithoutInertia = 2
+
+                class InteractionSourceRedirectionMode(_Enum):
+                    Disabled = 0
+                    Enabled = 1
+
+                class InteractionTrackerClampingOption(_Enum):
+                    Auto = 0
+                    Disabled = 1
+
+                class InteractionTrackerPositionUpdateOption(_Enum):
+                    Default = 0
+                    AllowActiveCustomScaleAnimation = 1
+
+                class VisualInteractionSourceRedirectionMode(_Enum):
+                    Off = 0
+                    CapableTouchpadOnly = 1
+                    PointerWheelOnly = 2
+                    CapableTouchpadAndPointerWheel = 3
+
+            class Scenes:
+                class SceneAlphaMode(_Enum):
+                    Opaque = 0
+                    AlphaTest = 1
+                    Blend = 2
+
+                class SceneAttributeSemantic(_Enum):
+                    Index = 0
+                    Vertex = 1
+                    Normal = 2
+                    TexCoord0 = 3
+                    TexCoord1 = 4
+                    Color = 5
+                    Tangent = 6
+
+                class SceneComponentType(_Enum):
+                    MeshRendererComponent = 0
+
+                class SceneWrappingMode(_Enum):
+                    ClampToEdge = 0
+                    MirroredRepeat = 1
+                    Repeat = 2
+
+            class SystemBackdrops:
+                class DesktopAcrylicKind(_Enum):
+                    Default = 0
+                    Base = 1
+                    Thin = 2
+
+                class MicaKind(_Enum):
+                    Base = 0
+                    BaseAlt = 1
+
+                class SystemBackdropState(_Enum):
+                    Active = 0
+                    Fallback = 1
+                    HighContrast = 2
+
+                class SystemBackdropTheme(_Enum):
+                    Default = 0
+                    Light = 1
+                    Dark = 2
+
+        class Content:
+            class ContentCoordinateRoundingMode(_Enum):
+                Auto = 0
+                Floor = 1
+                Round = 2
+                Ceiling = 3
+
+            class ContentLayoutDirection(_Enum):
+                LeftToRight = 0
+                RightToLeft = 1
+
+            class ContentSizePolicy(_Enum):
+                None_ = 0
+                ResizeContentToParentWindow = 1
+                ResizeParentWindowToContent = 2
+
+        class Dispatching:
+            class DispatcherQueuePriority(_Enum):
+                Normal = 0
+                High = 10
+
+            class DispatcherRunOptions(_Enum):
+                None_ = 0x0
+                ContinueOnQuit = 0x1
+                QuitOnlyLocalLoop = 0x2
+
+        class Input:
+            class CrossSlidingState(_Enum):
+                Started = 0
+                Dragging = 1
+                Selecting = 2
+                SelectSpeedBumping = 3
+                SpeedBumping = 4
+                Rearranging = 5
+                Completed = 6
+
+            class DraggingState(_Enum):
+                Started = 0
+                Continuing = 1
+                Completed = 2
+
+            class GestureSettings(_Enum):
+                None_ = 0x0
+                Tap = 0x1
+                DoubleTap = 0x2
+                Hold = 0x4
+                HoldWithMouse = 0x8
+                RightTap = 0x10
+                Drag = 0x20
+                ManipulationTranslateX = 0x40
+                ManipulationTranslateY = 0x80
+                ManipulationTranslateRailsX = 0x100
+                ManipulationTranslateRailsY = 0x200
+                ManipulationRotate = 0x400
+                ManipulationScale = 0x800
+                ManipulationTranslateInertia = 0x1000
+                ManipulationRotateInertia = 0x2000
+                ManipulationScaleInertia = 0x4000
+                CrossSlide = 0x8000
+                ManipulationMultipleFingerPanning = 0x10000
+
+            class HoldingState(_Enum):
+                Started = 0
+                Completed = 1
+                Canceled = 2
+
+            class InputActivationState(_Enum):
+                None_ = 0
+                Deactivated = 1
+                Activated = 2
+
+            class InputPointerSourceDeviceKinds(_Enum):
+                None_ = 0x0
+                Touch = 0x1
+                Pen = 0x2
+                Mouse = 0x4
+
+            class InputSystemCursorShape(_Enum):
+                Arrow = 0
+                Cross = 1
+                Hand = 3
+                Help = 4
+                IBeam = 5
+                SizeAll = 6
+                SizeNortheastSouthwest = 7
+                SizeNorthSouth = 8
+                SizeNorthwestSoutheast = 9
+                SizeWestEast = 10
+                UniversalNo = 11
+                UpArrow = 12
+                Wait = 13
+                Pin = 14
+                Person = 15
+                AppStarting = 16
+
+            class NonClientRegionKind(_Enum):
+                Close = 0
+                Maximize = 1
+                Minimize = 2
+                Icon = 3
+                Caption = 4
+                TopBorder = 5
+                LeftBorder = 6
+                BottomBorder = 7
+                RightBorder = 8
+                Passthrough = 9
+
+            class PointerDeviceType(_Enum):
+                Touch = 0
+                Pen = 1
+                Mouse = 2
+                Touchpad = 3
+
+            class PointerUpdateKind(_Enum):
+                Other = 0
+                LeftButtonPressed = 1
+                LeftButtonReleased = 2
+                RightButtonPressed = 3
+                RightButtonReleased = 4
+                MiddleButtonPressed = 5
+                MiddleButtonReleased = 6
+                XButton1Pressed = 7
+                XButton1Released = 8
+                XButton2Pressed = 9
+                XButton2Released = 10
+
+            class VirtualKeyStates(_Enum):
+                None_ = 0x0
+                Down = 0x1
+                Locked = 0x2
+
+            class DragDrop:
+                class DragDropModifiers(_Enum):
+                    None_ = 0x0
+                    Shift = 0x1
+                    Control = 0x2
+                    Alt = 0x4
+                    LeftButton = 0x8
+                    MiddleButton = 0x10
+                    RightButton = 0x20
+
+                class DragUIContentMode(_Enum):
+                    Auto = 0
+                    Deferred = 1
+
+        class Text:
+            class CaretType(_Enum):
+                Normal = 0
+                Null = 1
+
+            class FindOptions(_Enum):
+                None_ = 0x0
+                Word = 0x2
+                Case = 0x4
+
+            class FormatEffect(_Enum):
+                Off = 0
+                On = 1
+                Toggle = 2
+                Undefined = 3
+
+            class HorizontalCharacterAlignment(_Enum):
+                Left = 0
+                Right = 1
+                Center = 2
+
+            class LetterCase(_Enum):
+                Lower = 0
+                Upper = 1
+
+            class LineSpacingRule(_Enum):
+                Undefined = 0
+                Single = 1
+                OneAndHalf = 2
+                Double = 3
+                AtLeast = 4
+                Exactly = 5
+                Multiple = 6
+                Percent = 7
+
+            class LinkType(_Enum):
+                Undefined = 0
+                NotALink = 1
+                ClientLink = 2
+                FriendlyLinkName = 3
+                FriendlyLinkAddress = 4
+                AutoLink = 5
+                AutoLinkEmail = 6
+                AutoLinkPhone = 7
+                AutoLinkPath = 8
+
+            class MarkerAlignment(_Enum):
+                Undefined = 0
+                Left = 1
+                Center = 2
+                Right = 3
+
+            class MarkerStyle(_Enum):
+                Undefined = 0
+                Parenthesis = 1
+                Parentheses = 2
+                Period = 3
+                Plain = 4
+                Minus = 5
+                NoNumber = 6
+
+            class MarkerType(_Enum):
+                Undefined = 0
+                None_ = 1
+                Bullet = 2
+                Arabic = 3
+                LowercaseEnglishLetter = 4
+                UppercaseEnglishLetter = 5
+                LowercaseRoman = 6
+                UppercaseRoman = 7
+                UnicodeSequence = 8
+                CircledNumber = 9
+                BlackCircleWingding = 10
+                WhiteCircleWingding = 11
+                ArabicWide = 12
+                SimplifiedChinese = 13
+                TraditionalChinese = 14
+                JapanSimplifiedChinese = 15
+                JapanKorea = 16
+                ArabicDictionary = 17
+                ArabicAbjad = 18
+                Hebrew = 19
+                ThaiAlphabetic = 20
+                ThaiNumeric = 21
+                DevanagariVowel = 22
+                DevanagariConsonant = 23
+                DevanagariNumeric = 24
+
+            class ParagraphAlignment(_Enum):
+                Undefined = 0
+                Left = 1
+                Center = 2
+                Right = 3
+                Justify = 4
+
+            class ParagraphStyle(_Enum):
+                Undefined = 0
+                None_ = 1
+                Normal = 2
+                Heading1 = 3
+                Heading2 = 4
+                Heading3 = 5
+                Heading4 = 6
+                Heading5 = 7
+                Heading6 = 8
+                Heading7 = 9
+                Heading8 = 10
+                Heading9 = 11
+
+            class PointOptions(_Enum):
+                None_ = 0x0
+                IncludeInset = 0x1
+                Start = 0x20
+                ClientCoordinates = 0x100
+                AllowOffClient = 0x200
+                Transform = 0x400
+                NoHorizontalScroll = 0x10000
+                NoVerticalScroll = 0x40000
+
+            class RangeGravity(_Enum):
+                UIBehavior = 0
+                Backward = 1
+                Forward = 2
+                Inward = 3
+                Outward = 4
+
+            class RichEditMathMode(_Enum):
+                NoMath = 0
+                MathOnly = 1
+
+            class SelectionOptions(_Enum):
+                StartActive = 0x1
+                AtEndOfLine = 0x2
+                Overtype = 0x4
+                Active = 0x8
+                Replace = 0x10
+
+            class SelectionType(_Enum):
+                None_ = 0
+                InsertionPoint = 1
+                Normal = 2
+                InlineShape = 7
+                Shape = 8
+
+            class TabAlignment(_Enum):
+                Left = 0
+                Center = 1
+                Right = 2
+                Decimal = 3
+                Bar = 4
+
+            class TabLeader(_Enum):
+                Spaces = 0
+                Dots = 1
+                Dashes = 2
+                Lines = 3
+                ThickLines = 4
+                Equals = 5
+
+            class TextGetOptions(_Enum):
+                None_ = 0x0
+                AdjustCrlf = 0x1
+                UseCrlf = 0x2
+                UseObjectText = 0x4
+                AllowFinalEop = 0x8
+                NoHidden = 0x20
+                IncludeNumbering = 0x40
+                FormatRtf = 0x2000
+                UseLf = 0x1000000
+
+            class TextRangeUnit(_Enum):
+                Character = 0
+                Word = 1
+                Sentence = 2
+                Paragraph = 3
+                Line = 4
+                Story = 5
+                Screen = 6
+                Section = 7
+                Window = 8
+                CharacterFormat = 9
+                ParagraphFormat = 10
+                Object = 11
+                HardParagraph = 12
+                Cluster = 13
+                Bold = 14
+                Italic = 15
+                Underline = 16
+                Strikethrough = 17
+                ProtectedText = 18
+                Link = 19
+                SmallCaps = 20
+                AllCaps = 21
+                Hidden = 22
+                Outline = 23
+                Shadow = 24
+                Imprint = 25
+                Disabled = 26
+                Revised = 27
+                Subscript = 28
+                Superscript = 29
+                FontBound = 30
+                LinkProtected = 31
+                ContentLink = 32
+
+            class TextScript(_Enum):
+                Undefined = 0
+                Ansi = 1
+                EastEurope = 2
+                Cyrillic = 3
+                Greek = 4
+                Turkish = 5
+                Hebrew = 6
+                Arabic = 7
+                Baltic = 8
+                Vietnamese = 9
+                Default = 10
+                Symbol = 11
+                Thai = 12
+                ShiftJis = 13
+                GB2312 = 14
+                Hangul = 15
+                Big5 = 16
+                PC437 = 17
+                Oem = 18
+                Mac = 19
+                Armenian = 20
+                Syriac = 21
+                Thaana = 22
+                Devanagari = 23
+                Bengali = 24
+                Gurmukhi = 25
+                Gujarati = 26
+                Oriya = 27
+                Tamil = 28
+                Telugu = 29
+                Kannada = 30
+                Malayalam = 31
+                Sinhala = 32
+                Lao = 33
+                Tibetan = 34
+                Myanmar = 35
+                Georgian = 36
+                Jamo = 37
+                Ethiopic = 38
+                Cherokee = 39
+                Aboriginal = 40
+                Ogham = 41
+                Runic = 42
+                Khmer = 43
+                Mongolian = 44
+                Braille = 45
+                Yi = 46
+                Limbu = 47
+                TaiLe = 48
+                NewTaiLue = 49
+                SylotiNagri = 50
+                Kharoshthi = 51
+                Kayahli = 52
+                UnicodeSymbol = 53
+                Emoji = 54
+                Glagolitic = 55
+                Lisu = 56
+                Vai = 57
+                NKo = 58
+                Osmanya = 59
+                PhagsPa = 60
+                Gothic = 61
+                Deseret = 62
+                Tifinagh = 63
+
+            class TextSetOptions(_Enum):
+                None_ = 0x0
+                UnicodeBidi = 0x1
+                Unlink = 0x8
+                Unhide = 0x10
+                CheckTextLimit = 0x20
+                FormatRtf = 0x2000
+                ApplyRtfDocumentDefaults = 0x4000
+
+            class UnderlineType(_Enum):
+                Undefined = 0
+                None_ = 1
+                Single = 2
+                Words = 3
+                Double = 4
+                Dotted = 5
+                Dash = 6
+                DashDot = 7
+                DashDotDot = 8
+                Wave = 9
+                Thick = 10
+                Thin = 11
+                DoubleWave = 12
+                HeavyWave = 13
+                LongDash = 14
+                ThickDash = 15
+                ThickDashDot = 16
+                ThickDashDotDot = 17
+                ThickDotted = 18
+                ThickLongDash = 19
+
+            class VerticalCharacterAlignment(_Enum):
+                Top = 0
+                Baseline = 1
+                Bottom = 2
+
+        class Windowing:
+            class AppWindowPresenterKind(_Enum):
+                Default = 0
+                CompactOverlay = 1
+                FullScreen = 2
+                Overlapped = 3
+
+            class CompactOverlaySize(_Enum):
+                Small = 0
+                Medium = 1
+                Large = 2
+
+            class DisplayAreaFallback(_Enum):
+                None_ = 0
+                Primary = 1
+                Nearest = 2
+
+            class DisplayAreaWatcherStatus(_Enum):
+                Created = 0
+                Started = 1
+                EnumerationCompleted = 2
+                Stopping = 3
+                Stopped = 4
+                Aborted = 5
+
+            class IconShowOptions(_Enum):
+                ShowIconAndSystemMenu = 0
+                HideIconAndSystemMenu = 1
+
+            class OverlappedPresenterState(_Enum):
+                Maximized = 0
+                Minimized = 1
+                Restored = 2
+
+            class TitleBarHeightOption(_Enum):
+                Standard = 0
+                Tall = 1
+
+        class Xaml:
+            class ApplicationHighContrastAdjustment(_Enum):
+                None_ = 0x0
+
+            class ApplicationRequiresPointerMode(_Enum):
+                Auto = 0
+                WhenRequested = 1
+
+            class ApplicationTheme(_Enum):
+                Light = 0
+                Dark = 1
+
+            class AutomationTextAttributesEnum(_Enum):
+                AnimationStyleAttribute = 40000
+                BackgroundColorAttribute = 40001
+                BulletStyleAttribute = 40002
+                CapStyleAttribute = 40003
+                CultureAttribute = 40004
+                FontNameAttribute = 40005
+                FontSizeAttribute = 40006
+                FontWeightAttribute = 40007
+                ForegroundColorAttribute = 40008
+                HorizontalTextAlignmentAttribute = 40009
+                IndentationFirstLineAttribute = 40010
+                IndentationLeadingAttribute = 40011
+                IndentationTrailingAttribute = 40012
+                IsHiddenAttribute = 40013
+                IsItalicAttribute = 40014
+                IsReadOnlyAttribute = 40015
+                IsSubscriptAttribute = 40016
+                IsSuperscriptAttribute = 40017
+                MarginBottomAttribute = 40018
+                MarginLeadingAttribute = 40019
+                MarginTopAttribute = 40020
+                MarginTrailingAttribute = 40021
+                OutlineStylesAttribute = 40022
+                OverlineColorAttribute = 40023
+                OverlineStyleAttribute = 40024
+                StrikethroughColorAttribute = 40025
+                StrikethroughStyleAttribute = 40026
+                TabsAttribute = 40027
+                TextFlowDirectionsAttribute = 40028
+                UnderlineColorAttribute = 40029
+                UnderlineStyleAttribute = 40030
+                AnnotationTypesAttribute = 40031
+                AnnotationObjectsAttribute = 40032
+                StyleNameAttribute = 40033
+                StyleIdAttribute = 40034
+                LinkAttribute = 40035
+                IsActiveAttribute = 40036
+                SelectionActiveEndAttribute = 40037
+                CaretPositionAttribute = 40038
+                CaretBidiModeAttribute = 40039
+
+            class DurationType(_Enum):
+                Automatic = 0
+                TimeSpan = 1
+                Forever = 2
+
+            class ElementHighContrastAdjustment(_Enum):
+                None_ = 0x0
+                Application = 0x80000000
+
+            class ElementSoundKind(_Enum):
+                Focus = 0
+                Invoke = 1
+                Show = 2
+                Hide = 3
+                MovePrevious = 4
+                MoveNext = 5
+                GoBack = 6
+
+            class ElementSoundMode(_Enum):
+                Default = 0
+                FocusOnly = 1
+                Off = 2
+
+            class ElementSoundPlayerState(_Enum):
+                Auto = 0
+                Off = 1
+                On = 2
+
+            class ElementSpatialAudioMode(_Enum):
+                Auto = 0
+                Off = 1
+                On = 2
+
+            class ElementTheme(_Enum):
+                Default = 0
+                Light = 1
+                Dark = 2
+
+            class FlowDirection(_Enum):
+                LeftToRight = 0
+                RightToLeft = 1
+
+            class FocusState(_Enum):
+                Unfocused = 0
+                Pointer = 1
+                Keyboard = 2
+                Programmatic = 3
+
+            class FocusVisualKind(_Enum):
+                DottedLine = 0
+                HighVisibility = 1
+                Reveal = 2
+
+            class FontCapitals(_Enum):
+                Normal = 0
+                AllSmallCaps = 1
+                SmallCaps = 2
+                AllPetiteCaps = 3
+                PetiteCaps = 4
+                Unicase = 5
+                Titling = 6
+
+            class FontEastAsianLanguage(_Enum):
+                Normal = 0
+                HojoKanji = 1
+                Jis04 = 2
+                Jis78 = 3
+                Jis83 = 4
+                Jis90 = 5
+                NlcKanji = 6
+                Simplified = 7
+                Traditional = 8
+                TraditionalNames = 9
+
+            class FontEastAsianWidths(_Enum):
+                Normal = 0
+                Full = 1
+                Half = 2
+                Proportional = 3
+                Quarter = 4
+                Third = 5
+
+            class FontFraction(_Enum):
+                Normal = 0
+                Stacked = 1
+                Slashed = 2
+
+            class FontNumeralAlignment(_Enum):
+                Normal = 0
+                Proportional = 1
+                Tabular = 2
+
+            class FontNumeralStyle(_Enum):
+                Normal = 0
+                Lining = 1
+                OldStyle = 2
+
+            class FontVariants(_Enum):
+                Normal = 0
+                Superscript = 1
+                Subscript = 2
+                Ordinal = 3
+                Inferior = 4
+                Ruby = 5
+
+            class GridUnitType(_Enum):
+                Auto = 0
+                Pixel = 1
+                Star = 2
+
+            class HorizontalAlignment(_Enum):
+                Left = 0
+                Center = 1
+                Right = 2
+                Stretch = 3
+
+            class LineStackingStrategy(_Enum):
+                MaxHeight = 0
+                BlockLineHeight = 1
+                BaselineToBaseline = 2
+
+            class OpticalMarginAlignment(_Enum):
+                None_ = 0
+                TrimSideBearings = 1
+
+            class TextAlignment(_Enum):
+                Center = 0
+                Left = 1
+                Start = 1
+                Right = 2
+                End = 2
+                Justify = 3
+                DetectFromContent = 4
+
+            class TextLineBounds(_Enum):
+                Full = 0
+                TrimToCapHeight = 1
+                TrimToBaseline = 2
+                Tight = 3
+
+            class TextReadingOrder(_Enum):
+                Default = 0
+                UseFlowDirection = 0
+                DetectFromContent = 1
+
+            class TextTrimming(_Enum):
+                None_ = 0
+                CharacterEllipsis = 1
+                WordEllipsis = 2
+                Clip = 3
+
+            class TextWrapping(_Enum):
+                NoWrap = 1
+                Wrap = 2
+                WrapWholeWords = 3
+
+            class Vector3TransitionComponents(_Enum):
+                X = 0x1
+                Y = 0x2
+                Z = 0x4
+
+            class VerticalAlignment(_Enum):
+                Top = 0
+                Center = 1
+                Bottom = 2
+                Stretch = 3
+
+            class Visibility(_Enum):
+                Visible = 0
+                Collapsed = 1
+
+            class WindowActivationState(_Enum):
+                CodeActivated = 0
+                Deactivated = 1
+                PointerActivated = 2
+
+            class Automation:
+                class AnnotationType(_Enum):
+                    Unknown = 60000
+                    SpellingError = 60001
+                    GrammarError = 60002
+                    Comment = 60003
+                    FormulaError = 60004
+                    TrackChanges = 60005
+                    Header = 60006
+                    Footer = 60007
+                    Highlighted = 60008
+                    Endnote = 60009
+                    Footnote = 60010
+                    InsertionChange = 60011
+                    DeletionChange = 60012
+                    MoveChange = 60013
+                    FormatChange = 60014
+                    UnsyncedChange = 60015
+                    EditingLockedChange = 60016
+                    ExternalChange = 60017
+                    ConflictingChange = 60018
+                    Author = 60019
+                    AdvancedProofingIssue = 60020
+                    DataValidationError = 60021
+                    CircularReferenceError = 60022
+
+                class AutomationActiveEnd(_Enum):
+                    None_ = 0
+                    Start = 1
+                    End = 2
+
+                class AutomationAnimationStyle(_Enum):
+                    None_ = 0
+                    LasVegasLights = 1
+                    BlinkingBackground = 2
+                    SparkleText = 3
+                    MarchingBlackAnts = 4
+                    MarchingRedAnts = 5
+                    Shimmer = 6
+                    Other = 7
+
+                class AutomationBulletStyle(_Enum):
+                    None_ = 0
+                    HollowRoundBullet = 1
+                    FilledRoundBullet = 2
+                    HollowSquareBullet = 3
+                    FilledSquareBullet = 4
+                    DashBullet = 5
+                    Other = 6
+
+                class AutomationCaretBidiMode(_Enum):
+                    LTR = 0
+                    RTL = 1
+
+                class AutomationCaretPosition(_Enum):
+                    Unknown = 0
+                    EndOfLine = 1
+                    BeginningOfLine = 2
+
+                class AutomationFlowDirections(_Enum):
+                    Default = 0
+                    RightToLeft = 1
+                    BottomToTop = 2
+                    Vertical = 3
+
+                class AutomationOutlineStyles(_Enum):
+                    None_ = 0
+                    Outline = 1
+                    Shadow = 2
+                    Engraved = 3
+                    Embossed = 4
+
+                class AutomationStyleId(_Enum):
+                    Heading1 = 70001
+                    Heading2 = 70002
+                    Heading3 = 70003
+                    Heading4 = 70004
+                    Heading5 = 70005
+                    Heading6 = 70006
+                    Heading7 = 70007
+                    Heading8 = 70008
+                    Heading9 = 70009
+                    Title = 70010
+                    Subtitle = 70011
+                    Normal = 70012
+                    Emphasis = 70013
+                    Quote = 70014
+                    BulletedList = 70015
+
+                class AutomationTextDecorationLineStyle(_Enum):
+                    None_ = 0
+                    Single = 1
+                    WordsOnly = 2
+                    Double = 3
+                    Dot = 4
+                    Dash = 5
+                    DashDot = 6
+                    DashDotDot = 7
+                    Wavy = 8
+                    ThickSingle = 9
+                    DoubleWavy = 10
+                    ThickWavy = 11
+                    LongDash = 12
+                    ThickDash = 13
+                    ThickDashDot = 14
+                    ThickDashDotDot = 15
+                    ThickDot = 16
+                    ThickLongDash = 17
+                    Other = 18
+
+                class AutomationTextEditChangeType(_Enum):
+                    None_ = 0
+                    AutoCorrect = 1
+                    Composition = 2
+                    CompositionFinalized = 3
+
+                class DockPosition(_Enum):
+                    Top = 0
+                    Left = 1
+                    Bottom = 2
+                    Right = 3
+                    Fill = 4
+                    None_ = 5
+
+                class ExpandCollapseState(_Enum):
+                    Collapsed = 0
+                    Expanded = 1
+                    PartiallyExpanded = 2
+                    LeafNode = 3
+
+                class RowOrColumnMajor(_Enum):
+                    RowMajor = 0
+                    ColumnMajor = 1
+                    Indeterminate = 2
+
+                class ScrollAmount(_Enum):
+                    LargeDecrement = 0
+                    SmallDecrement = 1
+                    NoAmount = 2
+                    LargeIncrement = 3
+                    SmallIncrement = 4
+
+                class SupportedTextSelection(_Enum):
+                    None_ = 0
+                    Single = 1
+                    Multiple = 2
+
+                class SynchronizedInputType(_Enum):
+                    KeyUp = 1
+                    KeyDown = 2
+                    LeftMouseUp = 4
+                    LeftMouseDown = 8
+                    RightMouseUp = 16
+                    RightMouseDown = 32
+
+                class ToggleState(_Enum):
+                    Off = 0
+                    On = 1
+                    Indeterminate = 2
+
+                class WindowInteractionState(_Enum):
+                    Running = 0
+                    Closing = 1
+                    ReadyForUserInteraction = 2
+                    BlockedByModalWindow = 3
+                    NotResponding = 4
+
+                class WindowVisualState(_Enum):
+                    Normal = 0
+                    Maximized = 1
+                    Minimized = 2
+
+                class ZoomUnit(_Enum):
+                    NoAmount = 0
+                    LargeDecrement = 1
+                    SmallDecrement = 2
+                    LargeIncrement = 3
+                    SmallIncrement = 4
+
+                class Peers:
+                    class AccessibilityView(_Enum):
+                        Raw = 0
+                        Control = 1
+                        Content = 2
+
+                    class AutomationControlType(_Enum):
+                        Button = 0
+                        Calendar = 1
+                        CheckBox = 2
+                        ComboBox = 3
+                        Edit = 4
+                        Hyperlink = 5
+                        Image = 6
+                        ListItem = 7
+                        List = 8
+                        Menu = 9
+                        MenuBar = 10
+                        MenuItem = 11
+                        ProgressBar = 12
+                        RadioButton = 13
+                        ScrollBar = 14
+                        Slider = 15
+                        Spinner = 16
+                        StatusBar = 17
+                        Tab = 18
+                        TabItem = 19
+                        Text = 20
+                        ToolBar = 21
+                        ToolTip = 22
+                        Tree = 23
+                        TreeItem = 24
+                        Custom = 25
+                        Group = 26
+                        Thumb = 27
+                        DataGrid = 28
+                        DataItem = 29
+                        Document = 30
+                        SplitButton = 31
+                        Window = 32
+                        Pane = 33
+                        Header = 34
+                        HeaderItem = 35
+                        Table = 36
+                        TitleBar = 37
+                        Separator = 38
+                        SemanticZoom = 39
+                        AppBar = 40
+                        FlipView = 41
+
+                    class AutomationEvents(_Enum):
+                        ToolTipOpened = 0
+                        ToolTipClosed = 1
+                        MenuOpened = 2
+                        MenuClosed = 3
+                        AutomationFocusChanged = 4
+                        InvokePatternOnInvoked = 5
+                        SelectionItemPatternOnElementAddedToSelection = 6
+                        SelectionItemPatternOnElementRemovedFromSelection = 7
+                        SelectionItemPatternOnElementSelected = 8
+                        SelectionPatternOnInvalidated = 9
+                        TextPatternOnTextSelectionChanged = 10
+                        TextPatternOnTextChanged = 11
+                        AsyncContentLoaded = 12
+                        PropertyChanged = 13
+                        StructureChanged = 14
+                        DragStart = 15
+                        DragCancel = 16
+                        DragComplete = 17
+                        DragEnter = 18
+                        DragLeave = 19
+                        Dropped = 20
+                        LiveRegionChanged = 21
+                        InputReachedTarget = 22
+                        InputReachedOtherElement = 23
+                        InputDiscarded = 24
+                        WindowClosed = 25
+                        WindowOpened = 26
+                        ConversionTargetChanged = 27
+                        TextEditTextChanged = 28
+                        LayoutInvalidated = 29
+
+                    class AutomationHeadingLevel(_Enum):
+                        None_ = 0
+                        Level1 = 1
+                        Level2 = 2
+                        Level3 = 3
+                        Level4 = 4
+                        Level5 = 5
+                        Level6 = 6
+                        Level7 = 7
+                        Level8 = 8
+                        Level9 = 9
+
+                    class AutomationLandmarkType(_Enum):
+                        None_ = 0
+                        Custom = 1
+                        Form = 2
+                        Main = 3
+                        Navigation = 4
+                        Search = 5
+
+                    class AutomationLiveSetting(_Enum):
+                        Off = 0
+                        Polite = 1
+                        Assertive = 2
+
+                    class AutomationNavigationDirection(_Enum):
+                        Parent = 0
+                        NextSibling = 1
+                        PreviousSibling = 2
+                        FirstChild = 3
+                        LastChild = 4
+
+                    class AutomationNotificationKind(_Enum):
+                        ItemAdded = 0
+                        ItemRemoved = 1
+                        ActionCompleted = 2
+                        ActionAborted = 3
+                        Other = 4
+
+                    class AutomationNotificationProcessing(_Enum):
+                        ImportantAll = 0
+                        ImportantMostRecent = 1
+                        All = 2
+                        MostRecent = 3
+                        CurrentThenMostRecent = 4
+
+                    class AutomationOrientation(_Enum):
+                        None_ = 0
+                        Horizontal = 1
+                        Vertical = 2
+
+                    class AutomationStructureChangeType(_Enum):
+                        ChildAdded = 0
+                        ChildRemoved = 1
+                        ChildrenInvalidated = 2
+                        ChildrenBulkAdded = 3
+                        ChildrenBulkRemoved = 4
+                        ChildrenReordered = 5
+
+                    class PatternInterface(_Enum):
+                        Invoke = 0
+                        Selection = 1
+                        Value = 2
+                        RangeValue = 3
+                        Scroll = 4
+                        ScrollItem = 5
+                        ExpandCollapse = 6
+                        Grid = 7
+                        GridItem = 8
+                        MultipleView = 9
+                        Window = 10
+                        SelectionItem = 11
+                        Dock = 12
+                        Table = 13
+                        TableItem = 14
+                        Toggle = 15
+                        Transform = 16
+                        Text = 17
+                        ItemContainer = 18
+                        VirtualizedItem = 19
+                        Text2 = 20
+                        TextChild = 21
+                        TextRange = 22
+                        Annotation = 23
+                        Drag = 24
+                        DropTarget = 25
+                        ObjectModel = 26
+                        Spreadsheet = 27
+                        SpreadsheetItem = 28
+                        Styles = 29
+                        Transform2 = 30
+                        SynchronizedInput = 31
+                        TextEdit = 32
+                        CustomNavigation = 33
+
+                class Text:
+                    class TextPatternRangeEndpoint(_Enum):
+                        Start = 0
+                        End = 1
+
+                    class TextUnit(_Enum):
+                        Character = 0
+                        Format = 1
+                        Word = 2
+                        Line = 3
+                        Paragraph = 4
+                        Page = 5
+                        Document = 6
+
+            class Controls:
+                class AnnotatedScrollBarScrollingEventKind(_Enum):
+                    Click = 0
+                    Drag = 1
+                    IncrementButton = 2
+                    DecrementButton = 3
+
+                class AppBarClosedDisplayMode(_Enum):
+                    Compact = 0
+                    Minimal = 1
+                    Hidden = 2
+
+                class AutoSuggestionBoxTextChangeReason(_Enum):
+                    UserInput = 0
+                    ProgrammaticChange = 1
+                    SuggestionChosen = 2
+
+                class BackgroundSizing(_Enum):
+                    InnerBorderEdge = 0
+                    OuterBorderEdge = 1
+
+                class CalendarViewDisplayMode(_Enum):
+                    Month = 0
+                    Year = 1
+                    Decade = 2
+
+                class CalendarViewSelectionMode(_Enum):
+                    None_ = 0
+                    Single = 1
+                    Multiple = 2
+
+                class CandidateWindowAlignment(_Enum):
+                    Default = 0
+                    BottomEdge = 1
+
+                class CharacterCasing(_Enum):
+                    Normal = 0
+                    Lower = 1
+                    Upper = 2
+
+                class ClickMode(_Enum):
+                    Release = 0
+                    Press = 1
+                    Hover = 2
+
+                class ColorPickerHsvChannel(_Enum):
+                    Hue = 0
+                    Saturation = 1
+                    Value = 2
+                    Alpha = 3
+
+                class ColorSpectrumComponents(_Enum):
+                    HueValue = 0
+                    ValueHue = 1
+                    HueSaturation = 2
+                    SaturationHue = 3
+                    SaturationValue = 4
+                    ValueSaturation = 5
+
+                class ColorSpectrumShape(_Enum):
+                    Box = 0
+                    Ring = 1
+
+                class ComboBoxSelectionChangedTrigger(_Enum):
+                    Committed = 0
+                    Always = 1
+
+                class CommandBarDefaultLabelPosition(_Enum):
+                    Bottom = 0
+                    Right = 1
+                    Collapsed = 2
+
+                class CommandBarDynamicOverflowAction(_Enum):
+                    AddingToOverflow = 0
+                    RemovingFromOverflow = 1
+
+                class CommandBarLabelPosition(_Enum):
+                    Default = 0
+                    Collapsed = 1
+
+                class CommandBarOverflowButtonVisibility(_Enum):
+                    Auto = 0
+                    Visible = 1
+                    Collapsed = 2
+
+                class ContentDialogButton(_Enum):
+                    None_ = 0
+                    Primary = 1
+                    Secondary = 2
+                    Close = 3
+
+                class ContentDialogPlacement(_Enum):
+                    Popup = 0
+                    InPlace = 1
+
+                class ContentDialogResult(_Enum):
+                    None_ = 0
+                    Primary = 1
+                    Secondary = 2
+
+                class DisabledFormattingAccelerators(_Enum):
+                    None_ = 0x0
+                    Bold = 0x1
+                    Italic = 0x2
+                    Underline = 0x4
+
+                class ElementRealizationOptions(_Enum):
+                    None_ = 0x0
+                    ForceCreate = 0x1
+                    SuppressAutoRecycle = 0x2
+
+                class ExpandDirection(_Enum):
+                    Down = 0
+                    Up = 1
+
+                class IncrementalLoadingTrigger(_Enum):
+                    None_ = 0
+                    Edge = 1
+
+                class IndexBasedLayoutOrientation(_Enum):
+                    None_ = 0
+                    TopToBottom = 1
+                    LeftToRight = 2
+
+                class InfoBarCloseReason(_Enum):
+                    CloseButton = 0
+                    Programmatic = 1
+
+                class InfoBarSeverity(_Enum):
+                    Informational = 0
+                    Success = 1
+                    Warning = 2
+                    Error = 3
+
+                class ItemCollectionTransitionOperation(_Enum):
+                    Add = 0
+                    Remove = 1
+                    Move = 2
+
+                class ItemCollectionTransitionTriggers(_Enum):
+                    CollectionChangeAdd = 0x1
+                    CollectionChangeRemove = 0x2
+                    CollectionChangeReset = 0x4
+                    LayoutTransition = 0x8
+
+                class ItemsUpdatingScrollMode(_Enum):
+                    KeepItemsInView = 0
+                    KeepScrollOffset = 1
+                    KeepLastItemInView = 2
+
+                class ItemsViewSelectionMode(_Enum):
+                    None_ = 0
+                    Single = 1
+                    Multiple = 2
+                    Extended = 3
+
+                class LightDismissOverlayMode(_Enum):
+                    Auto = 0
+                    On = 1
+                    Off = 2
+
+                class LinedFlowLayoutItemsJustification(_Enum):
+                    Start = 0
+                    Center = 1
+                    End = 2
+                    SpaceAround = 3
+                    SpaceBetween = 4
+                    SpaceEvenly = 5
+
+                class LinedFlowLayoutItemsStretch(_Enum):
+                    None_ = 0
+                    Fill = 1
+
+                class ListPickerFlyoutSelectionMode(_Enum):
+                    Single = 0
+                    Multiple = 1
+
+                class ListViewReorderMode(_Enum):
+                    Disabled = 0
+                    Enabled = 1
+
+                class ListViewSelectionMode(_Enum):
+                    None_ = 0
+                    Single = 1
+                    Multiple = 2
+                    Extended = 3
+
+                class NavigationViewBackButtonVisible(_Enum):
+                    Collapsed = 0
+                    Visible = 1
+                    Auto = 2
+
+                class NavigationViewDisplayMode(_Enum):
+                    Minimal = 0
+                    Compact = 1
+                    Expanded = 2
+
+                class NavigationViewOverflowLabelMode(_Enum):
+                    MoreLabel = 0
+                    NoLabel = 1
+
+                class NavigationViewPaneDisplayMode(_Enum):
+                    Auto = 0
+                    Left = 1
+                    Top = 2
+                    LeftCompact = 3
+                    LeftMinimal = 4
+
+                class NavigationViewSelectionFollowsFocus(_Enum):
+                    Disabled = 0
+                    Enabled = 1
+
+                class NavigationViewShoulderNavigationEnabled(_Enum):
+                    WhenSelectionFollowsFocus = 0
+                    Always = 1
+                    Never = 2
+
+                class NumberBoxSpinButtonPlacementMode(_Enum):
+                    Hidden = 0
+                    Compact = 1
+                    Inline = 2
+
+                class NumberBoxValidationMode(_Enum):
+                    InvalidInputOverwritten = 0
+                    Disabled = 1
+
+                class Orientation(_Enum):
+                    Vertical = 0
+                    Horizontal = 1
+
+                class PanelScrollingDirection(_Enum):
+                    None_ = 0
+                    Forward = 1
+                    Backward = 2
+
+                class ParallaxSourceOffsetKind(_Enum):
+                    Absolute = 0
+                    Relative = 1
+
+                class PasswordRevealMode(_Enum):
+                    Peek = 0
+                    Hidden = 1
+                    Visible = 2
+
+                class PipsPagerButtonVisibility(_Enum):
+                    Visible = 0
+                    VisibleOnPointerOver = 1
+                    Collapsed = 2
+
+                class PivotHeaderFocusVisualPlacement(_Enum):
+                    ItemHeaders = 0
+                    SelectedItemHeader = 1
+
+                class PivotSlideInAnimationGroup(_Enum):
+                    Default = 0
+                    GroupOne = 1
+                    GroupTwo = 2
+                    GroupThree = 3
+
+                class PlayerAnimationOptimization(_Enum):
+                    Latency = 0
+                    Resources = 1
+
+                class RefreshPullDirection(_Enum):
+                    LeftToRight = 0
+                    TopToBottom = 1
+                    RightToLeft = 2
+                    BottomToTop = 3
+
+                class RefreshVisualizerOrientation(_Enum):
+                    Auto = 0
+                    Normal = 1
+                    Rotate90DegreesCounterclockwise = 2
+                    Rotate270DegreesCounterclockwise = 3
+
+                class RefreshVisualizerState(_Enum):
+                    Idle = 0
+                    Peeking = 1
+                    Interacting = 2
+                    Pending = 3
+                    Refreshing = 4
+
+                class RequiresPointer(_Enum):
+                    Never = 0
+                    WhenEngaged = 1
+                    WhenFocused = 2
+
+                class RichEditClipboardFormat(_Enum):
+                    AllFormats = 0
+                    PlainText = 1
+
+                class ScrollBarVisibility(_Enum):
+                    Disabled = 0
+                    Auto = 1
+                    Hidden = 2
+                    Visible = 3
+
+                class ScrollIntoViewAlignment(_Enum):
+                    Default = 0
+                    Leading = 1
+
+                class ScrollMode(_Enum):
+                    Disabled = 0
+                    Enabled = 1
+                    Auto = 2
+
+                class ScrollingAnimationMode(_Enum):
+                    Disabled = 0
+                    Enabled = 1
+                    Auto = 2
+
+                class ScrollingChainMode(_Enum):
+                    Auto = 0
+                    Always = 1
+                    Never = 2
+
+                class ScrollingContentOrientation(_Enum):
+                    Vertical = 0
+                    Horizontal = 1
+                    None_ = 2
+                    Both = 3
+
+                class ScrollingInputKinds(_Enum):
+                    None_ = 0x0
+                    Touch = 0x1
+                    Pen = 0x2
+                    MouseWheel = 0x4
+                    Keyboard = 0x8
+                    Gamepad = 0x10
+
+                class ScrollingInteractionState(_Enum):
+                    Idle = 0
+                    Interaction = 1
+                    Inertia = 2
+                    Animation = 3
+
+                class ScrollingRailMode(_Enum):
+                    Enabled = 0
+                    Disabled = 1
+
+                class ScrollingScrollBarVisibility(_Enum):
+                    Auto = 0
+                    Visible = 1
+                    Hidden = 2
+
+                class ScrollingScrollMode(_Enum):
+                    Enabled = 0
+                    Disabled = 1
+                    Auto = 2
+
+                class ScrollingSnapPointsMode(_Enum):
+                    Default = 0
+                    Ignore = 1
+
+                class ScrollingZoomMode(_Enum):
+                    Enabled = 0
+                    Disabled = 1
+
+                class SelectionMode(_Enum):
+                    Single = 0
+                    Multiple = 1
+                    Extended = 2
+
+                class SnapPointsType(_Enum):
+                    None_ = 0
+                    Optional = 1
+                    Mandatory = 2
+                    OptionalSingle = 3
+                    MandatorySingle = 4
+
+                class SplitViewDisplayMode(_Enum):
+                    Overlay = 0
+                    Inline = 1
+                    CompactOverlay = 2
+                    CompactInline = 3
+
+                class SplitViewPanePlacement(_Enum):
+                    Left = 0
+                    Right = 1
+
+                class StretchDirection(_Enum):
+                    UpOnly = 0
+                    DownOnly = 1
+                    Both = 2
+
+                class SwipeBehaviorOnInvoked(_Enum):
+                    Auto = 0
+                    Close = 1
+                    RemainOpen = 2
+
+                class SwipeMode(_Enum):
+                    Reveal = 0
+                    Execute = 1
+
+                class Symbol(_Enum):
+                    Previous = 57600
+                    Next = 57601
+                    Play = 57602
+                    Pause = 57603
+                    Edit = 57604
+                    Save = 57605
+                    Clear = 57606
+                    Delete = 57607
+                    Remove = 57608
+                    Add = 57609
+                    Cancel = 57610
+                    Accept = 57611
+                    More = 57612
+                    Redo = 57613
+                    Undo = 57614
+                    Home = 57615
+                    Up = 57616
+                    Forward = 57617
+                    Back = 57618
+                    Favorite = 57619
+                    Camera = 57620
+                    Setting = 57621
+                    Video = 57622
+                    Sync = 57623
+                    Download = 57624
+                    Mail = 57625
+                    Find = 57626
+                    Help = 57627
+                    Upload = 57628
+                    Emoji = 57629
+                    TwoPage = 57630
+                    LeaveChat = 57631
+                    MailForward = 57632
+                    Clock = 57633
+                    Send = 57634
+                    Crop = 57635
+                    RotateCamera = 57636
+                    People = 57637
+                    OpenPane = 57638
+                    ClosePane = 57639
+                    World = 57640
+                    Flag = 57641
+                    PreviewLink = 57642
+                    Globe = 57643
+                    Trim = 57644
+                    AttachCamera = 57645
+                    ZoomIn = 57646
+                    Bookmarks = 57647
+                    Document = 57648
+                    ProtectedDocument = 57649
+                    Page = 57650
+                    Bullets = 57651
+                    Comment = 57652
+                    MailFilled = 57653
+                    ContactInfo = 57654
+                    HangUp = 57655
+                    ViewAll = 57656
+                    MapPin = 57657
+                    Phone = 57658
+                    VideoChat = 57659
+                    Switch = 57660
+                    Contact = 57661
+                    Rename = 57662
+                    Pin = 57665
+                    MusicInfo = 57666
+                    Go = 57667
+                    Keyboard = 57668
+                    DockLeft = 57669
+                    DockRight = 57670
+                    DockBottom = 57671
+                    Remote = 57672
+                    Refresh = 57673
+                    Rotate = 57674
+                    Shuffle = 57675
+                    List = 57676
+                    Shop = 57677
+                    SelectAll = 57678
+                    Orientation = 57679
+                    Import = 57680
+                    ImportAll = 57681
+                    BrowsePhotos = 57685
+                    WebCam = 57686
+                    Pictures = 57688
+                    SaveLocal = 57689
+                    Caption = 57690
+                    Stop = 57691
+                    ShowResults = 57692
+                    Volume = 57693
+                    Repair = 57694
+                    Message = 57695
+                    Page2 = 57696
+                    CalendarDay = 57697
+                    CalendarWeek = 57698
+                    Calendar = 57699
+                    Character = 57700
+                    MailReplyAll = 57701
+                    Read = 57702
+                    Link = 57703
+                    Account = 57704
+                    ShowBcc = 57705
+                    HideBcc = 57706
+                    Cut = 57707
+                    Attach = 57708
+                    Paste = 57709
+                    Filter = 57710
+                    Copy = 57711
+                    Emoji2 = 57712
+                    Important = 57713
+                    MailReply = 57714
+                    SlideShow = 57715
+                    Sort = 57716
+                    Manage = 57720
+                    AllApps = 57721
+                    DisconnectDrive = 57722
+                    MapDrive = 57723
+                    NewWindow = 57724
+                    OpenWith = 57725
+                    ContactPresence = 57729
+                    Priority = 57730
+                    GoToToday = 57732
+                    Font = 57733
+                    FontColor = 57734
+                    Contact2 = 57735
+                    Folder = 57736
+                    Audio = 57737
+                    Placeholder = 57738
+                    View = 57739
+                    SetLockScreen = 57740
+                    SetTile = 57741
+                    ClosedCaption = 57744
+                    StopSlideShow = 57745
+                    Permissions = 57746
+                    Highlight = 57747
+                    DisableUpdates = 57748
+                    UnFavorite = 57749
+                    UnPin = 57750
+                    OpenLocal = 57751
+                    Mute = 57752
+                    Italic = 57753
+                    Underline = 57754
+                    Bold = 57755
+                    MoveToFolder = 57756
+                    LikeDislike = 57757
+                    Dislike = 57758
+                    Like = 57759
+                    AlignRight = 57760
+                    AlignCenter = 57761
+                    AlignLeft = 57762
+                    Zoom = 57763
+                    ZoomOut = 57764
+                    OpenFile = 57765
+                    OtherUser = 57766
+                    Admin = 57767
+                    Street = 57795
+                    Map = 57796
+                    ClearSelection = 57797
+                    FontDecrease = 57798
+                    FontIncrease = 57799
+                    FontSize = 57800
+                    CellPhone = 57801
+                    ReShare = 57802
+                    Tag = 57803
+                    RepeatOne = 57804
+                    RepeatAll = 57805
+                    OutlineStar = 57806
+                    SolidStar = 57807
+                    Calculator = 57808
+                    Directions = 57809
+                    Target = 57810
+                    Library = 57811
+                    PhoneBook = 57812
+                    Memo = 57813
+                    Microphone = 57814
+                    PostUpdate = 57815
+                    BackToWindow = 57816
+                    FullScreen = 57817
+                    NewFolder = 57818
+                    CalendarReply = 57819
+                    UnSyncFolder = 57821
+                    ReportHacked = 57822
+                    SyncFolder = 57823
+                    BlockContact = 57824
+                    SwitchApps = 57825
+                    AddFriend = 57826
+                    TouchPointer = 57827
+                    GoToStart = 57828
+                    ZeroBars = 57829
+                    OneBar = 57830
+                    TwoBars = 57831
+                    ThreeBars = 57832
+                    FourBars = 57833
+                    Scan = 58004
+                    Preview = 58005
+                    GlobalNavigationButton = 59136
+                    Share = 59181
+                    Print = 59209
+                    XboxOneConsole = 59792
+
+                class TabViewCloseButtonOverlayMode(_Enum):
+                    Auto = 0
+                    OnPointerOver = 1
+                    Always = 2
+
+                class TabViewWidthMode(_Enum):
+                    Equal = 0
+                    SizeToContent = 1
+                    Compact = 2
+
+                class TeachingTipCloseReason(_Enum):
+                    CloseButton = 0
+                    LightDismiss = 1
+                    Programmatic = 2
+
+                class TeachingTipHeroContentPlacementMode(_Enum):
+                    Auto = 0
+                    Top = 1
+                    Bottom = 2
+
+                class TeachingTipPlacementMode(_Enum):
+                    Auto = 0
+                    Top = 1
+                    Bottom = 2
+                    Left = 3
+                    Right = 4
+                    TopRight = 5
+                    TopLeft = 6
+                    BottomRight = 7
+                    BottomLeft = 8
+                    LeftTop = 9
+                    LeftBottom = 10
+                    RightTop = 11
+                    RightBottom = 12
+                    Center = 13
+
+                class TeachingTipTailVisibility(_Enum):
+                    Auto = 0
+                    Visible = 1
+                    Collapsed = 2
+
+                class TreeViewSelectionMode(_Enum):
+                    None_ = 0
+                    Single = 1
+                    Multiple = 2
+
+                class TwoPaneViewMode(_Enum):
+                    SinglePane = 0
+                    Wide = 1
+                    Tall = 2
+
+                class TwoPaneViewPriority(_Enum):
+                    Pane1 = 0
+                    Pane2 = 1
+
+                class TwoPaneViewTallModeConfiguration(_Enum):
+                    SinglePane = 0
+                    TopBottom = 1
+                    BottomTop = 2
+
+                class TwoPaneViewWideModeConfiguration(_Enum):
+                    SinglePane = 0
+                    LeftRight = 1
+                    RightLeft = 2
+
+                class UniformGridLayoutItemsJustification(_Enum):
+                    Start = 0
+                    Center = 1
+                    End = 2
+                    SpaceAround = 3
+                    SpaceBetween = 4
+                    SpaceEvenly = 5
+
+                class UniformGridLayoutItemsStretch(_Enum):
+                    None_ = 0
+                    Fill = 1
+                    Uniform = 2
+
+                class VirtualizationMode(_Enum):
+                    Standard = 0
+                    Recycling = 1
+
+                class ZoomMode(_Enum):
+                    Disabled = 0
+                    Enabled = 1
+
+                class Primitives:
+                    class AnimationDirection(_Enum):
+                        Left = 0
+                        Top = 1
+                        Right = 2
+                        Bottom = 3
+
+                    class ComponentResourceLocation(_Enum):
+                        Application = 0
+                        Nested = 1
+
+                    class CornerRadiusFilterKind(_Enum):
+                        None_ = 0
+                        Top = 1
+                        Right = 2
+                        Bottom = 3
+                        Left = 4
+                        TopLeftValue = 5
+                        BottomRightValue = 6
+
+                    class CornerRadiusToThicknessConverterKind(_Enum):
+                        FilterTopAndBottomFromLeft = 0
+                        FilterTopAndBottomFromRight = 1
+                        FilterLeftAndRightFromTop = 2
+                        FilterLeftAndRightFromBottom = 3
+                        FilterTopFromTopLeft = 4
+                        FilterTopFromTopRight = 5
+                        FilterRightFromTopRight = 6
+                        FilterRightFromBottomRight = 7
+                        FilterBottomFromBottomRight = 8
+                        FilterBottomFromBottomLeft = 9
+                        FilterLeftFromBottomLeft = 10
+                        FilterLeftFromTopLeft = 11
+
+                    class EdgeTransitionLocation(_Enum):
+                        Left = 0
+                        Top = 1
+                        Right = 2
+                        Bottom = 3
+
+                    class FlyoutPlacementMode(_Enum):
+                        Top = 0
+                        Bottom = 1
+                        Left = 2
+                        Right = 3
+                        Full = 4
+                        TopEdgeAlignedLeft = 5
+                        TopEdgeAlignedRight = 6
+                        BottomEdgeAlignedLeft = 7
+                        BottomEdgeAlignedRight = 8
+                        LeftEdgeAlignedTop = 9
+                        LeftEdgeAlignedBottom = 10
+                        RightEdgeAlignedTop = 11
+                        RightEdgeAlignedBottom = 12
+                        Auto = 13
+
+                    class FlyoutShowMode(_Enum):
+                        Auto = 0
+                        Standard = 1
+                        Transient = 2
+                        TransientWithDismissOnPointerMoveAway = 3
+
+                    class GeneratorDirection(_Enum):
+                        Forward = 0
+                        Backward = 1
+
+                    class GroupHeaderPlacement(_Enum):
+                        Top = 0
+                        Left = 1
+
+                    class ListViewItemPresenterCheckMode(_Enum):
+                        Inline = 0
+                        Overlay = 1
+
+                    class ListViewItemPresenterSelectionIndicatorMode(_Enum):
+                        Inline = 0
+                        Overlay = 1
+
+                    class PlacementMode(_Enum):
+                        Bottom = 2
+                        Left = 9
+                        Mouse = 7
+                        Right = 4
+                        Top = 10
+
+                    class PopupPlacementMode(_Enum):
+                        Auto = 0
+                        Top = 1
+                        Bottom = 2
+                        Left = 3
+                        Right = 4
+                        TopEdgeAlignedLeft = 5
+                        TopEdgeAlignedRight = 6
+                        BottomEdgeAlignedLeft = 7
+                        BottomEdgeAlignedRight = 8
+                        LeftEdgeAlignedTop = 9
+                        LeftEdgeAlignedBottom = 10
+                        RightEdgeAlignedTop = 11
+                        RightEdgeAlignedBottom = 12
+
+                    class ScrollEventType(_Enum):
+                        SmallDecrement = 0
+                        SmallIncrement = 1
+                        LargeDecrement = 2
+                        LargeIncrement = 3
+                        ThumbPosition = 4
+                        ThumbTrack = 5
+                        First = 6
+                        Last = 7
+                        EndScroll = 8
+
+                    class ScrollSnapPointsAlignment(_Enum):
+                        Near = 0
+                        Center = 1
+                        Far = 2
+
+                    class ScrollingIndicatorMode(_Enum):
+                        None_ = 0
+                        TouchIndicator = 1
+                        MouseIndicator = 2
+
+                    class SliderSnapsTo(_Enum):
+                        StepValues = 0
+                        Ticks = 1
+
+                    class SnapPointsAlignment(_Enum):
+                        Near = 0
+                        Center = 1
+                        Far = 2
+
+                    class TickPlacement(_Enum):
+                        None_ = 0
+                        TopLeft = 1
+                        BottomRight = 2
+                        Outside = 3
+                        Inline = 4
+
+            class Data:
+                class BindingMode(_Enum):
+                    OneWay = 1
+                    OneTime = 2
+                    TwoWay = 3
+
+                class RelativeSourceMode(_Enum):
+                    None_ = 0
+                    TemplatedParent = 1
+                    Self = 2
+
+                class UpdateSourceTrigger(_Enum):
+                    Default = 0
+                    PropertyChanged = 1
+                    Explicit = 2
+                    LostFocus = 3
+
+            class Documents:
+                class LogicalDirection(_Enum):
+                    Backward = 0
+                    Forward = 1
+
+                class UnderlineStyle(_Enum):
+                    None_ = 0
+                    Single = 1
+
+            class Hosting:
+                class XamlSourceFocusNavigationReason(_Enum):
+                    Programmatic = 0
+                    Restore = 1
+                    First = 3
+                    Last = 4
+                    Left = 7
+                    Up = 8
+                    Right = 9
+                    Down = 10
+
+            class Input:
+                class FocusInputDeviceKind(_Enum):
+                    None_ = 0
+                    Mouse = 1
+                    Touch = 2
+                    Pen = 3
+                    Keyboard = 4
+                    GameController = 5
+
+                class FocusNavigationDirection(_Enum):
+                    Next = 0
+                    Previous = 1
+                    Up = 2
+                    Down = 3
+                    Left = 4
+                    Right = 5
+                    None_ = 6
+
+                class InputScopeNameValue(_Enum):
+                    Default = 0
+                    Url = 1
+                    EmailSmtpAddress = 5
+                    PersonalFullName = 7
+                    CurrencyAmountAndSymbol = 20
+                    CurrencyAmount = 21
+                    DateMonthNumber = 23
+                    DateDayNumber = 24
+                    DateYear = 25
+                    Digits = 28
+                    Number = 29
+                    Password = 31
+                    TelephoneNumber = 32
+                    TelephoneCountryCode = 33
+                    TelephoneAreaCode = 34
+                    TelephoneLocalNumber = 35
+                    TimeHour = 37
+                    TimeMinutesOrSeconds = 38
+                    NumberFullWidth = 39
+                    AlphanumericHalfWidth = 40
+                    AlphanumericFullWidth = 41
+                    Hiragana = 44
+                    KatakanaHalfWidth = 45
+                    KatakanaFullWidth = 46
+                    Hanja = 47
+                    HangulHalfWidth = 48
+                    HangulFullWidth = 49
+                    Search = 50
+                    Formula = 51
+                    SearchIncremental = 52
+                    ChineseHalfWidth = 53
+                    ChineseFullWidth = 54
+                    NativeScript = 55
+                    Text = 57
+                    Chat = 58
+                    NameOrPhoneNumber = 59
+                    EmailNameOrAddress = 60
+                    Maps = 62
+                    NumericPassword = 63
+                    NumericPin = 64
+                    AlphanumericPin = 65
+                    FormulaNumber = 67
+                    ChatWithoutEmoji = 68
+
+                class KeyTipPlacementMode(_Enum):
+                    Auto = 0
+                    Bottom = 1
+                    Top = 2
+                    Left = 3
+                    Right = 4
+                    Center = 5
+                    Hidden = 6
+
+                class KeyboardAcceleratorPlacementMode(_Enum):
+                    Auto = 0
+                    Hidden = 1
+
+                class KeyboardNavigationMode(_Enum):
+                    Local = 0
+                    Cycle = 1
+                    Once = 2
+
+                class ManipulationModes(_Enum):
+                    None_ = 0x0
+                    TranslateX = 0x1
+                    TranslateY = 0x2
+                    TranslateRailsX = 0x4
+                    TranslateRailsY = 0x8
+                    Rotate = 0x10
+                    Scale = 0x20
+                    TranslateInertia = 0x40
+                    RotateInertia = 0x80
+                    ScaleInertia = 0x100
+                    System = 0x10000
+
+                class StandardUICommandKind(_Enum):
+                    None_ = 0
+                    Cut = 1
+                    Copy = 2
+                    Paste = 3
+                    SelectAll = 4
+                    Delete = 5
+                    Share = 6
+                    Save = 7
+                    Open = 8
+                    Close = 9
+                    Pause = 10
+                    Play = 11
+                    Stop = 12
+                    Forward = 13
+                    Backward = 14
+                    Undo = 15
+                    Redo = 16
+
+                class XYFocusKeyboardNavigationMode(_Enum):
+                    Auto = 0
+                    Enabled = 1
+                    Disabled = 2
+
+                class XYFocusNavigationStrategy(_Enum):
+                    Auto = 0
+                    Projection = 1
+                    NavigationDirectionDistance = 2
+                    RectilinearDistance = 3
+
+                class XYFocusNavigationStrategyOverride(_Enum):
+                    None_ = 0
+                    Auto = 1
+                    Projection = 2
+                    NavigationDirectionDistance = 3
+                    RectilinearDistance = 4
+
+            class Interop:
+                class NotifyCollectionChangedAction(_Enum):
+                    Add = 0
+                    Remove = 1
+                    Replace = 2
+                    Move = 3
+                    Reset = 4
+
+            class Media:
+                class AlignmentX(_Enum):
+                    Left = 0
+                    Center = 1
+                    Right = 2
+
+                class AlignmentY(_Enum):
+                    Top = 0
+                    Center = 1
+                    Bottom = 2
+
+                class BrushMappingMode(_Enum):
+                    Absolute = 0
+                    RelativeToBoundingBox = 1
+
+                class ColorInterpolationMode(_Enum):
+                    ScRgbLinearInterpolation = 0
+                    SRgbLinearInterpolation = 1
+
+                class ElementCompositeMode(_Enum):
+                    Inherit = 0
+                    SourceOver = 1
+                    MinBlend = 2
+
+                class FastPlayFallbackBehaviour(_Enum):
+                    Skip = 0
+                    Hide = 1
+                    Disable = 2
+
+                class FillRule(_Enum):
+                    EvenOdd = 0
+                    Nonzero = 1
+
+                class GradientSpreadMethod(_Enum):
+                    Pad = 0
+                    Reflect = 1
+                    Repeat = 2
+
+                class LoadedImageSourceLoadStatus(_Enum):
+                    Success = 0
+                    NetworkError = 1
+                    InvalidFormat = 2
+                    Other = 3
+
+                class PenLineCap(_Enum):
+                    Flat = 0
+                    Square = 1
+                    Round = 2
+                    Triangle = 3
+
+                class PenLineJoin(_Enum):
+                    Miter = 0
+                    Bevel = 1
+                    Round = 2
+
+                class Stretch(_Enum):
+                    None_ = 0
+                    Fill = 1
+                    Uniform = 2
+                    UniformToFill = 3
+
+                class StyleSimulations(_Enum):
+                    None_ = 0
+                    BoldSimulation = 1
+                    ItalicSimulation = 2
+                    BoldItalicSimulation = 3
+
+                class SweepDirection(_Enum):
+                    Counterclockwise = 0
+                    Clockwise = 1
+
+                class Animation:
+                    class ClockState(_Enum):
+                        Active = 0
+                        Filling = 1
+                        Stopped = 2
+
+                    class ConnectedAnimationComponent(_Enum):
+                        OffsetX = 0
+                        OffsetY = 1
+                        CrossFade = 2
+                        Scale = 3
+
+                    class EasingMode(_Enum):
+                        EaseOut = 0
+                        EaseIn = 1
+                        EaseInOut = 2
+
+                    class FillBehavior(_Enum):
+                        HoldEnd = 0
+                        Stop = 1
+
+                    class RepeatBehaviorType(_Enum):
+                        Count = 0
+                        Duration = 1
+                        Forever = 2
+
+                    class SlideNavigationTransitionEffect(_Enum):
+                        FromBottom = 0
+                        FromLeft = 1
+                        FromRight = 2
+
+                class Imaging:
+                    class BitmapCreateOptions(_Enum):
+                        None_ = 0x0
+                        IgnoreImageCache = 0x8
+
+                    class DecodePixelType(_Enum):
+                        Physical = 0
+                        Logical = 1
+
+                    class SvgImageSourceLoadStatus(_Enum):
+                        Success = 0
+                        NetworkError = 1
+                        InvalidFormat = 2
+                        Other = 3
+
+            class Navigation:
+                class NavigationCacheMode(_Enum):
+                    Disabled = 0
+                    Required = 1
+                    Enabled = 2
+
+                class NavigationMode(_Enum):
+                    New = 0
+                    Back = 1
+                    Forward = 2
+                    Refresh = 3
+
+            class Printing:
+                class PreviewPageCountType(_Enum):
+                    Final = 0
+                    Intermediate = 1
+
+    class Web:
+        class WebView2:
+            class Core:
+                class CoreWebView2BoundsMode(_Enum):
+                    UseRawPixels = 0
+                    UseRasterizationScale = 1
+
+                class CoreWebView2BrowserProcessExitKind(_Enum):
+                    Normal = 0
+                    Failed = 1
+
+                class CoreWebView2BrowsingDataKinds(_Enum):
+                    FileSystems = 0x1
+                    IndexedDb = 0x2
+                    LocalStorage = 0x4
+                    WebSql = 0x8
+                    CacheStorage = 0x10
+                    AllDomStorage = 0x20
+                    Cookies = 0x40
+                    AllSite = 0x80
+                    DiskCache = 0x100
+                    DownloadHistory = 0x200
+                    GeneralAutofill = 0x400
+                    PasswordAutosave = 0x800
+                    BrowsingHistory = 0x1000
+                    Settings = 0x2000
+                    AllProfile = 0x4000
+
+                class CoreWebView2CapturePreviewImageFormat(_Enum):
+                    Png = 0
+                    Jpeg = 1
+
+                class CoreWebView2ClientCertificateKind(_Enum):
+                    SmartCard = 0
+                    Pin = 1
+                    Other = 2
+
+                class CoreWebView2ContextMenuItemKind(_Enum):
+                    Command = 0
+                    CheckBox = 1
+                    Radio = 2
+                    Separator = 3
+                    Submenu = 4
+
+                class CoreWebView2ContextMenuTargetKind(_Enum):
+                    Page = 0
+                    Image = 1
+                    SelectedText = 2
+                    Audio = 3
+                    Video = 4
+
+                class CoreWebView2CookieSameSiteKind(_Enum):
+                    None_ = 0
+                    Lax = 1
+                    Strict = 2
+
+                class CoreWebView2DefaultDownloadDialogCornerAlignment(_Enum):
+                    TopLeft = 0
+                    TopRight = 1
+                    BottomLeft = 2
+                    BottomRight = 3
+
+                class CoreWebView2DownloadInterruptReason(_Enum):
+                    None_ = 0
+                    FileFailed = 1
+                    FileAccessDenied = 2
+                    FileNoSpace = 3
+                    FileNameTooLong = 4
+                    FileTooLarge = 5
+                    FileMalicious = 6
+                    FileTransientError = 7
+                    FileBlockedByPolicy = 8
+                    FileSecurityCheckFailed = 9
+                    FileTooShort = 10
+                    FileHashMismatch = 11
+                    NetworkFailed = 12
+                    NetworkTimeout = 13
+                    NetworkDisconnected = 14
+                    NetworkServerDown = 15
+                    NetworkInvalidRequest = 16
+                    ServerFailed = 17
+                    ServerNoRange = 18
+                    ServerBadContent = 19
+                    ServerUnauthorized = 20
+                    ServerCertificateProblem = 21
+                    ServerForbidden = 22
+                    ServerUnexpectedResponse = 23
+                    ServerContentLengthMismatch = 24
+                    ServerCrossOriginRedirect = 25
+                    UserCanceled = 26
+                    UserShutdown = 27
+                    UserPaused = 28
+                    DownloadProcessCrashed = 29
+
+                class CoreWebView2DownloadState(_Enum):
+                    InProgress = 0
+                    Interrupted = 1
+                    Completed = 2
+
+                class CoreWebView2FaviconImageFormat(_Enum):
+                    Png = 0
+                    Jpeg = 1
+
+                class CoreWebView2HostResourceAccessKind(_Enum):
+                    Deny = 0
+                    Allow = 1
+                    DenyCors = 2
+
+                class CoreWebView2KeyEventKind(_Enum):
+                    KeyDown = 0
+                    KeyUp = 1
+                    SystemKeyDown = 2
+                    SystemKeyUp = 3
+
+                class CoreWebView2MemoryUsageTargetLevel(_Enum):
+                    Normal = 0
+                    Low = 1
+
+                class CoreWebView2MouseEventKind(_Enum):
+                    HorizontalWheel = 526
+                    LeftButtonDoubleClick = 515
+                    LeftButtonDown = 513
+                    LeftButtonUp = 514
+                    Leave = 675
+                    MiddleButtonDoubleClick = 521
+                    MiddleButtonDown = 519
+                    MiddleButtonUp = 520
+                    Move = 512
+                    RightButtonDoubleClick = 518
+                    RightButtonDown = 516
+                    RightButtonUp = 517
+                    Wheel = 522
+                    XButtonDoubleClick = 525
+                    XButtonDown = 523
+                    XButtonUp = 524
+
+                class CoreWebView2MouseEventVirtualKeys(_Enum):
+                    None_ = 0x0
+                    LeftButton = 0x1
+                    RightButton = 0x2
+                    Shift = 0x4
+                    Control = 0x8
+                    MiddleButton = 0x10
+                    XButton1 = 0x20
+                    XButton2 = 0x40
+
+                class CoreWebView2MoveFocusReason(_Enum):
+                    Programmatic = 0
+                    Next = 1
+                    Previous = 2
+
+                class CoreWebView2PdfToolbarItems(_Enum):
+                    None_ = 0x0
+                    Save = 0x1
+                    Print = 0x2
+                    SaveAs = 0x4
+                    ZoomIn = 0x8
+                    ZoomOut = 0x10
+                    Rotate = 0x20
+                    FitPage = 0x40
+                    PageLayout = 0x80
+                    Bookmarks = 0x100
+                    PageSelector = 0x200
+                    Search = 0x400
+                    FullScreen = 0x800
+                    MoreSettings = 0x1000
+
+                class CoreWebView2PermissionKind(_Enum):
+                    UnknownPermission = 0
+                    Microphone = 1
+                    Camera = 2
+                    Geolocation = 3
+                    Notifications = 4
+                    OtherSensors = 5
+                    ClipboardRead = 6
+                    MultipleAutomaticDownloads = 7
+                    FileReadWrite = 8
+                    Autoplay = 9
+                    LocalFonts = 10
+                    MidiSystemExclusiveMessages = 11
+                    WindowManagement = 12
+
+                class CoreWebView2PermissionState(_Enum):
+                    Default = 0
+                    Allow = 1
+                    Deny = 2
+
+                class CoreWebView2PointerEventKind(_Enum):
+                    Activate = 587
+                    Down = 582
+                    Enter = 585
+                    Leave = 586
+                    Up = 583
+                    Update = 581
+
+                class CoreWebView2PreferredColorScheme(_Enum):
+                    Auto = 0
+                    Light = 1
+                    Dark = 2
+
+                class CoreWebView2PrintCollation(_Enum):
+                    Default = 0
+                    Collated = 1
+                    Uncollated = 2
+
+                class CoreWebView2PrintColorMode(_Enum):
+                    Default = 0
+                    Color = 1
+                    Grayscale = 2
+
+                class CoreWebView2PrintDialogKind(_Enum):
+                    Browser = 0
+                    System = 1
+
+                class CoreWebView2PrintDuplex(_Enum):
+                    Default = 0
+                    OneSided = 1
+                    TwoSidedLongEdge = 2
+                    TwoSidedShortEdge = 3
+
+                class CoreWebView2PrintMediaSize(_Enum):
+                    Default = 0
+                    Custom = 1
+
+                class CoreWebView2PrintOrientation(_Enum):
+                    Portrait = 0
+                    Landscape = 1
+
+                class CoreWebView2PrintStatus(_Enum):
+                    Succeeded = 0
+                    PrinterUnavailable = 1
+                    OtherError = 2
+
+                class CoreWebView2ProcessFailedKind(_Enum):
+                    BrowserProcessExited = 0
+                    RenderProcessExited = 1
+                    RenderProcessUnresponsive = 2
+                    FrameRenderProcessExited = 3
+                    UtilityProcessExited = 4
+                    SandboxHelperProcessExited = 5
+                    GpuProcessExited = 6
+                    PpapiPluginProcessExited = 7
+                    PpapiBrokerProcessExited = 8
+                    UnknownProcessExited = 9
+
+                class CoreWebView2ProcessFailedReason(_Enum):
+                    Unexpected = 0
+                    Unresponsive = 1
+                    Terminated = 2
+                    Crashed = 3
+                    LaunchFailed = 4
+                    OutOfMemory = 5
+                    ProfileDeleted = 6
+
+                class CoreWebView2ProcessKind(_Enum):
+                    Browser = 0
+                    Renderer = 1
+                    Utility = 2
+                    SandboxHelper = 3
+                    Gpu = 4
+                    PpapiPlugin = 5
+                    PpapiBroker = 6
+
+                class CoreWebView2ScriptDialogKind(_Enum):
+                    Alert = 0
+                    Confirm = 1
+                    Prompt = 2
+                    Beforeunload = 3
+
+                class CoreWebView2ServerCertificateErrorAction(_Enum):
+                    AlwaysAllow = 0
+                    Cancel = 1
+                    Default = 2
+
+                class CoreWebView2SharedBufferAccess(_Enum):
+                    ReadOnly = 0
+                    ReadWrite = 1
+
+                class CoreWebView2TrackingPreventionLevel(_Enum):
+                    None_ = 0
+                    Basic = 1
+                    Balanced = 2
+                    Strict = 3
+
+                class CoreWebView2WebErrorStatus(_Enum):
+                    Unknown = 0
+                    CertificateCommonNameIsIncorrect = 1
+                    CertificateExpired = 2
+                    ClientCertificateContainsErrors = 3
+                    CertificateRevoked = 4
+                    CertificateIsInvalid = 5
+                    ServerUnreachable = 6
+                    Timeout = 7
+                    ErrorHttpInvalidServerResponse = 8
+                    ConnectionAborted = 9
+                    ConnectionReset = 10
+                    Disconnected = 11
+                    CannotConnect = 12
+                    HostNameNotResolved = 13
+                    OperationCanceled = 14
+                    RedirectFailed = 15
+                    UnexpectedError = 16
+                    ValidAuthenticationCredentialsRequired = 17
+                    ValidProxyAuthenticationRequired = 18
+
+                class CoreWebView2WebResourceContext(_Enum):
+                    All = 0
+                    Document = 1
+                    Stylesheet = 2
+                    Image = 3
+                    Media = 4
+                    Font = 5
+                    Script = 6
+                    XmlHttpRequest = 7
+                    Fetch = 8
+                    TextTrack = 9
+                    EventSource = 10
+                    Websocket = 11
+                    Manifest = 12
+                    SignedExchange = 13
+                    Ping = 14
+                    CspViolationReport = 15
+                    Other = 16
+
+    class Windows:
+        class AppLifecycle:
+            class ExtendedActivationKind(_Enum):
+                Launch = 0
+                Search = 1
+                ShareTarget = 2
+                File = 3
+                Protocol = 4
+                FileOpenPicker = 5
+                FileSavePicker = 6
+                CachedFileUpdater = 7
+                ContactPicker = 8
+                Device = 9
+                PrintTaskSettings = 10
+                CameraSettings = 11
+                RestrictedLaunch = 12
+                AppointmentsProvider = 13
+                Contact = 14
+                LockScreenCall = 15
+                VoiceCommand = 16
+                LockScreen = 17
+                PickerReturned = 1000
+                WalletAction = 1001
+                PickFileContinuation = 1002
+                PickSaveFileContinuation = 1003
+                PickFolderContinuation = 1004
+                WebAuthenticationBrokerContinuation = 1005
+                WebAccountProvider = 1006
+                ComponentUI = 1007
+                ProtocolForResults = 1009
+                ToastNotification = 1010
+                Print3DWorkflow = 1011
+                DialReceiver = 1012
+                DevicePairing = 1013
+                UserDataAccountsProvider = 1014
+                FilePickerExperience = 1015
+                LockScreenComponent = 1016
+                ContactPanel = 1017
+                PrintWorkflowForegroundTask = 1018
+                GameUIProvider = 1019
+                StartupTask = 1020
+                CommandLineLaunch = 1021
+                BarcodeScannerProvider = 1022
+                PrintSupportJobUI = 1023
+                PrintSupportSettingsUI = 1024
+                PhoneCallActivation = 1025
+                VpnForeground = 1026
+                Push = 5000
+                AppNotification = 5001
+
+        class AppNotifications:
+            class AppNotificationPriority(_Enum):
+                Default = 0
+                High = 1
+
+            class AppNotificationProgressResult(_Enum):
+                Succeeded = 0
+                AppNotificationNotFound = 1
+                Unsupported = 2
+
+            class AppNotificationSetting(_Enum):
+                Enabled = 0
+                DisabledForApplication = 1
+                DisabledForUser = 2
+                DisabledByGroupPolicy = 3
+                DisabledByManifest = 4
+                Unsupported = 5
+
+            class Builder:
+                class AppNotificationAudioLooping(_Enum):
+                    None_ = 0
+                    Loop = 1
+
+                class AppNotificationButtonStyle(_Enum):
+                    Default = 0
+                    Success = 1
+                    Critical = 2
+
+                class AppNotificationDuration(_Enum):
+                    Default = 0
+                    Long = 1
+
+                class AppNotificationImageCrop(_Enum):
+                    Default = 0
+                    Circle = 1
+
+                class AppNotificationScenario(_Enum):
+                    Default = 0
+                    Reminder = 1
+                    Alarm = 2
+                    IncomingCall = 3
+                    Urgent = 4
+
+                class AppNotificationSoundEvent(_Enum):
+                    Default = 0
+                    IM = 1
+                    Mail = 2
+                    Reminder = 3
+                    SMS = 4
+                    Alarm = 5
+                    Alarm2 = 6
+                    Alarm3 = 7
+                    Alarm4 = 8
+                    Alarm5 = 9
+                    Alarm6 = 10
+                    Alarm7 = 11
+                    Alarm8 = 12
+                    Alarm9 = 13
+                    Alarm10 = 14
+                    Call = 15
+                    Call2 = 16
+                    Call3 = 17
+                    Call4 = 18
+                    Call5 = 19
+                    Call6 = 20
+                    Call7 = 21
+                    Call8 = 22
+                    Call9 = 23
+                    Call10 = 24
+
+        class ApplicationModel:
+            class DynamicDependency:
+                class PackageDependencyLifetimeArtifactKind(_Enum):
+                    Process = 0
+                    FilePath = 1
+                    RegistryKey = 2
+
+                class PackageDependencyProcessorArchitectures(_Enum):
+                    None_ = 0x0
+                    Neutral = 0x1
+                    X86 = 0x2
+                    X64 = 0x4
+                    Arm = 0x8
+                    Arm64 = 0x10
+                    X86OnArm64 = 0x20
+
+            class Resources:
+                class ResourceCandidateKind(_Enum):
+                    Unknown = 0
+                    String = 1
+                    FilePath = 2
+                    EmbeddedData = 3
+
+            class WindowsAppRuntime:
+                class DeploymentStatus(_Enum):
+                    Unknown = 0
+                    Ok = 1
+                    PackageInstallRequired = 2
+                    PackageInstallFailed = 3
+
+        class PushNotifications:
+            class PushNotificationChannelStatus(_Enum):
+                InProgress = 0
+                InProgressRetry = 1
+                CompletedSuccess = 2
+                CompletedFailure = 3
+
+        class System:
+            class Power:
+                class BatteryStatus(_Enum):
+                    NotPresent = 0
+                    Discharging = 1
+                    Idle = 2
+                    Charging = 3
+
+                class DisplayStatus(_Enum):
+                    Off = 0
+                    On = 1
+                    Dimmed = 2
+
+                class EffectivePowerMode(_Enum):
+                    BatterySaver = 0
+                    BetterBattery = 1
+                    Balanced = 2
+                    HighPerformance = 3
+                    MaxPerformance = 4
+                    GameMode = 5
+                    MixedReality = 6
+
+                class EnergySaverStatus(_Enum):
+                    Uninitialized = 0
+                    Disabled = 1
+                    Off = 2
+                    On = 3
+
+                class PowerSourceKind(_Enum):
+                    AC = 0
+                    DC = 1
+
+                class PowerSupplyStatus(_Enum):
+                    NotPresent = 0
+                    Inadequate = 1
+                    Adequate = 2
+
+                class SystemSuspendStatus(_Enum):
+                    Uninitialized = 0
+                    Entering = 1
+                    AutoResume = 2
+                    ManualResume = 3
+
+                class UserPresenceStatus(_Enum):
+                    Present = 0
+                    Absent = 1
+
+        class Widgets:
+            class WidgetSize(_Enum):
+                Small = 0
+                Medium = 1
+                Large = 2

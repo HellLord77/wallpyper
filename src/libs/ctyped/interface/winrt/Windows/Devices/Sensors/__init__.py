@@ -187,6 +187,13 @@ class IActivitySensorTriggerDetails(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
+class IAdaptiveDimmingOptions(_inspectable.IInspectable):
+    get_AllowWhenExternalDisplayConnected: _Callable[[_Pointer[_type.boolean]],  # value
+                                                     _type.HRESULT]
+    put_AllowWhenExternalDisplayConnected: _Callable[[_type.boolean],  # value
+                                                     _type.HRESULT]
+
+
 class IAltimeter(_inspectable.IInspectable):
     GetCurrentReading: _Callable[[_Pointer[IAltimeterReading]],  # value
                                  _type.HRESULT]
@@ -545,8 +552,13 @@ class IHumanPresenceFeatures(_inspectable.IInspectable):
                                              _type.HRESULT]
     get_IsLockOnLeaveSupported: _Callable[[_Pointer[_type.boolean]],  # value
                                           _type.HRESULT]
-    get_IsAttentionAwareDimmingSupported: _Callable[[_Pointer[_type.boolean]],  # value
-                                                    _type.HRESULT]
+    IsAttentionAwareDimmingSupported: _Callable[[_Pointer[_type.boolean]],  # value
+                                                _type.HRESULT]
+
+
+class IHumanPresenceFeatures2(_inspectable.IInspectable):
+    get_IsAdaptiveDimmingSupported: _Callable[[_Pointer[_type.boolean]],  # value
+                                              _type.HRESULT]
 
 
 class IHumanPresenceSensor(_inspectable.IInspectable):
@@ -563,6 +575,13 @@ class IHumanPresenceSensor(_inspectable.IInspectable):
                                   _type.HRESULT]
     remove_ReadingChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                      _type.HRESULT]
+
+
+class IHumanPresenceSensor2(_inspectable.IInspectable):
+    get_IsPresenceSupported: _Callable[[_Pointer[_type.boolean]],  # value
+                                       _type.HRESULT]
+    get_IsEngagementSupported: _Callable[[_Pointer[_type.boolean]],  # value
+                                         _type.HRESULT]
 
 
 class IHumanPresenceSensorReading(_inspectable.IInspectable):
@@ -591,6 +610,14 @@ class IHumanPresenceSensorStatics(_inspectable.IInspectable, factory=True):
                                _type.HRESULT]
 
 
+class IHumanPresenceSensorStatics2(_inspectable.IInspectable, factory=True):
+    FromId: _Callable[[_type.HSTRING,  # sensorId
+                       _Pointer[IHumanPresenceSensor]],  # result
+                      _type.HRESULT]
+    GetDefault: _Callable[[_Pointer[IHumanPresenceSensor]],  # result
+                          _type.HRESULT]
+
+
 class IHumanPresenceSettings(_inspectable.IInspectable):
     get_SensorId: _Callable[[_Pointer[_type.HSTRING]],  # value
                             _type.HRESULT]
@@ -616,10 +643,21 @@ class IHumanPresenceSettings(_inspectable.IInspectable):
                                       _type.HRESULT]
     put_LockOnLeaveTimeout: _Callable[[_struct.Windows.Foundation.TimeSpan],  # value
                                       _type.HRESULT]
-    get_IsAttentionAwareDimmingEnabled: _Callable[[_Pointer[_type.boolean]],  # value
-                                                  _type.HRESULT]
-    put_IsAttentionAwareDimmingEnabled: _Callable[[_type.boolean],  # value
-                                                  _type.HRESULT]
+    IsAttentionAwareDimmingEnabled: _Callable[[_type.boolean],  # value
+                                              _type.HRESULT]
+
+
+class IHumanPresenceSettings2(_inspectable.IInspectable):
+    get_IsAdaptiveDimmingEnabled: _Callable[[_Pointer[_type.boolean]],  # value
+                                            _type.HRESULT]
+    put_IsAdaptiveDimmingEnabled: _Callable[[_type.boolean],  # value
+                                            _type.HRESULT]
+    get_WakeOptions: _Callable[[_Pointer[IWakeOnApproachOptions]],  # value
+                               _type.HRESULT]
+    get_DimmingOptions: _Callable[[_Pointer[IAdaptiveDimmingOptions]],  # value
+                                  _type.HRESULT]
+    get_LockOptions: _Callable[[_Pointer[ILockOnLeaveOptions]],  # value
+                               _type.HRESULT]
 
 
 class IHumanPresenceSettingsStatics(_inspectable.IInspectable, factory=True):
@@ -835,6 +873,13 @@ class ILightSensorStatics2(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[ILightSensor]]],  # operation
                            _type.HRESULT]
+
+
+class ILockOnLeaveOptions(_inspectable.IInspectable):
+    get_AllowWhenExternalDisplayConnected: _Callable[[_Pointer[_type.boolean]],  # value
+                                                     _type.HRESULT]
+    put_AllowWhenExternalDisplayConnected: _Callable[[_type.boolean],  # value
+                                                     _type.HRESULT]
 
 
 class IMagnetometer(_inspectable.IInspectable):
@@ -1234,3 +1279,14 @@ class ISimpleOrientationSensorStatics2(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[ISimpleOrientationSensor]]],  # result
                            _type.HRESULT]
+
+
+class IWakeOnApproachOptions(_inspectable.IInspectable):
+    get_AllowWhenExternalDisplayConnected: _Callable[[_Pointer[_type.boolean]],  # value
+                                                     _type.HRESULT]
+    put_AllowWhenExternalDisplayConnected: _Callable[[_type.boolean],  # value
+                                                     _type.HRESULT]
+    get_DisableWhenBatterySaverOn: _Callable[[_Pointer[_type.boolean]],  # value
+                                             _type.HRESULT]
+    put_DisableWhenBatterySaverOn: _Callable[[_type.boolean],  # value
+                                             _type.HRESULT]
