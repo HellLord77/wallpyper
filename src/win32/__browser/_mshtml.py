@@ -64,7 +64,7 @@ class WebBrowser2(_com.Unknown):
     def navigate(self, url: str) -> bool:
         with _utils.get_bstr(url) as bstr:
             return ctyped.macro.SUCCEEDED(self._obj.Navigate(
-                bstr, ctyped.NULLPTR, ctyped.NULLPTR, ctyped.NULLPTR, ctyped.NULLPTR))
+                bstr, ctyped.Pointer.NULL, ctyped.Pointer.NULL, ctyped.Pointer.NULL, ctyped.Pointer.NULL))
 
     def refresh(self) -> bool:
         return ctyped.macro.SUCCEEDED(self._obj.Refresh())

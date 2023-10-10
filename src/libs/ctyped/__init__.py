@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.5.0'
+__version__ = '0.5.1'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -8,7 +8,6 @@ import ctypes as _ctypes
 import typing as _typing
 from types import ModuleType as _ModuleType
 from typing import ContextManager as _ContextManager
-from typing import Final as _Final
 from typing import MutableSequence as _MutableSequence
 from typing import Optional as _Optional
 
@@ -33,8 +32,6 @@ from .const import python as _const_python
 from .lib import msvcrt as _msvcrt
 from .lib import python as _python
 from .lib import shell32 as _shell32
-
-NULLPTR: _Final = None
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames

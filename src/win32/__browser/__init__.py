@@ -80,14 +80,14 @@ class Browser:
 
     def get_static_html(self) -> Optional[str]:
         html = None
-        stream = shlwapi.SHCreateMemStream(ctyped.NULLPTR, 0)
+        stream = shlwapi.SHCreateMemStream(ctyped.Pointer.NULL, 0)
         if stream:
             p_dispatch = ctyped.interface.COM[oaidl.IDispatch]()
             # noinspection PyProtectedMember
             if ctyped.macro.SUCCEEDED(self._browser._obj.get_Document(~p_dispatch)):
                 with p_dispatch[ocidl.IPersistStreamInit] as persist_stream:
                     persist_stream.Save(stream, ctyped.const.TRUE)
-                stream.Seek(ctyped.union.LARGE_INTEGER(QuadPart=0), ctyped.enum.STREAM_SEEK.SET, ctyped.NULLPTR)
+                stream.Seek(ctyped.union.LARGE_INTEGER(QuadPart=0), ctyped.enum.STREAM_SEEK.SET, ctyped.Pointer.NULL)
                 stat = ctyped.struct.STATSTG()
                 stream.Stat(ctyped.byref(stat), ctyped.enum.STATFLAG.NONAME | ctyped.enum.STATFLAG.NOOPEN)
                 with ctyped.buffer(stat.cbSize.QuadPart) as buffer:
@@ -159,7 +159,7 @@ def _create_environment(timeout: Optional[float] = None) -> _webview2.CoreWebVie
     with ctyped.interface.create_handler(
             on_completed, WebView2.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler) as handler:
         if ctyped.macro.SUCCEEDED(WebView2Loader.CreateCoreWebView2EnvironmentWithOptions(
-                ctyped.NULLPTR, DATA_DIR, ctyped.NULLPTR, handler)):
+                ctyped.Pointer.NULL, DATA_DIR, ctyped.Pointer.NULL, handler)):
             event.wait(timeout)
     return environment
 

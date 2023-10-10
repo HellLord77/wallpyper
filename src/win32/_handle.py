@@ -21,7 +21,7 @@ class HSTRING(ctyped.type.HSTRING):
         return self
 
     def get_string(self) -> str:
-        return combase.WindowsGetStringRawBuffer(self, ctyped.NULLPTR)
+        return combase.WindowsGetStringRawBuffer(self, ctyped.Pointer.NULL)
 
 
 class HBRUSH(ctyped.type.HBRUSH):

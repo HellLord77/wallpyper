@@ -78,11 +78,11 @@ def _test_font():
         d2d1.ID2D1SolidColorBrush]() as brush, _gdiplus.Graphics.from_image(bitmap).get_managed_hdc() as hdc:
         if target and ctyped.macro.SUCCEEDED(DWrite.DWriteCreateFactory(ctyped.enum.DWRITE_FACTORY_TYPE.ISOLATED, ctyped.byref(
                 ctyped.get_guid(ctyped.const.IID_IDWriteFactory)), ctyped.byref(factory))):
-            factory.CreateTextFormat("Comic Sans MS", ctyped.NULLPTR, ctyped.enum.DWRITE_FONT_WEIGHT.NORMAL, ctyped.enum.DWRITE_FONT_STYLE.NORMAL,
+            factory.CreateTextFormat("Comic Sans MS", ctyped.Pointer.NULL, ctyped.enum.DWRITE_FONT_WEIGHT.NORMAL, ctyped.enum.DWRITE_FONT_STYLE.NORMAL,
                                      ctyped.enum.DWRITE_FONT_STRETCH.NORMAL, 16, "en-US", ctyped.byref(text_format))
             print(text_format.GetFontSize())
             col = ctyped.struct.D3DCOLORVALUE(1, 0, 0, 1)
-            print(target.CreateSolidColorBrush(ctyped.byref(col), ctyped.NULLPTR, ctyped.byref(brush)))
+            print(target.CreateSolidColorBrush(ctyped.byref(col), ctyped.Pointer.NULL, ctyped.byref(brush)))
             rect2 = ctyped.struct.RECT(0, 0, 100, 100)
             rect = ctyped.struct.D2D_RECT_F(0, 0, 100, 100)
             target.BindDC(hdc, ctyped.byref(rect2))
@@ -90,7 +90,7 @@ def _test_font():
             target.BeginDraw()
             target.DrawText(text, len(text), text_format, ctyped.byref(rect), brush,
                             ctyped.enum.D2D1_DRAW_TEXT_OPTIONS.ENABLE_COLOR_FONT, ctyped.enum.DWRITE_MEASURING_MODE.NATURAL)
-            target.EndDraw(ctyped.NULLPTR, ctyped.NULLPTR)
+            target.EndDraw(ctyped.Pointer.NULL, ctyped.Pointer.NULL)
     _gdiplus.image_save(bitmap, 'd:\\test.png')
 
 
@@ -338,7 +338,8 @@ class Thread(ctyped.type.HANDLE):
     @classmethod
     def create_remote(cls, proc, target: FunctionAddress,
                       arg: Optional[int] = None, suspended: bool = False) -> Thread:
-        return cls(kernel32.CreateRemoteThread(proc, None, 0, ctyped.type.LPTHREAD_START_ROUTINE(target), arg, suspended * ctyped.const.CREATE_SUSPENDED, None))
+        return cls(kernel32.CreateRemoteThread(proc, ctyped.Pointer.NULL, 0, ctyped.type.LPTHREAD_START_ROUTINE(
+            target), arg, suspended * ctyped.const.CREATE_SUSPENDED, ctyped.Pointer.NULL))
 
     def set_priority(self, priority: int) -> bool:
         return bool(kernel32.SetThreadPriority(self, priority))
@@ -390,14 +391,14 @@ class RemoteProcess(ctyped.type.HANDLE):
 
     def read_mem(self, addr: PageAddress, size: int):
         buff = (ctyped.type.c_byte * size)()
-        if kernel32.ReadProcessMemory(self, addr, ctyped.addressof(buff), size, None):
+        if kernel32.ReadProcessMemory(self, addr, ctyped.addressof(buff), size, ctyped.Pointer.NULL):
             return buff
 
     def write_mem(self, addr: PageAddress, data: AnyStr, size: Optional[int] = None) -> bool:
         if size is None:
             size = (ctyped.sizeof(ctyped.type.c_wchar) if isinstance(
                 data, str) else ctyped.sizeof(ctyped.type.c_char)) * len(data)
-        return bool(kernel32.WriteProcessMemory(self, addr, data, size, None))
+        return bool(kernel32.WriteProcessMemory(self, addr, data, size, ctyped.Pointer.NULL))
 
     def load_lib(self, lib: ModuleType) -> bool:
         getattr(lib, '_', None)
@@ -602,9 +603,6 @@ def _test():
                 if ctyped.macro.SUCCEEDED(manager.get_DisplayStatus(ctyped.byref(status))):
                     print(status)
         Microsoft_WindowsAppRuntime_Bootstrap.Shutdown()
-
-    ct = ctyped.pointer(ctyped.type.c_int)
-    print(ct)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

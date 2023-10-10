@@ -86,7 +86,7 @@ def get_str_dev_id_prop(dev_path: str, devpkey: tuple[str, int]) -> str:
     prop_key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(
         ctyped.get_guid(devpkey[0]), devpkey[1]))
     cfgmgr32.CM_Get_Device_Interface_PropertyW(
-        dev_path, prop_key_ref, type_ref, ctyped.NULLPTR, ctyped.byref(sz), 0)
+        dev_path, prop_key_ref, type_ref, ctyped.Pointer.NULL, ctyped.byref(sz), 0)
     with string_buffer(sz.value) as buff:
         cfgmgr32.CM_Get_Device_Interface_PropertyW(
             dev_path, prop_key_ref, type_ref, ctyped.cast(
@@ -105,7 +105,7 @@ def get_str_dev_node_props(dev_id: str, *devpkeys: tuple[str, int]) -> tuple[str
         cfgmgr32.CM_Locate_DevNodeW(ctyped.byref(
             dev_int), dev_id, ctyped.const.CM_LOCATE_DEVNODE_NORMAL)
         cfgmgr32.CM_Get_DevNode_PropertyW(dev_int, prop_key_ref, ctyped.byref(
-            type_), ctyped.NULLPTR, ctyped.byref(sz), 0)
+            type_), ctyped.Pointer.NULL, ctyped.byref(sz), 0)
         with string_buffer(sz.value) as buff:
             cfgmgr32.CM_Get_DevNode_PropertyW(dev_int, prop_key_ref, ctyped.byref(
                 type_), ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
@@ -221,7 +221,7 @@ def get_d2d1_dc_render_target() -> ContextManager[Optional[d2d1.ID2D1DCRenderTar
         p_iid, p_factory = ctyped.macro.IID_PPV_ARGS(factory)
         if ctyped.macro.SUCCEEDED(d2d1_.D2D1CreateFactory(
                 ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid,
-                ctyped.NULLPTR, p_factory)) and ctyped.macro.SUCCEEDED(
+                ctyped.Pointer.NULL, p_factory)) and ctyped.macro.SUCCEEDED(
             factory.CreateDCRenderTarget(ctyped.byref(
                 ctyped.struct.D2D1_RENDER_TARGET_PROPERTIES(
                     pixelFormat=ctyped.struct.D2D1_PIXEL_FORMAT(
@@ -237,10 +237,10 @@ def set_svg_doc_viewport(svg: d2d1svg.ID2D1SvgDocument) -> bool:
     with ctyped.interface.COM[d2d1svg.ID2D1SvgElement]() as root:
         if ctyped.macro.SUCCEEDED(svg.GetRoot(ctyped.byref(root))):
             view_box = ctyped.struct.D2D1_SVG_VIEWBOX()
-            if root.IsAttributeSpecified('viewBox', ctyped.NULLPTR):
+            if root.IsAttributeSpecified('viewBox', ctyped.Pointer.NULL):
                 root.GetAttributeValue_('viewBox', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.VIEWBOX,
                                         ctyped.byref(view_box), ctyped.sizeof(view_box))
-            elif root.IsAttributeSpecified('width', ctyped.NULLPTR) and root.IsAttributeSpecified('height', ctyped.NULLPTR):
+            elif root.IsAttributeSpecified('width', ctyped.Pointer.NULL) and root.IsAttributeSpecified('height', ctyped.Pointer.NULL):
                 buff = ctyped.type.FLOAT()
                 if ctyped.macro.SUCCEEDED(root.GetAttributeValue_('width', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.FLOAT,
                                                                   ctyped.byref(buff), ctyped.sizeof(buff))):
@@ -332,7 +332,7 @@ def get_funcs(dispatch: oaidl.IDispatch) -> dict[int, str]:
                     if ctyped.macro.SUCCEEDED(type_info.GetFuncDesc(index, ctyped.byref(p_func_desc))):
                         with get_bstr() as name:
                             type_info.GetDocumentation(p_func_desc.contents.memid, ctyped.byref(
-                                name), ctyped.NULLPTR, ctyped.NULLPTR, ctyped.NULLPTR)
+                                name), ctyped.Pointer.NULL, ctyped.Pointer.NULL, ctyped.Pointer.NULL)
                             funcs[p_func_desc.contents.memid] = ctyped.type.c_wchar_p.from_buffer(name).value
                         type_info.ReleaseFuncDesc(p_func_desc)
                 type_info.ReleaseTypeAttr(p_type_attr)

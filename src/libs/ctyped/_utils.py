@@ -7,6 +7,7 @@ import sys as _sys
 import typing as _typing
 from types import ModuleType as _ModuleType
 from typing import Any as _Any
+from typing import Final as _Final
 from typing import Generic as _Generic
 from typing import Iterator as _Iterator
 from typing import Optional as _Optional
@@ -25,6 +26,8 @@ class _Pointer(_Generic[_CT], _Sequence[_CT]):
     _type_: type[_CT]
     contents: _CT
     value: _CT
+
+    NULL: _Final = None
 
 
 class _LazyFinder(_importlib_abc.MetaPathFinder):

@@ -185,7 +185,7 @@ def _get_link_data(path_or_link: str | ShObjIdl_core.IShellLinkW) -> \
     c_int = ctyped.type.c_int()
     with _utils.string_buffer(ctyped.const.SHRT_MAX) as buff:
         with _load_link(path_or_link) as link:
-            link.GetPath(buff, ctyped.const.SHRT_MAX, ctyped.NULLPTR, ctyped.enum.SLGP_FLAGS.RAWPATH.value)
+            link.GetPath(buff, ctyped.const.SHRT_MAX, ctyped.Pointer.NULL, ctyped.enum.SLGP_FLAGS.RAWPATH.value)
             data.append(buff.value)
             link.GetDescription(buff, ctyped.const.SHRT_MAX)
             data.append(buff.value)
@@ -390,15 +390,15 @@ def get_direct_show_devices_properties(
                 with ctyped.interface.COM[objidl.IMoniker]() as moniker:
                     with ctyped.interface.COM[oaidl.IPropertyBag]() as prop_bag:
                         props = []
-                        while monikers.Next(1, ctyped.byref(moniker), ctyped.NULLPTR) == ctyped.const.S_OK:
+                        while monikers.Next(1, ctyped.byref(moniker), ctyped.Pointer.NULL) == ctyped.const.S_OK:
                             if ctyped.macro.SUCCEEDED(moniker.BindToStorage(
-                                    ctyped.NULLPTR, ctyped.NULLPTR, *ctyped.macro.IID_PPV_ARGS(prop_bag))):
+                                    ctyped.Pointer.NULL, ctyped.Pointer.NULL, *ctyped.macro.IID_PPV_ARGS(prop_bag))):
                                 var = ctyped.struct.VARIANT()
                                 var_ref = ctyped.byref(var)
                                 props.clear()
                                 for prop_name in prop_names:
                                     oleaut32.VariantInit(var_ref)
-                                    prop_bag.Read(prop_name, var_ref, ctyped.NULLPTR)
+                                    prop_bag.Read(prop_name, var_ref, ctyped.Pointer.NULL)
                                     props.append(var.U.S.U.bstrVal)
                                     oleaut32.VariantClear(var_ref)
                                 devices.append(tuple(props))
@@ -548,11 +548,11 @@ def get_manifest(path: Optional[str] = None) -> str:
 
 def get_exe_size(path: str) -> int:
     size = 0
-    hfile = kernel32.CreateFileW(path, ctyped.const.GENERIC_READ, ctyped.const.FILE_SHARE_READ, None,
+    hfile = kernel32.CreateFileW(path, ctyped.const.GENERIC_READ, ctyped.const.FILE_SHARE_READ, ctyped.Pointer.NULL,
                                  ctyped.const.OPEN_EXISTING, ctyped.const.FILE_ATTRIBUTE_NORMAL, None)
     if hfile:
         buff = ctyped.array(type=ctyped.type.BYTE, size=4096)
-        kernel32.ReadFile(hfile, buff, ctyped.sizeof(buff), None, None)
+        kernel32.ReadFile(hfile, buff, ctyped.sizeof(buff), ctyped.Pointer.NULL, ctyped.Pointer.NULL)
         kernel32.CloseHandle(hfile)
         header = ctyped.cast(buff, ctyped.struct.IMAGE_DOS_HEADER).contents
         headers = ctyped.from_address(ctyped.addressof(buff) + header.e_lfanew, ctyped.struct.IMAGE_NT_HEADERS32)

@@ -1519,7 +1519,7 @@ def bitmap_from_svg(path: str, width: int = 512, height: int = 512) -> Optional[
                                         ctyped.struct.RECT(right=width, bottom=height)))):
                                     target.BeginDraw()
                                     context.DrawSvgDocument(svg)
-                                    if ctyped.macro.SUCCEEDED(target.EndDraw(ctyped.NULLPTR, ctyped.NULLPTR)):
+                                    if ctyped.macro.SUCCEEDED(target.EndDraw(ctyped.Pointer.NULL, ctyped.Pointer.NULL)):
                                         return bitmap
 
 

@@ -37,7 +37,7 @@ def open_folder(path: Optional[str] = None, title: Optional[str] = None) -> Opti
             _set_folder(dialog, path)
             if title is not None:
                 dialog.SetTitle(title)
-            hr = dialog.Show(ctyped.NULLPTR)
+            hr = dialog.Show(ctyped.Pointer.NULL)
             if ctyped.macro.SUCCEEDED(hr):
                 return _get_path(dialog)
             elif hr == ctyped.macro.HRESULT_FROM_WIN32(error.ERROR_CANCELLED):
@@ -78,7 +78,7 @@ def save_file(path: Optional[str] = None, title: Optional[str] = None,
             _set_folder(dialog, ntpath.dirname(path))
             if title is not None:
                 dialog.SetTitle(title)
-            hr = dialog.Show(ctyped.NULLPTR)
+            hr = dialog.Show(ctyped.Pointer.NULL)
             if ctyped.macro.SUCCEEDED(hr):
                 return _get_path(dialog)
             elif hr == ctyped.macro.HRESULT_FROM_WIN32(error.ERROR_CANCELLED):

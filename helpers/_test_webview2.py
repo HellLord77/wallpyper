@@ -68,7 +68,7 @@ def webview():
     with ctyped.interface.create_handler(
             _create_environment_completed, WebView2.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler) as handler:
         if ctyped.macro.SUCCEEDED(WebView2Loader.CreateCoreWebView2EnvironmentWithOptions(
-                ctyped.NULLPTR, data_path, ctyped.NULLPTR, handler)):
+                ctyped.Pointer.NULL, data_path, ctyped.Pointer.NULL, handler)):
             print('wait')
 
 

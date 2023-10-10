@@ -83,7 +83,7 @@ class Decompressor(metaclass=_Brotli):
             while True:
                 result = brotlidec.BrotliDecoderDecompressStream(
                     self._obj, available_in, next_in, ctyped.byref(
-                        available_out), ctyped.cast(buff_out, _PTR), ctyped.NULLPTR)
+                        available_out), ctyped.cast(buff_out, _PTR), ctyped.Pointer.NULL)
                 # noinspection PyTypeChecker
                 ret += bytes(itertools.islice(buff_out, None, size - available_out.value))
                 if result == enum_brotli.BrotliDecoderResult.NEEDS_MORE_OUTPUT:
@@ -197,7 +197,7 @@ class _Compressor(metaclass=_Brotli):
             while True:
                 if not brotlienc.BrotliEncoderCompressStream(
                         self._obj, operation, available_in, next_in, ctyped.byref(
-                            available_out), ctyped.cast(buff_out, _PTR), ctyped.NULLPTR):
+                            available_out), ctyped.cast(buff_out, _PTR), ctyped.Pointer.NULL):
                     raise CompressionError()
                 # noinspection PyTypeChecker
                 ret += bytes(itertools.islice(buff_out, None, size - available_out.value))
