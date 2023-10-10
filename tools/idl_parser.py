@@ -782,8 +782,8 @@ def dump(*, p_enum: bool = False, p_struct: bool = False, p_iid: bool = False,
                 data += f'\n{stream.read()}'
 
     re_namespace = re.compile(r'namespace (\S+)')  # namespace Microsoft
-    re_enum = re.compile(r'enum (\S+)')
-    re_enum_member = re.compile(r'(\S+)(\s*)=\s((0x)?\d*),?')
+    re_enum = re.compile(r'enum (\S+)')  # enum MapRouteOptimization
+    re_enum_member = re.compile(r'(\S+)(\s*)=\s((0x)?\d*),?')  # Toll    = 0x1,
     re_struct = re.compile(r'struct (\S+)')
     re_struct_field = re.compile(r'(\S+)\s(.*);')
     re_version = re.compile(r'\[version\((.*)\)]')  # [version(0x00000001)]
@@ -792,11 +792,11 @@ def dump(*, p_enum: bool = False, p_struct: bool = False, p_iid: bool = False,
     re_interface = re.compile(r'interface (\S+) : (\S+)')  # interface ICompositorController : IInspectable
     re_func = re.compile(r'(\S+) (\S+?)\((.*)\);')
     re_template = re.compile(r'declare')
-    re_runtimeclass = re.compile(r'runtimeclass (\S+)')
-    re_runtimeclass_interface = re.compile(r'interface (.*);')
+    re_runtimeclass = re.compile(r'runtimeclass (\S+)')  # runtimeclass EnhancedWaypoint
+    re_runtimeclass_interface = re.compile(r'interface (.*);')  # interface Windows.Services.Maps.IMapLocation;
     re_attribute = re.compile(r'attribute (\S+)')
     re_contract = re.compile(r'apicontract (\S+)')
-    re_activatable = re.compile(r'\[activatable\((\S+), (\S+) \d*\.\d\)]')
+    re_activatable = re.compile(r'\[activatable\((\S+), (\S+) \d*\.\d\)]')  # [activatable(Windows.Services.Maps.IEnhancedWaypointFactory, Windows.Foundation.UniversalApiContract, 4.0)]
     re_static = re.compile(r'\[static\((\S+), (\S+) \d*\.\d\)]')
 
     enums = {}

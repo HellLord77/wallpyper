@@ -165,11 +165,13 @@ def _pretty_tuples(*it: tuple[str, ...], name: str = '') -> str:
 
 
 def _func_doc(name: str, restype, argtypes: _Sequence, annotations: tuple[str]) -> str:
-    return _pretty_tuples(annotations, (*(type_.__name__ for type_ in argtypes), getattr(restype, '__name__', restype)), name=name)
+    return _pretty_tuples(annotations, (*(
+        type_.__name__ for type_ in argtypes), getattr(restype, '__name__', restype)), name=name)
 
 
 def _fields_repr(self: _ctypes.Structure | _ctypes.Union) -> str:
-    return f'<{"Struct" if isinstance(self, _ctypes.Structure) else "Union"}: {type(self).__name__}<{", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)}>>'
+    return (f'<{"Struct" if isinstance(self, _ctypes.Structure) else "Union"}: {type(self).__name__}'
+            f'<{", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)}>>')
 
 
 def _resolve_type(annot, _args: _Optional[dict] = None) -> _Any:

@@ -588,12 +588,11 @@ def _test():
     ctyped.lib.add_path(r'D:\Projects\wallpyper\helpers\microsoft.windowsappsdk.1.4.230913002\runtimes\win10-x64\native')
 
     from libs.ctyped.lib import Microsoft_WindowsAppRuntime_Bootstrap
-    from libs.ctyped.const import WindowsAppSDK
     from libs.ctyped.interface.winrt.Microsoft.Windows.System import Power as Microsoft_Windows_System_Power
 
     if ctyped.macro.SUCCEEDED(Microsoft_WindowsAppRuntime_Bootstrap.Initialize2(
-            WindowsAppSDK.Release.MajorMinor, WindowsAppSDK.Release.VersionTag, ctyped.struct.PACKAGE_VERSION(
-                ctyped.union.PACKAGE_VERSION_U(WindowsAppSDK.Runtime.Version.UInt64)),
+            ctyped.const.Release.MajorMinor, ctyped.const.Release.VersionTag, ctyped.struct.PACKAGE_VERSION(
+                ctyped.union.PACKAGE_VERSION_U(ctyped.const.Runtime.Version.UInt64)),
             ctyped.enum.MddBootstrapInitializeOptions.OnNoMatch_ShowUI)):
         status = ctyped.enum.Microsoft.Windows.System.Power.DisplayStatus()
         p_manager = ctyped.interface.WinRT[Microsoft_Windows_System_Power.IPowerManagerStatics](
@@ -603,6 +602,9 @@ def _test():
                 if ctyped.macro.SUCCEEDED(manager.get_DisplayStatus(ctyped.byref(status))):
                     print(status)
         Microsoft_WindowsAppRuntime_Bootstrap.Shutdown()
+
+    ct = ctyped.pointer(ctyped.type.c_int)
+    print(ct)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

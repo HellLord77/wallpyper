@@ -15,6 +15,7 @@ from .. import type as _type
 from .._utils import _Pointer
 # noinspection PyProtectedMember
 from ..interface import _TProgress
+# noinspection PyProtectedMember
 from ..interface import _TResult
 from ..interface.winrt import asyncinfo as _asyncinfo
 from ..interface.winrt import inspectable as _inspectable
