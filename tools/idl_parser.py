@@ -4,6 +4,7 @@ import glob
 import io
 import ntpath
 import os
+import pprint
 import re
 import shutil
 import subprocess
@@ -19,12 +20,12 @@ import markdown
 
 from libs import ctyped
 
-# SDK_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0'
-SDK_PATH = r'D:\Projects\wallpyper\tools'
-# DOC_DIR = r'D:\Projects\winrt-api'
-DOC_DIR = r'D:\Projects\winapps-winrt-api'
-# DOC_LINK_PREFIX = 'https://learn.microsoft.com/en-us/uwp/api/'
-DOC_LINK_PREFIX = 'https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/'
+SDK_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0'
+# SDK_PATH = r'D:\Projects\wallpyper\tools'
+DOC_DIR = r'D:\Projects\winrt-api'
+# DOC_DIR = r'D:\Projects\winapps-winrt-api'
+DOC_LINK_PREFIX = 'https://learn.microsoft.com/en-us/uwp/api/'
+# DOC_LINK_PREFIX = 'https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/'
 WINMDIDL_DIR = r'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64'
 TYPE_MAP = {
     'IUnknown':                                               '_Unknwnbase.IUnknown',
@@ -520,7 +521,7 @@ def get_args(line: str, re_bracket=re.compile(r'\[.*?]')) -> dict[str, str]:
 
 def get_text(soup: bs4.BeautifulSoup, text: str, extra='') -> str:
     texts = []
-    if h2 := soup.find('h2', text=text):
+    if h2 := soup.find('h2', string=text):
         for ele in h2.find_next_siblings():
             # noinspection PyUnresolvedReferences
             if ele.name == 'p':
@@ -533,7 +534,7 @@ def get_text(soup: bs4.BeautifulSoup, text: str, extra='') -> str:
 def get_enum_text(soup: bs4.BeautifulSoup) -> dict[str, str]:
     texts = {}
     field = ''
-    if h2 := soup.find('h2', text='-enum-fields'):
+    if h2 := soup.find('h2', string='-enum-fields'):
         'h3'
         for ele in h2.find_next_siblings():
             text = ele.text
@@ -754,17 +755,20 @@ def print_runtimeclass(runtimeclasses: dict, __namespaces: Optional[list[str]] =
                         doc += f'\n**Description:**\n    {doc_[0]}\n\n'
                     # if doc_[1]:
                     #     doc += f'\n**Remarks:**\n    *{doc_[1]}*\n\n'
-                if value[0] is not None:
-                    doc += f'\n**Activatable:**\n    ``{value[0]}``\n\n'
-                if value[1]:
+                activatable, statics, interfaces, default_index = value
+                if activatable:
+                    if activatable is True:
+                        activatable = runtimeclass
+                    doc += f'\n**Activatable:**\n    ``{activatable}``\n\n'
+                if statics:
                     doc += f'\n**Statics:**\n'
-                    for static in value[1]:
+                    for static in statics:
                         doc += f'    ``{static}``\n\n'
-                if value[2]:
+                if interfaces:
                     doc += f'\n**Interfaces:**\n'
-                    for index, interface in enumerate(value[2]):
+                    for index, interface in enumerate(interfaces):
                         doc += f'    ``{interface}``'
-                        if index == value[3]:
+                        if index == default_index:
                             doc += ' *****'
                         doc += '\n\n'
                 if doc_:
@@ -796,7 +800,7 @@ def dump(*, p_enum: bool = False, p_struct: bool = False, p_iid: bool = False,
     re_runtimeclass_interface = re.compile(r'interface (.*);')  # interface Windows.Services.Maps.IMapLocation;
     re_attribute = re.compile(r'attribute (\S+)')
     re_contract = re.compile(r'apicontract (\S+)')
-    re_activatable = re.compile(r'\[activatable\((\S+), (\S+) \d*\.\d\)]')  # [activatable(Windows.Services.Maps.IEnhancedWaypointFactory, Windows.Foundation.UniversalApiContract, 4.0)]
+    re_activatable = re.compile(r'\[activatable\((\S+), \S+ \d*\.\d*\)]')  # [activatable(Windows.Services.Maps.IEnhancedWaypointFactory, Windows.Foundation.UniversalApiContract, 4.0)]
     re_static = re.compile(r'\[static\((\S+), (\S+) \d*\.\d\)]')
 
     enums = {}
@@ -872,10 +876,13 @@ def dump(*, p_enum: bool = False, p_struct: bool = False, p_iid: bool = False,
         elif match := re_runtimeclass.search(line):
             if not line.endswith(';'):
                 line_num_ = line_num - 1
+                is_activatable = False
                 activatable = None
                 statics = []
                 interfaces_ = []
                 while line_ := lines[line_num_].strip():
+                    if line_.startswith('[activatable('):
+                        is_activatable = True
                     if activatable is None and (match_ := re_activatable.fullmatch(line_)):
                         activatable = match_.groups()[0]
                     elif match_ := re_static.fullmatch(line_):
@@ -883,6 +890,8 @@ def dump(*, p_enum: bool = False, p_struct: bool = False, p_iid: bool = False,
                     line_num_ -= 1
                 if activatable is not None:
                     _FACTORIES.add(activatable)
+                else:
+                    activatable = is_activatable
                 _FACTORIES.update(statics)
                 if end := find_end(lines, line_num):
                     start = line_num + 2
@@ -940,12 +949,13 @@ def dump_idl(pattern: str):
 
 def main():
     # dump_idl(r'D:\Projects\wallpyper\helpers\microsoft.windowsappsdk.1.4.230913002\**\*.winmd')
-    # with open('idl.py', 'w', encoding='utf-8') as file, contextlib.redirect_stdout(file):
-    #     dump(p_enum=True)
-    #     dump(p_struct=True)
-    #     dump(p_iid=True)
-    #     dump(p_runtimeclass=True)
-    dump(p_interface=True, o_interface='output')
+    with open('idl.py', 'w', encoding='utf-8') as file, contextlib.redirect_stdout(file):
+        pass
+        # dump(p_enum=True)
+        # dump(p_struct=True)
+        # dump(p_iid=True)
+        dump(p_runtimeclass=True)
+    # dump(p_interface=True, o_interface='output')
 
 
 if __name__ == '__main__':

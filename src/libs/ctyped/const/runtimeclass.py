@@ -144,6 +144,10 @@ class Windows:
                 Describes inference options that are used during the creation of LearningModelSession objects.
 
 
+            **Activatable:**
+                ``Windows.AI.MachineLearning.LearningModelSessionOptions``
+
+
             **Interfaces:**
                 ``Windows.AI.MachineLearning.ILearningModelSessionOptions`` *****
 
@@ -2235,6 +2239,10 @@ class Windows:
                 Represents a connection to the endpoint for an app service. App services enable app-to-app communication by allowing you to provide services from your Universal Windows app to other Universal Windows app. The AppService provider receives the connection request as part of their background task; see AppServiceTriggerDetails class for details.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.AppService.AppServiceConnection``
+
+
             **Statics:**
                 ``Windows.ApplicationModel.AppService.IAppServiceConnectionStatics``
 
@@ -2350,6 +2358,10 @@ class Windows:
                 Represents an appointment in a calendar. This class is used when an app is activated using the AppointmentsProvider value for ActivationKind, as a value for AppointmentInformation properties.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Appointments.Appointment``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Appointments.IAppointment`` *****
 
@@ -2425,6 +2437,10 @@ class Windows:
                 Represents a participant of an appointment in a calendar.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Appointments.AppointmentInvitee``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Appointments.IAppointmentInvitee`` *****
 
@@ -2470,6 +2486,10 @@ class Windows:
                 Represents the organizer of an appointment in a calendar.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Appointments.AppointmentOrganizer``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Appointments.IAppointmentParticipant`` *****
 
@@ -2496,6 +2516,10 @@ class Windows:
             """
             **Description:**
                 Represents when and how often an appointment occurs.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Appointments.AppointmentRecurrence``
 
 
             **Interfaces:**
@@ -2612,6 +2636,10 @@ class Windows:
             """
             **Description:**
                 Represents a set of options that modifies a query for appointments.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Appointments.FindAppointmentsOptions``
 
 
             **Interfaces:**
@@ -2961,6 +2989,10 @@ class Windows:
                 This allows you to programmatically trigger a background task from within your application.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.ApplicationTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IApplicationTrigger`` *****
 
@@ -2987,6 +3019,10 @@ class Windows:
             """
             **Description:**
                 Represents a trigger that launches a background task for processing changes to the appointment store.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.AppointmentStoreNotificationTrigger``
 
 
             **Interfaces:**
@@ -3019,6 +3055,10 @@ class Windows:
             """
             **Description:**
                 Represents a background task to register with the system.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.BackgroundTaskBuilder``
 
 
             **Interfaces:**
@@ -3134,6 +3174,10 @@ class Windows:
                 Represents a trigger that is registered to advertise a Bluetooth LE advertisement in the background.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.BluetoothLEAdvertisementPublisherTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IBluetoothLEAdvertisementPublisherTrigger`` *****
 
@@ -3151,6 +3195,10 @@ class Windows:
                 Represents a trigger that is registered to scan for Bluetooth LE advertisement in the background.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.BluetoothLEAdvertisementWatcherTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IBluetoothLEAdvertisementWatcherTrigger`` *****
 
@@ -3166,6 +3214,10 @@ class Windows:
             """
             **Description:**
                 Represents a trigger that launches a background task to enable the Cached File Updater contract.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.CachedFileUpdaterTrigger``
 
 
             **Interfaces:**
@@ -3196,6 +3248,10 @@ class Windows:
                 Represents a trigger that is activated when there is a notification for a text message.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.ChatMessageNotificationTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IBackgroundTrigger``
 
@@ -3209,6 +3265,10 @@ class Windows:
             """
             **Description:**
                 Represents a trigger that launches a background task that handles any incoming message that might need to be filtered according to its content. For more information about filtering messages, see Windows.ApplicationModel.CommunicationBlocking.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.ChatMessageReceivedNotificationTrigger``
 
 
             **Interfaces:**
@@ -3228,6 +3288,10 @@ class Windows:
                 A user can have multiple communication blocking applications installed at one time. This trigger is used to let an application know that it has been selected as the active communication blocking application. For more information about the communication blocking API, see Windows.ApplicationModel.CommunicationBlocking.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.CommunicationBlockingAppSetAsActiveTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IBackgroundTrigger``
 
@@ -3241,6 +3305,10 @@ class Windows:
             """
             **Description:**
                 Represents a trigger that launches a background task for processing changes to the contacts store.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.ContactStoreNotificationTrigger``
 
 
             **Interfaces:**
@@ -3275,6 +3343,10 @@ class Windows:
             """
             **Description:**
                 Represents a trigger that launches a background task for processing digital assistant communication through the Windows platform Agent Activation Runtime (AAR).
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.ConversationalAgentTrigger``
 
 
             **Interfaces:**
@@ -3351,6 +3423,10 @@ class Windows:
                 The DeviceServicingTrigger background task allows your UWP app that interacts with your peripheral device to perform long running device updates while your app is suspended, for example settings transfers or firmware updates. Updating your device in the background requires user approval each time the background task is used. Unlike the DeviceUseTrigger background task, the DeviceServicingTrigger background task allows for device reboot and disconnect and allows a maximum of 30 minutes of background activity.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.DeviceServicingTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IDeviceServicingTrigger`` *****
 
@@ -3368,6 +3444,10 @@ class Windows:
                 DeviceUseTrigger lets your Windows Runtime app access sensors and peripheral devices in the background, even when your foreground app is suspended. For example, depending on where your app is running, it could use a background task to synchronize data with devices or monitor sensors.
 
                 This class can be used in UWP app and Windows Phone 8.x app. However, a DeviceUseTrigger background task supports different APIs, and is subject to different policies, depending where it's running (PC or phone). To learn more about these differences, see Accessing sensors and devices from a background task.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.DeviceUseTrigger``
 
 
             **Interfaces:**
@@ -3398,6 +3478,10 @@ class Windows:
             """
             **Description:**
                 Represents a trigger that enables notification of changes to the email store.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.EmailStoreNotificationTrigger``
 
 
             **Interfaces:**
@@ -3468,6 +3552,10 @@ class Windows:
                 Represents an event that triggers a Visits-related background task.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.GeovisitTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IGeovisitTrigger`` *****
 
@@ -3521,6 +3609,10 @@ class Windows:
                 Represents a trigger that launches a background task for performing media processing.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.MediaProcessingTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IMediaProcessingTrigger`` *****
 
@@ -3538,6 +3630,10 @@ class Windows:
                 This functionality is available only to mobile operator apps and UWP app given privileged access by mobile network operators. For more information, see Mobile broadband.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.MobileBroadbandDeviceServiceNotificationTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IBackgroundTrigger`` *****
 
@@ -3549,6 +3645,10 @@ class Windows:
             """
             **Description:**
                 Represents a cellular protocol configuration option change event that triggers a background task to run.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.MobileBroadbandPcoDataChangeTrigger``
 
 
             **Interfaces:**
@@ -3566,6 +3666,10 @@ class Windows:
                 This functionality is available only to mobile operator apps and UWP app given privileged access by mobile network operators. For more information, see Mobile broadband.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.MobileBroadbandPinLockStateChangeTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IBackgroundTrigger`` *****
 
@@ -3579,6 +3683,10 @@ class Windows:
                 Represents a trigger that indicates when mobile broadband radio state has changed. For example, this trigger activates when a mobile device transitions to or from airplane mode.
 
                 This functionality is available only to mobile operator apps and UWP app given privileged access by mobile network operators. For more information, see Mobile broadband.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.MobileBroadbandRadioStateChangeTrigger``
 
 
             **Interfaces:**
@@ -3596,6 +3704,10 @@ class Windows:
                 This functionality is available only to mobile operator apps and UWP app given privileged access by mobile network operators. For more information, see Mobile broadband.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.MobileBroadbandRegistrationStateChangeTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IBackgroundTrigger`` *****
 
@@ -3609,6 +3721,10 @@ class Windows:
                 Represents a trigger that launches a background task when the local data counters estimate that usage (bytes sent and received) on the mobile broadband interface has changed by an actionable threshold.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.NetworkOperatorDataUsageTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IBackgroundTrigger`` *****
 
@@ -3620,6 +3736,10 @@ class Windows:
             """
             **Description:**
                 Represents a mobile network operator hotspot authentication trigger.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.NetworkOperatorHotspotAuthenticationTrigger``
 
 
             **Interfaces:**
@@ -3654,6 +3774,10 @@ class Windows:
             """
             **Description:**
                 This class represents a PaymentAppCanMakePayment trigger.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.PaymentAppCanMakePaymentTrigger``
 
 
             **Interfaces:**
@@ -3705,6 +3829,10 @@ class Windows:
                 Represents a trigger that launches a background task when a new Rich Communication Services (RCS) message is available.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.RcsEndUserMessageAvailableTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IBackgroundTrigger``
 
@@ -3720,6 +3848,10 @@ class Windows:
                 Represents a trigger that launches a background task when an RFCOMM inbound or outbound connections are established.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.RfcommConnectionTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IRfcommConnectionTrigger`` *****
 
@@ -3733,6 +3865,10 @@ class Windows:
             """
             **Description:**
                 Represents a trigger that launches a background task on behalf of a companion device.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.SecondaryAuthenticationFactorAuthenticationTrigger``
 
 
             **Interfaces:**
@@ -3803,6 +3939,10 @@ class Windows:
             """
             **Description:**
                 Represents a trigger that launches a background task for handling socket activity.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.SocketActivityTrigger``
 
 
             **Interfaces:**
@@ -3894,6 +4034,10 @@ class Windows:
                 Represents a tethering event that triggers a background task to run.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.TetheringEntitlementCheckTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IBackgroundTrigger`` *****
 
@@ -3979,6 +4123,10 @@ class Windows:
                 Your background task code should cast the value of the IBackgroundTaskInstance.TriggerDetails property to WiFiOnDemandHotspotConnectTriggerDetails.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.WiFiOnDemandHotspotConnectTrigger``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Background.IBackgroundTrigger`` *****
 
@@ -3990,6 +4138,10 @@ class Windows:
             """
             **Description:**
                 Represents an event that causes a background task to run when the user opens the operating system (OS) Wi-Fi network list, as if to connect to a new Wi-Fi network.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Background.WiFiOnDemandHotspotUpdateMetadataTrigger``
 
 
             **Interfaces:**
@@ -4136,6 +4288,10 @@ class Windows:
                 A collection of information about a phone call for the call history.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Calls.PhoneCallHistoryEntry``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Calls.IPhoneCallHistoryEntry`` *****
 
@@ -4164,6 +4320,10 @@ class Windows:
             """
             **Description:**
                 Options for querying the phone call entries.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Calls.PhoneCallHistoryEntryQueryOptions``
 
 
             **Interfaces:**
@@ -4311,6 +4471,10 @@ class Windows:
             """
             **Description:**
                 Represents options for dialing a call.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Calls.PhoneDialOptions``
 
 
             **Interfaces:**
@@ -4582,6 +4746,10 @@ class Windows:
                     A collection of information about the origin of a phone call.
 
 
+                **Activatable:**
+                    ``Windows.ApplicationModel.Calls.Provider.PhoneCallOrigin``
+
+
                 **Interfaces:**
                     ``Windows.ApplicationModel.Calls.Provider.IPhoneCallOrigin`` *****
 
@@ -4684,6 +4852,10 @@ class Windows:
                 Provides threading info for a ChatConversation.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Chat.ChatConversationThreadingInfo``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Chat.IChatConversationThreadingInfo`` *****
 
@@ -4695,6 +4867,10 @@ class Windows:
             """
             **Description:**
                 Represents a chat message.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Chat.ChatMessage``
 
 
             **Interfaces:**
@@ -4933,6 +5109,10 @@ class Windows:
                 Represents the criteria for finding chat messages.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Chat.ChatQueryOptions``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Chat.IChatQueryOptions`` *****
 
@@ -4944,6 +5124,10 @@ class Windows:
             """
             **Description:**
                 Represent the delivery info about a chat recipient.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Chat.ChatRecipientDeliveryInfo``
 
 
             **Interfaces:**
@@ -5193,6 +5377,10 @@ class Windows:
                 Represents a contact.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.Contact``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Contacts.IContact`` *****
 
@@ -5212,6 +5400,10 @@ class Windows:
                 Represents the address of a contact.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.ContactAddress``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Contacts.IContactAddress`` *****
 
@@ -5223,6 +5415,10 @@ class Windows:
             """
             **Description:**
                 Provides a way to tag existing user contacts with additional information, specifying that your app can perform some SupportedOperations for this particular contact.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.ContactAnnotation``
 
 
             **Interfaces:**
@@ -5294,6 +5490,10 @@ class Windows:
             """
             **Description:**
                 Represents data about how to display a mini contact card.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.ContactCardOptions``
 
 
             **Interfaces:**
@@ -5378,6 +5578,10 @@ class Windows:
                 Represents a connected service account for a contact.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.ContactConnectedServiceAccount``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Contacts.IContactConnectedServiceAccount`` *****
 
@@ -5391,6 +5595,10 @@ class Windows:
                 Represents an important date for a contact.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.ContactDate``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Contacts.IContactDate`` *****
 
@@ -5402,6 +5610,10 @@ class Windows:
             """
             **Description:**
                 Represents an email address of a contact.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.ContactEmail``
 
 
             **Interfaces:**
@@ -5432,6 +5644,10 @@ class Windows:
             """
             **Description:**
                 Creates fields that contain information about a contact. You can then add these fields to a Contact object to create the contact. This class is available only to apps that support the Contact contract.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.ContactFieldFactory``
 
 
             **Interfaces:**
@@ -5496,6 +5712,10 @@ class Windows:
             """
             **Description:**
                 Represents job info for a contact.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.ContactJobInfo``
 
 
             **Interfaces:**
@@ -5689,6 +5909,10 @@ class Windows:
                 Represents information about the phone for a contact.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.ContactPhone``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Contacts.IContactPhone`` *****
 
@@ -5700,6 +5924,10 @@ class Windows:
             """
             **Description:**
                 Controls how the Contact Picker user interface opens and what information it shows.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.ContactPicker``
 
 
             **Statics:**
@@ -5766,6 +5994,10 @@ class Windows:
                 Represents the info about a significant other for a contact.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.ContactSignificantOther``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Contacts.IContactSignificantOther`` *****
 
@@ -5811,6 +6043,10 @@ class Windows:
                 Represents the info about a Web site for a contact.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.ContactWebsite``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Contacts.IContactWebsite`` *****
 
@@ -5824,6 +6060,10 @@ class Windows:
             """
             **Description:**
                 Specifies the options for displaying the full contact card.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Contacts.FullContactCardOptions``
 
 
             **Interfaces:**
@@ -6399,6 +6639,10 @@ class Windows:
                 Specifies options for using the SetContentWithOptions method to set content in the clipboard. 
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.DataTransfer.ClipboardContentOptions``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.DataTransfer.IClipboardContentOptions`` *****
 
@@ -6449,6 +6693,10 @@ class Windows:
             """
             **Description:**
                 Contains the data that a user wants to exchange with another app.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.DataTransfer.DataPackage``
 
 
             **Interfaces:**
@@ -6722,6 +6970,10 @@ class Windows:
                 This class represents the options that are available to the user when showing the ShareUI.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.DataTransfer.ShareUIOptions``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.DataTransfer.IShareUIOptions`` *****
 
@@ -6830,6 +7082,10 @@ class Windows:
                         Handles a drag and drop operation.
 
 
+                    **Activatable:**
+                        ``Windows.ApplicationModel.DataTransfer.DragDrop.Core.CoreDragOperation``
+
+
                     **Interfaces:**
                         ``Windows.ApplicationModel.DataTransfer.DragDrop.Core.ICoreDragOperation`` *****
 
@@ -6879,6 +7135,10 @@ class Windows:
                 """
                 **Description:**
                     Represents shortcuts that help users share content with the apps they use most.
+
+
+                **Activatable:**
+                    ``Windows.ApplicationModel.DataTransfer.ShareTarget.QuickLink``
 
 
                 **Interfaces:**
@@ -7086,6 +7346,10 @@ class Windows:
                 Represents the settings for the automatic reply functionality of an email account.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Email.EmailMailboxAutoReplySettings``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Email.IEmailMailboxAutoReplySettings`` *****
 
@@ -7264,6 +7528,10 @@ class Windows:
                 Represents the information associated with a meeting.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Email.EmailMeetingInfo``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Email.IEmailMeetingInfo`` *****
 
@@ -7277,6 +7545,10 @@ class Windows:
             """
             **Description:**
                 Represents an email message.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Email.EmailMessage``
 
 
             **Interfaces:**
@@ -7369,6 +7641,10 @@ class Windows:
             """
             **Description:**
                 Represents the result of an attempt to resolve an email recipient.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Email.EmailRecipientResolutionResult``
 
 
             **Interfaces:**
@@ -7867,6 +8143,10 @@ class Windows:
                 Supports managing a request for background execution. For more information on how to use Extended Execution, see Run while minimized with Extended Execution
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.ExtendedExecution.ExtendedExecutionSession``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.ExtendedExecution.IExtendedExecutionSession`` *****
 
@@ -7903,6 +8183,10 @@ class Windows:
                 """
                 **Description:**
                     Supports managing a request for extended execution. This API requires the use of restricted capabilities and cannot be used for Store applications.
+
+
+                **Activatable:**
+                    ``Windows.ApplicationModel.ExtendedExecution.Foreground.ExtendedExecutionForegroundSession``
 
 
                 **Interfaces:**
@@ -8039,6 +8323,10 @@ class Windows:
                 This class represents an address that is used in the Payment Request API. This class reflects the W3C PaymentAddress interface.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Payments.PaymentAddress``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Payments.IPaymentAddress`` *****
 
@@ -8139,6 +8427,10 @@ class Windows:
                 In a desktop app, before using an instance of this class in a way that displays UI, you'll need to associate the object with its owner's window handle. For more info, and code examples, see Display WinRT UI objects that depend on CoreWindow.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Payments.PaymentMediator``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Payments.IPaymentMediator`` *****
 
@@ -8186,6 +8478,10 @@ class Windows:
             """
             **Description:**
                 A class containing payment options. This class reflects the W3C PaymentOptions dictionary.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.Payments.PaymentOptions``
 
 
             **Interfaces:**
@@ -8503,6 +8799,10 @@ class Windows:
                     Provides options for how to show a note.
 
 
+                **Activatable:**
+                    ``Windows.ApplicationModel.Preview.Notes.NotesWindowManagerPreviewShowNoteOptions``
+
+
                 **Interfaces:**
                     ``Windows.ApplicationModel.Preview.Notes.INotesWindowManagerPreviewShowNoteOptions`` *****
 
@@ -8614,6 +8914,10 @@ class Windows:
                 """
                 **Description:**
                     Encapsulates all of the factors (ResourceQualifiers) that might affect resource selection.
+
+
+                **Activatable:**
+                    ``Windows.ApplicationModel.Resources.Core.ResourceContext``
 
 
                 **Statics:**
@@ -8854,6 +9158,10 @@ class Windows:
                 Stores settings that determine whether the app provides suggestions based on local files, and that define the criteria used to locate and filter these suggestions.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.Search.LocalContentSuggestionSettings``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Search.ILocalContentSuggestionSettings`` *****
 
@@ -9086,6 +9394,10 @@ class Windows:
                     Manages access to search suggestions for the in-app SearchBox control.
 
 
+                **Activatable:**
+                    ``Windows.ApplicationModel.Search.Core.SearchSuggestionManager``
+
+
                 **Interfaces:**
                     ``Windows.ApplicationModel.Search.Core.ISearchSuggestionManager`` *****
 
@@ -9122,6 +9434,10 @@ class Windows:
                 Represents the child item of a SocialFeedItem.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.SocialInfo.SocialFeedChildItem``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.SocialInfo.ISocialFeedChildItem`` *****
 
@@ -9148,6 +9464,10 @@ class Windows:
                 Represents a social media feed item.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.SocialInfo.SocialFeedItem``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.SocialInfo.ISocialFeedItem`` *****
 
@@ -9161,6 +9481,10 @@ class Windows:
                 Represents a social media item that was shared with the user by another user of the service.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.SocialInfo.SocialFeedSharedItem``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.SocialInfo.ISocialFeedSharedItem`` *****
 
@@ -9172,6 +9496,10 @@ class Windows:
             """
             **Description:**
                 Represents a thumbnail image associated with a social media feed item.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.SocialInfo.SocialItemThumbnail``
 
 
             **Interfaces:**
@@ -9610,6 +9938,10 @@ class Windows:
                         Provides members for programmatically installing apps, including the ability to start an app install and get a list of app installs currently in progress.
 
 
+                    **Activatable:**
+                        ``Windows.ApplicationModel.Store.Preview.InstallControl.AppInstallManager``
+
+
                     **Interfaces:**
                         ``Windows.ApplicationModel.Store.Preview.InstallControl.IAppInstallManager`` *****
 
@@ -9648,6 +9980,10 @@ class Windows:
                         Provides options you can use in several method overloads of the AppInstallManager class for installing app updates.
 
 
+                    **Activatable:**
+                        ``Windows.ApplicationModel.Store.Preview.InstallControl.AppInstallOptions``
+
+
                     **Interfaces:**
                         ``Windows.ApplicationModel.Store.Preview.InstallControl.IAppInstallOptions`` *****
 
@@ -9678,6 +10014,10 @@ class Windows:
                     """
                     **Description:**
                         Provides options you can use in several method overloads of the AppInstallManager class for searching for app updates.
+
+
+                    **Activatable:**
+                        ``Windows.ApplicationModel.Store.Preview.InstallControl.AppUpdateOptions``
 
 
                     **Interfaces:**
@@ -10084,6 +10424,10 @@ class Windows:
                     Represents device settings for app sync relationships.
 
 
+                **Activatable:**
+                    ``Windows.ApplicationModel.UserDataAccounts.SystemAccess.DeviceAccountConfiguration``
+
+
                 **Interfaces:**
                     ``Windows.ApplicationModel.UserDataAccounts.SystemAccess.IDeviceAccountConfiguration`` *****
 
@@ -10122,6 +10466,10 @@ class Windows:
             """
             **Description:**
                 Represents a task.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.UserDataTasks.UserDataTask``
 
 
             **Interfaces:**
@@ -10206,6 +10554,10 @@ class Windows:
                 Represents the options selected for task query.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.UserDataTasks.UserDataTaskQueryOptions``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.UserDataTasks.IUserDataTaskQueryOptions`` *****
 
@@ -10232,6 +10584,10 @@ class Windows:
                 Represents when and how often a task occurs.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.UserDataTasks.UserDataTaskRecurrenceProperties``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.UserDataTasks.IUserDataTaskRecurrenceProperties`` *****
 
@@ -10243,6 +10599,10 @@ class Windows:
             """
             **Description:**
                 Represents how often a task occurs.
+
+
+            **Activatable:**
+                ``Windows.ApplicationModel.UserDataTasks.UserDataTaskRegenerationProperties``
 
 
             **Interfaces:**
@@ -10490,6 +10850,10 @@ class Windows:
                 An asset, containing image, text, and link data, provided by the background app service for display on the Cortana canvas.
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.VoiceCommands.VoiceCommandContentTile``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.VoiceCommands.IVoiceCommandContentTile`` *****
 
@@ -10582,6 +10946,10 @@ class Windows:
                 This message should be:
 
 
+            **Activatable:**
+                ``Windows.ApplicationModel.VoiceCommands.VoiceCommandUserMessage``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.VoiceCommands.IVoiceCommandUserMessage`` *****
 
@@ -10654,6 +11022,10 @@ class Windows:
             """
             WalletRelevantLocation = 'Windows.ApplicationModel.Wallet.WalletRelevantLocation'
             """
+            **Activatable:**
+                ``Windows.ApplicationModel.Wallet.WalletRelevantLocation``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Wallet.IWalletRelevantLocation`` *****
 
@@ -10663,6 +11035,10 @@ class Windows:
             """
             WalletTransaction = 'Windows.ApplicationModel.Wallet.WalletTransaction'
             """
+            **Activatable:**
+                ``Windows.ApplicationModel.Wallet.WalletTransaction``
+
+
             **Interfaces:**
                 ``Windows.ApplicationModel.Wallet.IWalletTransaction`` *****
 
@@ -10763,6 +11139,10 @@ class Windows:
                 JsonArray inherits the IVector(IJsonValue) and IIterable(IJsonValue) interfaces, which provide methods to iterate through the elements in the array and update its contents.
 
 
+            **Activatable:**
+                ``Windows.Data.Json.JsonArray``
+
+
             **Statics:**
                 ``Windows.Data.Json.IJsonArrayStatics``
 
@@ -10801,6 +11181,10 @@ class Windows:
                 Represents a JSON object containing a collection of name and JsonValue pairs.
 
                 JsonObject is an activatable class that implements JsonValue and the IMap interface such that its name/value pairs can be manipulated like a dictionary. When there are values with duplicated names, the last name/value pair will be stored.
+
+
+            **Activatable:**
+                ``Windows.Data.Json.JsonObject``
 
 
             **Statics:**
@@ -10906,6 +11290,10 @@ class Windows:
             """
             **Description:**
                 Represents display settings for a single page of a Portable Document Format (PDF) document, such as the page's background color and its encoding type.
+
+
+            **Activatable:**
+                ``Windows.Data.Pdf.PdfPageRenderOptions``
 
 
             **Interfaces:**
@@ -11220,6 +11608,10 @@ class Windows:
                     Represents the top level of the XML source. This class includes members for retrieving and creating all other XML objects.
 
 
+                **Activatable:**
+                    ``Windows.Data.Xml.Dom.XmlDocument``
+
+
                 **Statics:**
                     ``Windows.Data.Xml.Dom.IXmlDocumentStatics``
 
@@ -11334,6 +11726,10 @@ class Windows:
                 """
                 **Description:**
                     Contains settings that are used during loading and parsing of XML documents. The default settings are chosen for the highest security. This class can be instantiated and is accepted by LoadXml, LoadFromUriAsync, and LoadFromFileAsync.
+
+
+                **Activatable:**
+                    ``Windows.Data.Xml.Dom.XmlLoadSettings``
 
 
                 **Interfaces:**
@@ -12201,6 +12597,10 @@ class Windows:
                 Groups parameters used to configure received signal strength indicator (RSSI)-based filtering.
 
 
+            **Activatable:**
+                ``Windows.Devices.Bluetooth.BluetoothSignalStrengthFilter``
+
+
             **Interfaces:**
                 ``Windows.Devices.Bluetooth.IBluetoothSignalStrengthFilter`` *****
 
@@ -12235,6 +12635,10 @@ class Windows:
                 """
                 **Description:**
                     A representation of a Bluetooth LE advertisement payload.
+
+
+                **Activatable:**
+                    ``Windows.Devices.Bluetooth.Advertisement.BluetoothLEAdvertisement``
 
 
                 **Interfaces:**
@@ -12295,6 +12699,10 @@ class Windows:
                 """
                 **Description:**
                     Groups parameters used to configure payload-based filtering of received Bluetooth LE advertisements.
+
+
+                **Activatable:**
+                    ``Windows.Devices.Bluetooth.Advertisement.BluetoothLEAdvertisementFilter``
 
 
                 **Interfaces:**
@@ -12702,6 +13110,10 @@ class Windows:
                     This class contains the local characteristic descriptor parameters.
 
 
+                **Activatable:**
+                    ``Windows.Devices.Bluetooth.GenericAttributeProfile.GattLocalCharacteristicParameters``
+
+
                 **Interfaces:**
                     ``Windows.Devices.Bluetooth.GenericAttributeProfile.IGattLocalCharacteristicParameters`` *****
 
@@ -12739,6 +13151,10 @@ class Windows:
                 """
                 **Description:**
                     This class defines the parameters of a descriptor.
+
+
+                **Activatable:**
+                    ``Windows.Devices.Bluetooth.GenericAttributeProfile.GattLocalDescriptorParameters``
 
 
                 **Interfaces:**
@@ -12881,6 +13297,10 @@ class Windows:
                     Performs GATT reliable writes on the Bluetooth LE device, in the form of a transaction write operation.
 
 
+                **Activatable:**
+                    ``Windows.Devices.Bluetooth.GenericAttributeProfile.GattReliableWriteTransaction``
+
+
                 **Interfaces:**
                     ``Windows.Devices.Bluetooth.GenericAttributeProfile.IGattReliableWriteTransaction`` *****
 
@@ -12937,6 +13357,10 @@ class Windows:
                 """
                 **Description:**
                     This class is used to define a GATT service advertisement parameters.
+
+
+                **Activatable:**
+                    ``Windows.Devices.Bluetooth.GenericAttributeProfile.GattServiceProviderAdvertisingParameters``
 
 
                 **Interfaces:**
@@ -13790,6 +14214,10 @@ class Windows:
                 In a desktop app, before using an instance of this class in a way that displays UI, you'll need to associate the object with its owner's window handle. For more info, and code examples, see Display WinRT UI objects that depend on CoreWindow.
 
 
+            **Activatable:**
+                ``Windows.Devices.Enumeration.DevicePicker``
+
+
             **Interfaces:**
                 ``Windows.Devices.Enumeration.IDevicePicker`` *****
 
@@ -14106,6 +14534,10 @@ class Windows:
                 Provides access to the current geographic location.
 
 
+            **Activatable:**
+                ``Windows.Devices.Geolocation.Geolocator``
+
+
             **Statics:**
                 ``Windows.Devices.Geolocation.IGeolocatorStatics``
 
@@ -14193,6 +14625,10 @@ class Windows:
             """
             **Description:**
                 Handles the monitoring of a user's Visits when the app is in use (not in the background).
+
+
+            **Activatable:**
+                ``Windows.Devices.Geolocation.GeovisitMonitor``
 
 
             **Statics:**
@@ -14348,6 +14784,10 @@ class Windows:
                 """
                 **Description:**
                     Provides the ability to override the user's location from a remote source.
+
+
+                **Activatable:**
+                    ``Windows.Devices.Geolocation.Provider.GeolocationProvider``
 
 
                 **Interfaces:**
@@ -14805,6 +15245,10 @@ class Windows:
                 Provides the ability to determine the capabilities of any connected hardware keyboards.
 
 
+            **Activatable:**
+                ``Windows.Devices.Input.KeyboardCapabilities``
+
+
             **Interfaces:**
                 ``Windows.Devices.Input.IKeyboardCapabilities`` *****
 
@@ -14816,6 +15260,10 @@ class Windows:
             """
             **Description:**
                 Supports the ability to determine the capabilities of any connected mouse devices.
+
+
+            **Activatable:**
+                ``Windows.Devices.Input.MouseCapabilities``
 
 
             **Interfaces:**
@@ -14996,6 +15444,10 @@ class Windows:
             """
             **Description:**
                 Supports the ability to determine the touch capabilities of any connected touch digitizers.
+
+
+            **Activatable:**
+                ``Windows.Devices.Input.TouchCapabilities``
 
 
             **Interfaces:**
@@ -15326,6 +15778,10 @@ class Windows:
                     Used to either chain multiple effects together, or to start effects simultaneously.
 
 
+                **Activatable:**
+                    ``Windows.Devices.Lights.Effects.LampArrayEffectPlaylist``
+
+
                 **Statics:**
                     ``Windows.Devices.Lights.Effects.ILampArrayEffectPlaylistStatics``
 
@@ -15391,6 +15847,10 @@ class Windows:
                 Represents a MIDI message that specifies active sensing.
 
 
+            **Activatable:**
+                ``Windows.Devices.Midi.MidiActiveSensingMessage``
+
+
             **Interfaces:**
                 ``Windows.Devices.Midi.IMidiMessage`` *****
 
@@ -15421,6 +15881,10 @@ class Windows:
             """
             **Description:**
                 Represents a MIDI message that specifies a continue message.
+
+
+            **Activatable:**
+                ``Windows.Devices.Midi.MidiContinueMessage``
 
 
             **Interfaces:**
@@ -15639,6 +16103,10 @@ class Windows:
                 Represents a MIDI message that specifies a start message.
 
 
+            **Activatable:**
+                ``Windows.Devices.Midi.MidiStartMessage``
+
+
             **Interfaces:**
                 ``Windows.Devices.Midi.IMidiMessage`` *****
 
@@ -15650,6 +16118,10 @@ class Windows:
             """
             **Description:**
                 Represents a MIDI message that specifies a stop message.
+
+
+            **Activatable:**
+                ``Windows.Devices.Midi.MidiStopMessage``
 
 
             **Interfaces:**
@@ -15703,6 +16175,10 @@ class Windows:
                 Represents a MIDI message that specifies a system reset.
 
 
+            **Activatable:**
+                ``Windows.Devices.Midi.MidiSystemResetMessage``
+
+
             **Interfaces:**
                 ``Windows.Devices.Midi.IMidiMessage`` *****
 
@@ -15735,6 +16211,10 @@ class Windows:
                 Represents a MIDI message that specifies a timing clock.
 
 
+            **Activatable:**
+                ``Windows.Devices.Midi.MidiTimingClockMessage``
+
+
             **Interfaces:**
                 ``Windows.Devices.Midi.IMidiMessage`` *****
 
@@ -15746,6 +16226,10 @@ class Windows:
             """
             **Description:**
                 Represents a MIDI message that specifies a tune request.
+
+
+            **Activatable:**
+                ``Windows.Devices.Midi.MidiTuneRequestMessage``
 
 
             **Interfaces:**
@@ -16349,6 +16833,10 @@ class Windows:
                 """
                 **Description:**
                     A specific set of properties describing a unique IPerceptionFrameProvider.
+
+
+                **Activatable:**
+                    ``Windows.Devices.Perception.Provider.PerceptionFrameProviderInfo``
 
 
                 **Interfaces:**
@@ -17297,6 +17785,10 @@ class Windows:
                 Represents the print options of the text that you want to print to a point-of-service printer.
 
 
+            **Activatable:**
+                ``Windows.Devices.PointOfService.PosPrinterPrintOptions``
+
+
             **Interfaces:**
                 ``Windows.Devices.PointOfService.IPosPrinterPrintOptions`` *****
 
@@ -17747,6 +18239,10 @@ class Windows:
                     Represents the builder of barcode symbology attributes.
 
 
+                **Activatable:**
+                    ``Windows.Devices.PointOfService.Provider.BarcodeSymbologyAttributesBuilder``
+
+
                 **Interfaces:**
                     ``Windows.Devices.PointOfService.Provider.IBarcodeSymbologyAttributesBuilder`` *****
 
@@ -17955,6 +18451,10 @@ class Windows:
             """
             PageConfigurationSettings = 'Windows.Devices.Printers.PageConfigurationSettings'
             """
+            **Activatable:**
+                ``Windows.Devices.Printers.PageConfigurationSettings``
+
+
             **Interfaces:**
                 ``Windows.Devices.Printers.IPageConfigurationSettings`` *****
             """
@@ -19681,6 +20181,10 @@ class Windows:
                 This class contains information that is returned by GetAllCryptogramMaterialCharacteristicsAsync.
 
 
+            **Activatable:**
+                ``Windows.Devices.SmartCards.SmartCardCryptogramGetAllCryptogramMaterialCharacteristicsResult``
+
+
             **Interfaces:**
                 ``Windows.Devices.SmartCards.ISmartCardCryptogramGetAllCryptogramMaterialCharacteristicsResult`` *****
 
@@ -19692,6 +20196,10 @@ class Windows:
             """
             **Description:**
                 This class contains information that is returned by GetAllCryptogramMaterialPackageCharacteristicsAsync.
+
+
+            **Activatable:**
+                ``Windows.Devices.SmartCards.SmartCardCryptogramGetAllCryptogramMaterialPackageCharacteristicsResult``
 
 
             **Interfaces:**
@@ -19707,6 +20215,10 @@ class Windows:
                 This class contains information that is returned by GetAllCryptogramStorageKeyCharacteristicsAsync.
 
 
+            **Activatable:**
+                ``Windows.Devices.SmartCards.SmartCardCryptogramGetAllCryptogramStorageKeyCharacteristicsResult``
+
+
             **Interfaces:**
                 ``Windows.Devices.SmartCards.ISmartCardCryptogramGetAllCryptogramStorageKeyCharacteristicsResult`` *****
 
@@ -19720,6 +20232,10 @@ class Windows:
                 This class contains characteristics of cryptogram material.
 
 
+            **Activatable:**
+                ``Windows.Devices.SmartCards.SmartCardCryptogramMaterialCharacteristics``
+
+
             **Interfaces:**
                 ``Windows.Devices.SmartCards.ISmartCardCryptogramMaterialCharacteristics`` *****
 
@@ -19731,6 +20247,10 @@ class Windows:
             """
             **Description:**
                 This class contains characteristics of a cryptogram material package.
+
+
+            **Activatable:**
+                ``Windows.Devices.SmartCards.SmartCardCryptogramMaterialPackageCharacteristics``
 
 
             **Interfaces:**
@@ -19759,6 +20279,10 @@ class Windows:
                 Contains instructions for placing a cryptogram in an outgoing message.
 
 
+            **Activatable:**
+                ``Windows.Devices.SmartCards.SmartCardCryptogramPlacementStep``
+
+
             **Interfaces:**
                 ``Windows.Devices.SmartCards.ISmartCardCryptogramPlacementStep`` *****
 
@@ -19770,6 +20294,10 @@ class Windows:
             """
             **Description:**
                 This class contains characteristics of storage keys.
+
+
+            **Activatable:**
+                ``Windows.Devices.SmartCards.SmartCardCryptogramStorageKeyCharacteristics``
 
 
             **Interfaces:**
@@ -19864,6 +20392,10 @@ class Windows:
             """
             **Description:**
                 Represents a set of personal identification number (PIN) rules on a Trusted Platform Module (TPM) virtual smart card.
+
+
+            **Activatable:**
+                ``Windows.Devices.SmartCards.SmartCardPinPolicy``
 
 
             **Interfaces:**
@@ -20056,6 +20588,10 @@ class Windows:
                 The interface for manipulating an SMS Application message. Application messages are those which cannot be characterized as any other message type.
 
 
+            **Activatable:**
+                ``Windows.Devices.Sms.SmsAppMessage``
+
+
             **Interfaces:**
                 ``Windows.Devices.Sms.ISmsAppMessage`` *****
 
@@ -20069,6 +20605,10 @@ class Windows:
             """
             **Description:**
                 Represents an SMS message in raw PDU format. The data format differs depending on whether the message format (indicated by the value of the Format property) is GSM or CDMA.
+
+
+            **Activatable:**
+                ``Windows.Devices.Sms.SmsBinaryMessage``
 
 
             **Interfaces:**
@@ -20270,6 +20810,10 @@ class Windows:
                 Manages a decoded SMS text message, providing direct access to the plain text body of the message, as well as key header properties, such as time stamp.
 
 
+            **Activatable:**
+                ``Windows.Devices.Sms.SmsTextMessage``
+
+
             **Statics:**
                 ``Windows.Devices.Sms.ISmsTextMessageStatics``
 
@@ -20287,6 +20831,10 @@ class Windows:
             """
             **Description:**
                 Encapsulates a decoded SMS text message. Prefer this class to the older SmsTextMessage class.
+
+
+            **Activatable:**
+                ``Windows.Devices.Sms.SmsTextMessage2``
 
 
             **Interfaces:**
@@ -20437,7 +20985,7 @@ class Windows:
             **Description:**
                 This namespace defines Windows Runtime classes that a UWP app can use to communicate with WinUSB devices.  These devices are handled by the inbox winusb.sys driver and are identified by a specific Microsoft OS Descriptor.
 
-                A valid WinUSB device will have a compatible id of USB\\MS_COMP_WINUSB
+                A valid WinUSB device will have a compatible id of USB\MS_COMP_WINUSB
 
 
 
@@ -20533,6 +21081,10 @@ class Windows:
                 Provides information about the USB control transfer, the type of control request, whether the data is sent from or to the host, and the recipient of the request in the device.
 
 
+            **Activatable:**
+                ``Windows.Devices.Usb.UsbControlRequestType``
+
+
             **Interfaces:**
                 ``Windows.Devices.Usb.IUsbControlRequestType`` *****
 
@@ -20576,6 +21128,10 @@ class Windows:
             """
             **Description:**
                 Provides a way for the app to get an Advanced Query Syntax (AQS) string by specifying the class code, subclass code, and the protocol code defined by the device. The properties in this class are passed in the call to GetDeviceClassSelector.
+
+
+            **Activatable:**
+                ``Windows.Devices.Usb.UsbDeviceClass``
 
 
             **Interfaces:**
@@ -20929,6 +21485,10 @@ class Windows:
                 An object to publish Wi-Fi Direct advertisements.
 
 
+            **Activatable:**
+                ``Windows.Devices.WiFiDirect.WiFiDirectAdvertisementPublisher``
+
+
             **Interfaces:**
                 ``Windows.Devices.WiFiDirect.IWiFiDirectAdvertisementPublisher`` *****
 
@@ -20955,6 +21515,10 @@ class Windows:
                 Class used to listen for incoming Wi-Fi Direct connection requests.
 
 
+            **Activatable:**
+                ``Windows.Devices.WiFiDirect.WiFiDirectConnectionListener``
+
+
             **Interfaces:**
                 ``Windows.Devices.WiFiDirect.IWiFiDirectConnectionListener`` *****
 
@@ -20968,6 +21532,10 @@ class Windows:
                 Used by an app to specify the connection parameters for a Wi-Fi Direct connect/pairing operation.
 
                 Sample applications that use this class include the Wi-Fi Direct sample.
+
+
+            **Activatable:**
+                ``Windows.Devices.WiFiDirect.WiFiDirectConnectionParameters``
 
 
             **Statics:**
@@ -21038,6 +21606,10 @@ class Windows:
             """
             **Description:**
                 Represents information elements in a Wi-Fi Direct packet.
+
+
+            **Activatable:**
+                ``Windows.Devices.WiFiDirect.WiFiDirectInformationElement``
 
 
             **Statics:**
@@ -21356,6 +21928,10 @@ class Windows:
                 Represents a property set, which is a set of PropertyValue objects with string keys.
 
 
+            **Activatable:**
+                ``Windows.Foundation.Collections.PropertySet``
+
+
             **Interfaces:**
                 ``Windows.Foundation.Collections.IPropertySet`` *****
 
@@ -21375,6 +21951,10 @@ class Windows:
                 An associative collection, also known as a map or a dictionary.
 
 
+            **Activatable:**
+                ``Windows.Foundation.Collections.StringMap``
+
+
             **Interfaces:**
                 ``Windows.Foundation.Collections.IMap<HSTRING, HSTRING>`` *****
 
@@ -21390,6 +21970,10 @@ class Windows:
             """
             **Description:**
                 Implements a map with keys of type String and values of type Object. Object must be a WinRT PropertyValue or ValueSet. As a PropertyValue, it can be any type except PropertyType InspectableArray. This limitation exists to ensure that the value can be serialized; passed by value across a process boundary.
+
+
+            **Activatable:**
+                ``Windows.Foundation.Collections.ValueSet``
 
 
             **Interfaces:**
@@ -21546,6 +22130,10 @@ class Windows:
                 Represents a sequence of event fields and provides methods for adding fields to the sequence.
 
 
+            **Activatable:**
+                ``Windows.Foundation.Diagnostics.LoggingFields``
+
+
             **Interfaces:**
                 ``Windows.Foundation.Diagnostics.ILoggingFields`` *****
 
@@ -21593,6 +22181,10 @@ class Windows:
             """
             **Description:**
                 Represents diagnostic error reporting settings.
+
+
+            **Activatable:**
+                ``Windows.Foundation.Diagnostics.RuntimeBrokerErrorSettings``
 
 
             **Interfaces:**
@@ -21920,6 +22512,10 @@ class Windows:
                     A force feedback effect which applies a constant force along a vector.
 
 
+                **Activatable:**
+                    ``Windows.Gaming.Input.ForceFeedback.ConstantForceEffect``
+
+
                 **Interfaces:**
                     ``Windows.Gaming.Input.ForceFeedback.IForceFeedbackEffect`` *****
 
@@ -21965,6 +22561,10 @@ class Windows:
                 """
                 **Description:**
                     A force feedback effect which applies a linearly increasing or decreasing force along a vector.
+
+
+                **Activatable:**
+                    ``Windows.Gaming.Input.ForceFeedback.RampForceEffect``
 
 
                 **Interfaces:**
@@ -22127,6 +22727,10 @@ class Windows:
             """
             **Description:**
                 Provides an event that is raised every time the game chat receives a message, as well as a method to set the delay before the game chat overlay closes after receiving a message. This API is not available to all apps. Unless your developer account is specially provisioned by Microsoft, your app cannot use this API.
+
+
+            **Activatable:**
+                ``Windows.Gaming.UI.GameChatOverlayMessageSource``
 
 
             **Interfaces:**
@@ -22707,6 +23311,10 @@ class Windows:
                 For example, this class can be used to round a number to the nearest 0.01.
 
 
+            **Activatable:**
+                ``Windows.Globalization.NumberFormatting.IncrementNumberRounder``
+
+
             **Interfaces:**
                 ``Windows.Globalization.NumberFormatting.INumberRounder`` *****
 
@@ -22797,6 +23405,10 @@ class Windows:
                 Rounds numbers to a specified number of significant digits.
 
 
+            **Activatable:**
+                ``Windows.Globalization.NumberFormatting.SignificantDigitsNumberRounder``
+
+
             **Interfaces:**
                 ``Windows.Globalization.NumberFormatting.INumberRounder`` *****
 
@@ -22820,6 +23432,10 @@ class Windows:
             """
             **Description:**
                 Formats phone numbers.
+
+
+            **Activatable:**
+                ``Windows.Globalization.PhoneNumberFormatting.PhoneNumberFormatter``
 
 
             **Statics:**
@@ -22952,6 +23568,10 @@ class Windows:
                 A system picker UI control that allows the customer to select an item on the screen to capture.
 
                 In a desktop app, before using an instance of this class in a way that displays UI, you'll need to associate the object with its owner's window handle. For more info, and code examples, see Display WinRT UI objects that depend on CoreWindow.
+
+
+            **Activatable:**
+                ``Windows.Graphics.Capture.GraphicsCapturePicker``
 
 
             **Interfaces:**
@@ -23629,6 +24249,10 @@ class Windows:
                 Represents a property set of BitmapTypedValue objects.
 
 
+            **Activatable:**
+                ``Windows.Graphics.Imaging.BitmapPropertySet``
+
+
             **Interfaces:**
                 ``Windows.Foundation.Collections.IMap<HSTRING, Windows.Graphics.Imaging.BitmapTypedValue*>`` *****
 
@@ -23642,6 +24266,10 @@ class Windows:
             """
             **Description:**
                 Contains transformations that can be applied to pixel data.
+
+
+            **Activatable:**
+                ``Windows.Graphics.Imaging.BitmapTransform``
 
 
             **Interfaces:**
@@ -23760,6 +24388,10 @@ class Windows:
             """
             **Description:**
                 Stores formatting data for a single section of printable pages.
+
+
+            **Activatable:**
+                ``Windows.Graphics.Printing.PrintPageInfo``
 
 
             **Interfaces:**
@@ -24356,6 +24988,10 @@ class Windows:
                 """
                 **Description:**
                     Represents an element of a PrintTicket, which is a collection of various print related features and their values used to capture the user's intent for a given print job.
+
+
+                **Activatable:**
+                    ``Windows.Graphics.Printing.PrintSupport.PrintSupportPrintTicketElement``
 
 
                 **Interfaces:**
@@ -25064,6 +25700,10 @@ class Windows:
                 Represents a 3D Manufacturing Format (3MF) package.
 
 
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3D3MFPackage``
+
+
             **Statics:**
                 ``Windows.Graphics.Printing3D.IPrinting3D3MFPackageStatics``
 
@@ -25081,6 +25721,10 @@ class Windows:
             """
             **Description:**
                 Represents the base material used for manufacturing certain objects in the 3D model.
+
+
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3DBaseMaterial``
 
 
             **Statics:**
@@ -25117,6 +25761,10 @@ class Windows:
                 Represents a color material used in the 3D model.
 
 
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3DColorMaterial``
+
+
             **Interfaces:**
                 ``Windows.Graphics.Printing3D.IPrinting3DColorMaterial`` *****
 
@@ -25149,6 +25797,10 @@ class Windows:
                 Represents a 3D Manufacturing Format (3MF) component. Acts as a container of other components.
 
 
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3DComponent``
+
+
             **Interfaces:**
                 ``Windows.Graphics.Printing3D.IPrinting3DComponent`` *****
 
@@ -25162,6 +25814,10 @@ class Windows:
                 Represents a 3D Manufacturing Format (3MF) component that's applied to the object definition with a matrix transform.
 
 
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3DComponentWithMatrix``
+
+
             **Interfaces:**
                 ``Windows.Graphics.Printing3D.IPrinting3DComponentWithMatrix`` *****
 
@@ -25173,6 +25829,10 @@ class Windows:
             """
             **Description:**
                 Represents a composite material that's defined by a mixture of base materials.
+
+
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3DCompositeMaterial``
 
 
             **Interfaces:**
@@ -25207,6 +25867,10 @@ class Windows:
                 Provides additional information for the TryReduceFacesAsync method in the Printing3DModel class
 
 
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3DFaceReductionOptions``
+
+
             **Interfaces:**
                 ``Windows.Graphics.Printing3D.IPrinting3DFaceReductionOptions`` *****
 
@@ -25220,6 +25884,10 @@ class Windows:
                 Represents all material resources in the 3D model.
 
 
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3DMaterial``
+
+
             **Interfaces:**
                 ``Windows.Graphics.Printing3D.IPrinting3DMaterial`` *****
 
@@ -25231,6 +25899,10 @@ class Windows:
             """
             **Description:**
                 Represents a mesh in the 3D model.
+
+
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3DMesh``
 
 
             **Interfaces:**
@@ -25259,6 +25931,10 @@ class Windows:
                 Represents the 3D model in a 3D Manufacturing Format (3MF) package.
 
 
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3DModel``
+
+
             **Interfaces:**
                 ``Windows.Graphics.Printing3D.IPrinting3DModel`` *****
 
@@ -25274,6 +25950,10 @@ class Windows:
                 Represents a texture used in the 3D model.
 
 
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3DModelTexture``
+
+
             **Interfaces:**
                 ``Windows.Graphics.Printing3D.IPrinting3DModelTexture`` *****
 
@@ -25285,6 +25965,10 @@ class Windows:
             """
             **Description:**
                 Represents a combination of properties and/or materials from the material groups specified in (MaterialGroupIndices).
+
+
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3DMultiplePropertyMaterial``
 
 
             **Interfaces:**
@@ -25315,6 +25999,10 @@ class Windows:
             """
             **Description:**
                 Represents a 2D texture material used in the 3D model.
+
+
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3DTexture2CoordMaterial``
 
 
             **Interfaces:**
@@ -25349,6 +26037,10 @@ class Windows:
                 Specifies the texture resource used in a 2D texture material.
 
 
+            **Activatable:**
+                ``Windows.Graphics.Printing3D.Printing3DTextureResource``
+
+
             **Interfaces:**
                 ``Windows.Graphics.Printing3D.IPrinting3DTextureResource`` *****
 
@@ -25370,6 +26062,10 @@ class Windows:
         """
         **Description:**
             Provides functionality to configure the data sent to the mobile device management server.
+
+
+        **Activatable:**
+            ``Windows.Management.MdmAlert``
 
 
         **Interfaces:**
@@ -25450,6 +26146,10 @@ class Windows:
                 Specifies the deployment options that you can configure when you use the AddPackageByUriAsync method to add a package, package manifest, or App Installer file.
 
 
+            **Activatable:**
+                ``Windows.Management.Deployment.AddPackageOptions``
+
+
             **Interfaces:**
                 ``Windows.Management.Deployment.IAddPackageOptions`` *****
 
@@ -25482,6 +26182,10 @@ class Windows:
                 Represents the automatic update settings for a package.
 
 
+            **Activatable:**
+                ``Windows.Management.Deployment.AutoUpdateSettingsOptions``
+
+
             **Statics:**
                 ``Windows.Management.Deployment.IAutoUpdateSettingsOptionsStatics``
 
@@ -25497,6 +26201,10 @@ class Windows:
             """
             **Description:**
                 Provides options for creating a shared package container with a call to  SharedPackageContainerManager.CreateContainer.
+
+
+            **Activatable:**
+                ``Windows.Management.Deployment.CreateSharedPackageContainerOptions``
 
 
             **Interfaces:**
@@ -25523,6 +26231,10 @@ class Windows:
             """
             **Description:**
                 Provides options for creating a shared package container with a call to  SharedPackageContainerManager.DeleteContainer.
+
+
+            **Activatable:**
+                ``Windows.Management.Deployment.DeleteSharedPackageContainerOptions``
 
 
             **Interfaces:**
@@ -25566,6 +26278,10 @@ class Windows:
                 Provides options for creating a shared package container with a call to  SharedPackageContainerManager.FindContainer.
 
 
+            **Activatable:**
+                ``Windows.Management.Deployment.FindSharedPackageContainerOptions``
+
+
             **Interfaces:**
                 ``Windows.Management.Deployment.IFindSharedPackageContainerOptions`` *****
 
@@ -25579,6 +26295,10 @@ class Windows:
                 Provides options for calls to ProvisionPackageForAllUsersAsync, including specifying optional packages to install.
 
 
+            **Activatable:**
+                ``Windows.Management.Deployment.PackageAllUserProvisioningOptions``
+
+
             **Interfaces:**
                 ``Windows.Management.Deployment.IPackageAllUserProvisioningOptions`` *****
 
@@ -25590,6 +26310,10 @@ class Windows:
             """
             **Description:**
                 Manages the software available to a user.
+
+
+            **Activatable:**
+                ``Windows.Management.Deployment.PackageManager``
 
 
             **Interfaces:**
@@ -25664,6 +26388,10 @@ class Windows:
                 Specifies the deployment options that you can configure when you use the RegisterPackageByUriAsync method to register a Package.
 
 
+            **Activatable:**
+                ``Windows.Management.Deployment.RegisterPackageOptions``
+
+
             **Interfaces:**
                 ``Windows.Management.Deployment.IRegisterPackageOptions`` *****
 
@@ -25726,6 +26454,10 @@ class Windows:
                 Specifies the deployment options that you can configure when you use the StagePackageByUriAsync method to stage a package.
 
 
+            **Activatable:**
+                ``Windows.Management.Deployment.StagePackageOptions``
+
+
             **Interfaces:**
                 ``Windows.Management.Deployment.IStagePackageOptions`` *****
 
@@ -25739,6 +26471,10 @@ class Windows:
             """
             **Description:**
                 Provides options for updating a shared package container.
+
+
+            **Activatable:**
+                ``Windows.Management.Deployment.UpdateSharedPackageContainerOptions``
 
 
             **Interfaces:**
@@ -25904,6 +26640,10 @@ class Windows:
             """
             WindowsUpdateApprovalData = 'Windows.Management.Update.WindowsUpdateApprovalData'
             """
+            **Activatable:**
+                ``Windows.Management.Update.WindowsUpdateApprovalData``
+
+
             **Interfaces:**
                 ``Windows.Management.Update.IWindowsUpdateApprovalData`` *****
             """
@@ -26082,6 +26822,10 @@ class Windows:
             Registers a media parser or codec.
 
 
+        **Activatable:**
+            ``Windows.Media.MediaExtensionManager``
+
+
         **Interfaces:**
             ``Windows.Media.IMediaExtensionManager`` *****
 
@@ -26121,6 +26865,10 @@ class Windows:
         """
         **Description:**
             Provides information about and control over the rate, position, and state of a MediaPlayer. This class makes it possible to control and synchronize multiple media players from a single controller and makes it easier to create custom transport controls.
+
+
+        **Activatable:**
+            ``Windows.Media.MediaTimelineController``
 
 
         **Interfaces:**
@@ -26265,6 +27013,10 @@ class Windows:
             Represents timeline properties of the SystemMediaTransportControls. Pass an instance of this class to the UpdateTimelineProperties method to update the properties.
 
 
+        **Activatable:**
+            ``Windows.Media.SystemMediaTransportControlsTimelineProperties``
+
+
         **Interfaces:**
             ``Windows.Media.ISystemMediaTransportControlsTimelineProperties`` *****
 
@@ -26341,6 +27093,10 @@ class Windows:
             """
             **Description:**
                 Allows an app to determine if it is currently being broadcast and to receive an event when the app starts or stops broadcasting.
+
+
+            **Activatable:**
+                ``Windows.Media.AppBroadcasting.AppBroadcastingMonitor``
 
 
             **Interfaces:**
@@ -26788,6 +27544,10 @@ class Windows:
             """
             **Description:**
                 Describes the position and other physical characteristics of a listener from which the audio output of an AudioGraph node is heard when spatial audio processing is used.
+
+
+            **Activatable:**
+                ``Windows.Media.Audio.AudioNodeListener``
 
 
             **Interfaces:**
@@ -27633,6 +28393,10 @@ class Windows:
                 Enables an app to store metadata that the system will insert into captured video files or broadcast streams of app content.
 
 
+            **Activatable:**
+                ``Windows.Media.Capture.AppCaptureMetadataWriter``
+
+
             **Interfaces:**
                 ``Windows.Media.Capture.IAppCaptureMetadataWriter`` *****
 
@@ -27732,6 +28496,10 @@ class Windows:
             """
             **Description:**
                 Provides a full window UI for capturing audio, video, and photos from a camera. As well as controls for trimming video, time delayed capture, and camera settings.
+
+
+            **Activatable:**
+                ``Windows.Media.Capture.CameraCaptureUI``
 
 
             **Interfaces:**
@@ -27955,6 +28723,10 @@ class Windows:
                 Provides functionality for capturing photos, audio, and videos from a capture device, such as a webcam.
 
 
+            **Activatable:**
+                ``Windows.Media.Capture.MediaCapture``
+
+
             **Statics:**
                 ``Windows.Media.Capture.IMediaCaptureStatics``
 
@@ -28025,6 +28797,10 @@ class Windows:
             """
             **Description:**
                 Contains initialization settings for the MediaCapture object which are passed to the MediaCapture.InitializeAsync method.
+
+
+            **Activatable:**
+                ``Windows.Media.Capture.MediaCaptureInitializationSettings``
 
 
             **Interfaces:**
@@ -28586,6 +29362,10 @@ class Windows:
                 In a desktop app, before using an instance of this class in a way that displays UI, you'll need to associate the object with its owner's window handle. For more info, and code examples, see Display WinRT UI objects that depend on CoreWindow.
 
 
+            **Activatable:**
+                ``Windows.Media.Casting.CastingDevicePicker``
+
+
             **Interfaces:**
                 ``Windows.Media.Casting.ICastingDevicePicker`` *****
 
@@ -28961,6 +29741,10 @@ class Windows:
                 Represents a chapter cue that can be included in a TimedMetadataTrack.
 
 
+            **Activatable:**
+                ``Windows.Media.Core.ChapterCue``
+
+
             **Interfaces:**
                 ``Windows.Media.Core.IChapterCue`` *****
 
@@ -28989,6 +29773,10 @@ class Windows:
                 Provides the FindAllAsync method which allows you to enumerate all media codecs installed on the system.
 
 
+            **Activatable:**
+                ``Windows.Media.Core.CodecQuery``
+
+
             **Interfaces:**
                 ``Windows.Media.Core.ICodecQuery`` *****
 
@@ -29013,6 +29801,10 @@ class Windows:
             """
             **Description:**
                 Represents a data cue that can be included in a TimedMetadataTrack.
+
+
+            **Activatable:**
+                ``Windows.Media.Core.DataCue``
 
 
             **Interfaces:**
@@ -29058,6 +29850,10 @@ class Windows:
             """
             **Description:**
                 Represents the definition of a face detection video effect.
+
+
+            **Activatable:**
+                ``Windows.Media.Core.FaceDetectionEffectDefinition``
 
 
             **Interfaces:**
@@ -29118,6 +29914,10 @@ class Windows:
                 Represents a image cue that can be included in a TimedMetadataTrack.
 
 
+            **Activatable:**
+                ``Windows.Media.Core.ImageCue``
+
+
             **Interfaces:**
                 ``Windows.Media.Core.IImageCue`` *****
 
@@ -29174,6 +29974,10 @@ class Windows:
                 Enables deferred binding of media content associated with a MediaSource.
 
                 Use this class for media content that you don't want to bind to a MediaSource object until a media player is about to actually play the content. A typical scenario for this is playing content that requires payment when it is accessed.
+
+
+            **Activatable:**
+                ``Windows.Media.Core.MediaBinder``
 
 
             **Interfaces:**
@@ -29564,6 +30368,10 @@ class Windows:
                 Represents a media source extensions (MSE) stream source.
 
 
+            **Activatable:**
+                ``Windows.Media.Core.MseStreamSource``
+
+
             **Statics:**
                 ``Windows.Media.Core.IMseStreamSourceStatics``
 
@@ -29598,6 +30406,10 @@ class Windows:
             """
             **Description:**
                 Represents the definition of a scene analysis video effect.
+
+
+            **Activatable:**
+                ``Windows.Media.Core.SceneAnalysisEffectDefinition``
 
 
             **Interfaces:**
@@ -29643,6 +30455,10 @@ class Windows:
             """
             **Description:**
                 Represents a speech cue that can be included in a TimedMetadataTrack. This cue can be used to receive events based on metadata included in a text-to-speech (TTS) stream, such as word boundaries, sentence boundaries, and Speech Sythesis Markup Language (SSML) bookmarks. 
+
+
+            **Activatable:**
+                ``Windows.Media.Core.SpeechCue``
 
 
             **Interfaces:**
@@ -29741,6 +30557,10 @@ class Windows:
                 Represents a text cue in a TimedMetadataTrack.
 
 
+            **Activatable:**
+                ``Windows.Media.Core.TimedTextCue``
+
+
             **Interfaces:**
                 ``Windows.Media.Core.ITimedTextCue`` *****
 
@@ -29756,6 +30576,10 @@ class Windows:
                 Represents a line of text that is displayed with a TimedTextCue.
 
 
+            **Activatable:**
+                ``Windows.Media.Core.TimedTextLine``
+
+
             **Interfaces:**
                 ``Windows.Media.Core.ITimedTextLine`` *****
 
@@ -29767,6 +30591,10 @@ class Windows:
             """
             **Description:**
                 Exposes properties for customizing the appearance of the rendering area of a TimedTextCue.
+
+
+            **Activatable:**
+                ``Windows.Media.Core.TimedTextRegion``
 
 
             **Interfaces:**
@@ -29827,6 +30655,10 @@ class Windows:
                 Defines the style of the rendered text in a TimedTextCue. You can set the style of a substring within a TimedTextLine by using the Subformats property.
 
 
+            **Activatable:**
+                ``Windows.Media.Core.TimedTextStyle``
+
+
             **Interfaces:**
                 ``Windows.Media.Core.ITimedTextStyle`` *****
 
@@ -29842,6 +30674,10 @@ class Windows:
             """
             **Description:**
                 Defines a TimedTextStyle for a substring in a TimedTextLine. of the cue, which defines the style of the rendered text.
+
+
+            **Activatable:**
+                ``Windows.Media.Core.TimedTextSubformat``
 
 
             **Interfaces:**
@@ -29870,6 +30706,10 @@ class Windows:
             """
             **Description:**
                 Represents the definition of a video stabilization effect.
+
+
+            **Activatable:**
+                ``Windows.Media.Core.VideoStabilizationEffectDefinition``
 
 
             **Interfaces:**
@@ -29993,6 +30833,10 @@ class Windows:
             """
             **Description:**
                 Represents settings for an AdvancedPhotoControl object.
+
+
+            **Activatable:**
+                ``Windows.Media.Devices.AdvancedPhotoCaptureSettings``
 
 
             **Interfaces:**
@@ -30174,6 +31018,10 @@ class Windows:
                 Represents the bounds of the digital window captured when the DigitalWindowControl is active. 
 
 
+            **Activatable:**
+                ``Windows.Media.Devices.DigitalWindowBounds``
+
+
             **Interfaces:**
                 ``Windows.Media.Devices.IDigitalWindowBounds`` *****
 
@@ -30280,6 +31128,10 @@ class Windows:
             """
             **Description:**
                 Represents settings for a FocusControl object.
+
+
+            **Activatable:**
+                ``Windows.Media.Devices.FocusSettings``
 
 
             **Interfaces:**
@@ -30479,6 +31331,10 @@ class Windows:
                 Represents a region of interest which is a rectangular region on the image which is used for functions such as focus and exposure.
 
 
+            **Activatable:**
+                ``Windows.Media.Devices.RegionOfInterest``
+
+
             **Interfaces:**
                 ``Windows.Media.Devices.IRegionOfInterest`` *****
 
@@ -30624,6 +31480,10 @@ class Windows:
                 Represents zoom settings that can be applied to the ZoomControl by calling the Configure method.
 
 
+            **Activatable:**
+                ``Windows.Media.Devices.ZoomSettings``
+
+
             **Interfaces:**
                 ``Windows.Media.Devices.IZoomSettings`` *****
 
@@ -30694,6 +31554,10 @@ class Windows:
                 """
                 **Description:**
                     Represents the settings for a frame in a variable photo sequence.
+
+
+                **Activatable:**
+                    ``Windows.Media.Devices.Core.FrameController``
 
 
                 **Interfaces:**
@@ -30911,6 +31775,10 @@ class Windows:
                 In a desktop app, before using an instance of this class in a way that displays UI, you'll need to associate the object with its owner's window handle. For more info, and code examples, see Display WinRT UI objects that depend on CoreWindow.
 
 
+            **Activatable:**
+                ``Windows.Media.DialProtocol.DialDevicePicker``
+
+
             **Interfaces:**
                 ``Windows.Media.DialProtocol.IDialDevicePicker`` *****
 
@@ -31041,6 +31909,10 @@ class Windows:
             """
             **Description:**
                 Represents a collection of media clips and background audio tracks.
+
+
+            **Activatable:**
+                ``Windows.Media.Editing.MediaComposition``
 
 
             **Statics:**
@@ -31248,6 +32120,10 @@ class Windows:
             """
             **Description:**
                 Represents the definition of a video transform effect.
+
+
+            **Activatable:**
+                ``Windows.Media.Effects.VideoTransformEffectDefinition``
 
 
             **Interfaces:**
@@ -31540,6 +32416,10 @@ class Windows:
                 Describes the encoding properties of an audio stream.
 
 
+            **Activatable:**
+                ``Windows.Media.MediaProperties.AudioEncodingProperties``
+
+
             **Statics:**
                 ``Windows.Media.MediaProperties.IAudioEncodingPropertiesStatics``
 
@@ -31565,6 +32445,10 @@ class Windows:
             """
             **Description:**
                 Describes a media container format.
+
+
+            **Activatable:**
+                ``Windows.Media.MediaProperties.ContainerEncodingProperties``
 
 
             **Interfaces:**
@@ -31597,6 +32481,10 @@ class Windows:
                 Describes the format of an image stream.
 
 
+            **Activatable:**
+                ``Windows.Media.MediaProperties.ImageEncodingProperties``
+
+
             **Statics:**
                 ``Windows.Media.MediaProperties.IImageEncodingPropertiesStatics``
 
@@ -31620,6 +32508,10 @@ class Windows:
             """
             **Description:**
                 Describes the encoding profile for an audio or video file. The encoding profile includes descriptions of the audio and video encoding formats, and a description of the media container.
+
+
+            **Activatable:**
+                ``Windows.Media.MediaProperties.MediaEncodingProfile``
 
 
             **Statics:**
@@ -31670,6 +32562,10 @@ class Windows:
                 Represents a set of media properties.
 
 
+            **Activatable:**
+                ``Windows.Media.MediaProperties.MediaPropertySet``
+
+
             **Interfaces:**
                 ``Windows.Foundation.Collections.IMap<GUID, IInspectable*>`` *****
 
@@ -31711,6 +32607,10 @@ class Windows:
                 Describes the encoding properties of a timed metadata stream. Timed metadata streams are used to encode data that is neither audio or video. For example, a media file may contain a video stream and a timed metadata stream containing GPS coordinates correlated to the video.
 
 
+            **Activatable:**
+                ``Windows.Media.MediaProperties.TimedMetadataEncodingProperties``
+
+
             **Statics:**
                 ``Windows.Media.MediaProperties.ITimedMetadataEncodingPropertiesStatics``
 
@@ -31728,6 +32628,10 @@ class Windows:
             """
             **Description:**
                 Describes the encoding properties of a video stream.
+
+
+            **Activatable:**
+                ``Windows.Media.MediaProperties.VideoEncodingProperties``
 
 
             **Statics:**
@@ -31767,6 +32671,10 @@ class Windows:
             """
             **Description:**
                 An object that allows an app to implement a Miracast Receiver (Sink) and receive incoming Miracast connections.
+
+
+            **Activatable:**
+                ``Windows.Media.Miracast.MiracastReceiver``
 
 
             **Interfaces:**
@@ -32176,6 +33084,10 @@ class Windows:
             """
             **Description:**
                 Represents a Play To target.
+
+
+            **Activatable:**
+                ``Windows.Media.PlayTo.PlayToReceiver``
 
 
             **Interfaces:**
@@ -32682,6 +33594,10 @@ class Windows:
                 Represents a list of MediaPlaybackItem objects that can be played back. Provides methods for switching the currently playing item and enabling looping and shuffling.
 
 
+            **Activatable:**
+                ``Windows.Media.Playback.MediaPlaybackList``
+
+
             **Interfaces:**
                 ``Windows.Media.Playback.IMediaPlaybackList`` *****
 
@@ -32789,6 +33705,10 @@ class Windows:
             """
             **Description:**
                 Provides access to media playback functionality such as play, pause, fast-forward, rewind, and volume.
+
+
+            **Activatable:**
+                ``Windows.Media.Playback.MediaPlayer``
 
 
             **Interfaces:**
@@ -32948,6 +33868,10 @@ class Windows:
                 Provides access to a media playlist.
 
 
+            **Activatable:**
+                ``Windows.Media.Playlists.Playlist``
+
+
             **Statics:**
                 ``Windows.Media.Playlists.IPlaylistStatics``
 
@@ -33001,6 +33925,10 @@ class Windows:
                 Allows apps to set and query the current state of High-bandwidth Digital Content Protection (HDCP) between the graphics hardware and the display.
 
 
+            **Activatable:**
+                ``Windows.Media.Protection.HdcpSession``
+
+
             **Interfaces:**
                 ``Windows.Media.Protection.IHdcpSession`` *****
 
@@ -33014,6 +33942,10 @@ class Windows:
             """
             **Description:**
                 Contains a content protection manager object for an application that handles protected media content.
+
+
+            **Activatable:**
+                ``Windows.Media.Protection.MediaProtectionManager``
 
 
             **Interfaces:**
@@ -33057,6 +33989,10 @@ class Windows:
             """
             **Description:**
                 Exposes Microsoft PlayReady digital rights management (DRM) capabilities for video decoding, video display, and video output protection subsystems used by the Windows Media Foundation pipeline under a XAML MediaElement or  C++ Media Engine to a WinRT caller.  The caller may use this information to select the most appropriate encoding of DRM’ed content for playback. 
+
+
+            **Activatable:**
+                ``Windows.Media.Protection.ProtectionCapabilities``
 
 
             **Interfaces:**
@@ -33157,6 +34093,10 @@ class Windows:
                     Contains methods that a download engine plug-in uses to send notifications to a PlayReady-ND client.
 
 
+                **Activatable:**
+                    ``Windows.Media.Protection.PlayReady.NDDownloadEngineNotifier``
+
+
                 **Interfaces:**
                     ``Windows.Media.Protection.PlayReady.INDDownloadEngineNotifier`` *****
 
@@ -33187,6 +34127,10 @@ class Windows:
                     Manages PlayReady-ND storage files.
 
 
+                **Activatable:**
+                    ``Windows.Media.Protection.PlayReady.NDStorageFileHelper``
+
+
                 **Interfaces:**
                     ``Windows.Media.Protection.PlayReady.INDStorageFileHelper`` *****
 
@@ -33198,6 +34142,10 @@ class Windows:
                 """
                 **Description:**
                     Contains methods that a stream parser plug-in uses to send notifications to a PlayReady-ND client.
+
+
+                **Activatable:**
+                    ``Windows.Media.Protection.PlayReady.NDStreamParserNotifier``
 
 
                 **Interfaces:**
@@ -33305,6 +34253,10 @@ class Windows:
                     Provides the service methods for joining a PlayReady domain.
 
 
+                **Activatable:**
+                    ``Windows.Media.Protection.PlayReady.PlayReadyDomainJoinServiceRequest``
+
+
                 **Interfaces:**
                     ``Windows.Media.Protection.PlayReady.IPlayReadyDomainJoinServiceRequest`` *****
 
@@ -33320,6 +34272,10 @@ class Windows:
                 """
                 **Description:**
                     Provides the service methods for leaving a PlayReady domain.
+
+
+                **Activatable:**
+                    ``Windows.Media.Protection.PlayReady.PlayReadyDomainLeaveServiceRequest``
 
 
                 **Interfaces:**
@@ -33339,6 +34295,10 @@ class Windows:
                     Creates the PlayReady ITA-specific serialized initialization data.
 
 
+                **Activatable:**
+                    ``Windows.Media.Protection.PlayReady.PlayReadyITADataGenerator``
+
+
                 **Interfaces:**
                     ``Windows.Media.Protection.PlayReady.IPlayReadyITADataGenerator`` *****
 
@@ -33350,6 +34310,10 @@ class Windows:
                 """
                 **Description:**
                     Provides the service methods for requesting platform individualization.
+
+
+                **Activatable:**
+                    ``Windows.Media.Protection.PlayReady.PlayReadyIndividualizationServiceRequest``
 
 
                 **Interfaces:**
@@ -33382,6 +34346,10 @@ class Windows:
                 """
                 **Description:**
                     Provides the service methods for obtaining PlayReady licenses.
+
+
+                **Activatable:**
+                    ``Windows.Media.Protection.PlayReady.PlayReadyLicenseAcquisitionServiceRequest``
 
 
                 **Interfaces:**
@@ -33467,6 +34435,10 @@ class Windows:
                     Provides the service methods for content metering operations.
 
 
+                **Activatable:**
+                    ``Windows.Media.Protection.PlayReady.PlayReadyMeteringReportServiceRequest``
+
+
                 **Interfaces:**
                     ``Windows.Media.Protection.PlayReady.IPlayReadyMeteringReportServiceRequest`` *****
 
@@ -33482,6 +34454,10 @@ class Windows:
                 """
                 **Description:**
                     Updates the revocation data required by PlayReady.
+
+
+                **Activatable:**
+                    ``Windows.Media.Protection.PlayReady.PlayReadyRevocationServiceRequest``
 
 
                 **Interfaces:**
@@ -33910,6 +34886,10 @@ class Windows:
                 Provides access to the functionality of an installed speech synthesis engine (voice) for Text-to-speech (TTS) services.
 
 
+            **Activatable:**
+                ``Windows.Media.SpeechSynthesis.SpeechSynthesizer``
+
+
             **Statics:**
                 ``Windows.Media.SpeechSynthesis.IInstalledVoicesStatic``
 
@@ -33961,6 +34941,10 @@ class Windows:
         class Streaming:
             ActiveBasicDevice = 'Windows.Media.Streaming.ActiveBasicDevice'
             """
+            **Activatable:**
+                ``Windows.Media.Streaming.ActiveBasicDevice``
+
+
             **Statics:**
                 ``Windows.Media.Streaming.IActiveBasicDeviceStatics``
 
@@ -33972,6 +34956,10 @@ class Windows:
             """
             BasicDevice = 'Windows.Media.Streaming.BasicDevice'
             """
+            **Activatable:**
+                ``Windows.Media.Streaming.BasicDevice``
+
+
             **Interfaces:**
                 ``Windows.Media.Streaming.IBasicDevice`` *****
             """
@@ -33982,6 +34970,10 @@ class Windows:
             """
             DeviceController = 'Windows.Media.Streaming.DeviceController'
             """
+            **Activatable:**
+                ``Windows.Media.Streaming.DeviceController``
+
+
             **Interfaces:**
                 ``Windows.Media.Streaming.IDeviceController`` *****
             """
@@ -33992,6 +34984,10 @@ class Windows:
             """
             MediaRenderer = 'Windows.Media.Streaming.MediaRenderer'
             """
+            **Activatable:**
+                ``Windows.Media.Streaming.MediaRenderer``
+
+
             **Statics:**
                 ``Windows.Media.Streaming.IMediaRendererFactory``
 
@@ -34255,6 +35251,10 @@ class Windows:
                 Transcodes audio and video files.
 
 
+            **Activatable:**
+                ``Windows.Media.Transcoding.MediaTranscoder``
+
+
             **Interfaces:**
                 ``Windows.Media.Transcoding.IMediaTranscoder`` *****
 
@@ -34372,6 +35372,10 @@ class Windows:
             """
             **Description:**
                 Represents a set of background transfer operations (DownloadOperation or UploadOperation objects) that trigger a background task once all the operations are done (if the operations completed successfully) or fail with an error.
+
+
+            **Activatable:**
+                ``Windows.Networking.BackgroundTransfer.BackgroundTransferCompletionGroup``
 
 
             **Interfaces:**
@@ -34607,6 +35611,10 @@ class Windows:
                 This class contains properties used to specify an Access Point Name (APN) for a 3GPP based cellular Data Connection (PDP context). 
 
 
+            **Activatable:**
+                ``Windows.Networking.Connectivity.CellularApnContext``
+
+
             **Interfaces:**
                 ``Windows.Networking.Connectivity.ICellularApnContext`` *****
 
@@ -34660,6 +35668,10 @@ class Windows:
                 The ConnectionProfileFilter class defines a set of properties that are used to improve the relevance of FindConnectionProfilesAsync results.
 
                 At least one property must be specified, otherwise the object is not used as for filtering.
+
+
+            **Activatable:**
+                ``Windows.Networking.Connectivity.ConnectionProfileFilter``
 
 
             **Interfaces:**
@@ -35313,6 +36325,10 @@ class Windows:
                 Provides information regarding availability of and updates to Mobile Broadband Accounts.
 
 
+            **Activatable:**
+                ``Windows.Networking.NetworkOperators.MobileBroadbandAccountWatcher``
+
+
             **Interfaces:**
                 ``Windows.Networking.NetworkOperators.IMobileBroadbandAccountWatcher`` *****
 
@@ -35938,6 +36954,10 @@ class Windows:
                 Tethering allows a Windows device to function as a mobile hotspot providing internet connections over Wi-Fi or Bluetooth. Properties can be configured on the Wi-Fi access point such as the network SSID, the password, and the wireless frequency band.
 
 
+            **Activatable:**
+                ``Windows.Networking.NetworkOperators.NetworkOperatorTetheringAccessPointConfiguration``
+
+
             **Interfaces:**
                 ``Windows.Networking.NetworkOperators.INetworkOperatorTetheringAccessPointConfiguration`` *****
 
@@ -36030,6 +37050,10 @@ class Windows:
                 Represents an agent that provisions connectivity and subscription information with a network provider.
 
                 In a desktop app, before using an instance of this class in a way that displays UI, you'll need to associate the object with its owner's window handle. For more info, and code examples, see Display WinRT UI objects that depend on CoreWindow.
+
+
+            **Activatable:**
+                ``Windows.Networking.NetworkOperators.ProvisioningAgent``
 
 
             **Statics:**
@@ -36333,6 +37357,10 @@ class Windows:
                     Encapsulates detailed information about the result of an attempt to register a service instance using DNS-SD.
 
 
+                **Activatable:**
+                    ``Windows.Networking.ServiceDiscovery.Dnssd.DnssdRegistrationResult``
+
+
                 **Interfaces:**
                     ``Windows.Networking.ServiceDiscovery.Dnssd.IDnssdRegistrationResult`` *****
 
@@ -36430,6 +37458,10 @@ class Windows:
                 For a code example, see Sockets.
 
 
+            **Activatable:**
+                ``Windows.Networking.Sockets.DatagramSocket``
+
+
             **Statics:**
                 ``Windows.Networking.Sockets.IDatagramSocketStatics``
 
@@ -36494,6 +37526,10 @@ class Windows:
             """
             **Description:**
                 Supports network communication that allows reading and writing whole messages using a WebSocket.
+
+
+            **Activatable:**
+                ``Windows.Networking.Sockets.MessageWebSocket``
 
 
             **Interfaces:**
@@ -36695,6 +37731,10 @@ class Windows:
                 Supports network communication using a stream socket over TCP or Bluetooth RFCOMM in UWP apps.
 
 
+            **Activatable:**
+                ``Windows.Networking.Sockets.StreamSocket``
+
+
             **Statics:**
                 ``Windows.Networking.Sockets.IStreamSocketStatics``
 
@@ -36750,6 +37790,10 @@ class Windows:
             """
             **Description:**
                 Supports listening for an incoming network connection using a TCP stream socket or Bluetooth RFCOMM.
+
+
+            **Activatable:**
+                ``Windows.Networking.Sockets.StreamSocketListener``
 
 
             **Interfaces:**
@@ -36810,6 +37854,10 @@ class Windows:
             """
             **Description:**
                 Supports network communication that allows reading and writing streams using a WebSocket.
+
+
+            **Activatable:**
+                ``Windows.Networking.Sockets.StreamWebSocket``
 
 
             **Interfaces:**
@@ -36889,6 +37937,10 @@ class Windows:
             """
             **Description:**
                 Provides the ability to send a WebSocket protocol keep-alive on a connected WebSocket.
+
+
+            **Activatable:**
+                ``Windows.Networking.Sockets.WebSocketKeepAlive``
 
 
             **Interfaces:**
@@ -37023,6 +38075,10 @@ class Windows:
                 VpnCustomCheckBox is not supported and may be altered or unavailable in the future. Instead, use VpnCustomPromptBooleanInput.
 
 
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnCustomCheckBox``
+
+
             **Interfaces:**
                 ``Windows.Networking.Vpn.IVpnCustomCheckBox`` *****
 
@@ -37036,6 +38092,10 @@ class Windows:
             """
             **Description:**
                 VpnCustomComboBox is not supported and may be altered or unavailable in the future. Instead, use VpnCustomPromptOptionSelector.
+
+
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnCustomComboBox``
 
 
             **Interfaces:**
@@ -37053,6 +38113,10 @@ class Windows:
                 VpnCustomEditBox is not supported and may be altered or unavailable in the future. Instead, use VpnCustomPromptTextInput.
 
 
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnCustomEditBox``
+
+
             **Interfaces:**
                 ``Windows.Networking.Vpn.IVpnCustomEditBox`` *****
 
@@ -37066,6 +38130,10 @@ class Windows:
             """
             **Description:**
                 VpnCustomErrorBox is not supported and may be altered or unavailable in the future. Instead, use VpnCustomPromptText.
+
+
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnCustomErrorBox``
 
 
             **Interfaces:**
@@ -37083,6 +38151,10 @@ class Windows:
                 Represents a Boolean type of UI control prompt required from the user. This is typically a checkbox. This is used in the construction of custom prompts used in the VpnChannel.RequestCustomPromptAsync method.
 
 
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnCustomPromptBooleanInput``
+
+
             **Interfaces:**
                 ``Windows.Networking.Vpn.IVpnCustomPromptBooleanInput`` *****
 
@@ -37096,6 +38168,10 @@ class Windows:
             """
             **Description:**
                 Represents a multiple choice UI control prompt required from the user. This is typically a combo box. This is used in the construction of custom prompts used in the VpnChannel.RequestCustomPromptAsync method.
+
+
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnCustomPromptOptionSelector``
 
 
             **Interfaces:**
@@ -37113,6 +38189,10 @@ class Windows:
                 Represents a text UI element used in the VpnChannel.RequestCustomPromptAsync method.
 
 
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnCustomPromptText``
+
+
             **Interfaces:**
                 ``Windows.Networking.Vpn.IVpnCustomPromptText`` *****
 
@@ -37126,6 +38206,10 @@ class Windows:
             """
             **Description:**
                 Represents a text input UI element used in the RequestCustomPromptAsync method.
+
+
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnCustomPromptTextInput``
 
 
             **Interfaces:**
@@ -37143,6 +38227,10 @@ class Windows:
                 VpnCustomTextBox is not supported and may be altered or unavailable in the future. Instead, use VpnCustomPromptText.
 
 
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnCustomTextBox``
+
+
             **Interfaces:**
                 ``Windows.Networking.Vpn.IVpnCustomTextBox`` *****
 
@@ -37156,6 +38244,10 @@ class Windows:
             """
             **Description:**
                 Contains VPN domain name policies, like name resolution, namespace configuration, and web proxies.
+
+
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnDomainNameAssignment``
 
 
             **Interfaces:**
@@ -37237,6 +38329,10 @@ class Windows:
                 Allows the creation, deletion, edit, connect, and disconnect flows for VPN. These can be used to manage the lifecycle of a VPN profile, and to create a custom VPN connection manager.
 
 
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnManagementAgent``
+
+
             **Interfaces:**
                 ``Windows.Networking.Vpn.IVpnManagementAgent`` *****
 
@@ -37248,6 +38344,10 @@ class Windows:
             """
             **Description:**
                 VpnNamespaceAssignment is not supported and may be altered or unavailable in the future. Instead, use VpnDomainNameAssignment.
+
+
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnNamespaceAssignment``
 
 
             **Interfaces:**
@@ -37278,6 +38378,10 @@ class Windows:
             """
             **Description:**
                 Represents a profile for an OS Native/Inbox VPN protocol.
+
+
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnNativeProfile``
 
 
             **Interfaces:**
@@ -37346,6 +38450,10 @@ class Windows:
                 Represents a VPN plug-in profile.
 
 
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnPlugInProfile``
+
+
             **Interfaces:**
                 ``Windows.Networking.Vpn.IVpnPlugInProfile`` *****
 
@@ -37378,6 +38486,10 @@ class Windows:
             """
             **Description:**
                 Represents the list of routes assigned to the VPN channel for the correct flow and redirection of traffic.
+
+
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnRouteAssignment``
 
 
             **Interfaces:**
@@ -37421,6 +38533,10 @@ class Windows:
             """
             **Description:**
                 Allows the specification of a set of traffic filters as policy to a VPN channel.
+
+
+            **Activatable:**
+                ``Windows.Networking.Vpn.VpnTrafficFilterAssignment``
 
 
             **Interfaces:**
@@ -37540,6 +38656,10 @@ class Windows:
             """
             **Description:**
                 Describes the operating parameters of a network Quality of Service (QoS) measurement, and provides access to the results of such measurements.
+
+
+            **Activatable:**
+                ``Windows.Networking.XboxLive.XboxLiveQualityOfServiceMeasurement``
 
 
             **Statics:**
@@ -38132,6 +39252,10 @@ class Windows:
                     Provides options to customize the SpatialSurfaceMesh objects you get back from SpatialSurfaceInfo.TryComputeLatestMeshAsync.
 
 
+                **Activatable:**
+                    ``Windows.Perception.Spatial.Surfaces.SpatialSurfaceMeshOptions``
+
+
                 **Statics:**
                     ``Windows.Perception.Spatial.Surfaces.ISpatialSurfaceMeshOptionsStatics``
 
@@ -38147,6 +39271,10 @@ class Windows:
                 """
                 **Description:**
                     Provides methods for observing surfaces in the user's surroundings.
+
+
+                **Activatable:**
+                    ``Windows.Perception.Spatial.Surfaces.SpatialSurfaceObserver``
 
 
                 **Statics:**
@@ -38303,6 +39431,10 @@ class Windows:
                 Creates toast, tile, and badge updater objects specific to Sim1 and Sim2 on dual sim devices.
 
 
+            **Activatable:**
+                ``Windows.Phone.StartScreen.DualSimTile``
+
+
             **Statics:**
                 ``Windows.Phone.StartScreen.IDualSimTileStatics``
 
@@ -38355,6 +39487,10 @@ class Windows:
                 """
                 **Description:**
                     Provides access to a text buffer that is used to aggregate user input to the Software Input Panel keyboard on the phone.
+
+
+                **Activatable:**
+                    ``Windows.Phone.UI.Core.KeyboardInputBuffer``
 
 
                 **Interfaces:**
@@ -38614,6 +39750,10 @@ class Windows:
                     Provides an app with the ability to start the authentication request to get JavaScript Object Notation (JSON) tokens to use with your service or request tickets that can be used to get data that the user has consented to for your app using the Live ConnectAPI.
 
                     In a desktop app, before using an instance of this class in a way that displays UI, you'll need to associate the object with its owner's window handle. For more info, and code examples, see Display WinRT UI objects that depend on CoreWindow.
+
+
+                **Activatable:**
+                    ``Windows.Security.Authentication.OnlineId.OnlineIdAuthenticator``
 
 
                 **Interfaces:**
@@ -39285,6 +40425,10 @@ class Windows:
                 Represents the password credential property store. This class and its members are reserved for internal use and are not intended to be used in your code.
 
 
+            **Activatable:**
+                ``Windows.Security.Credentials.PasswordCredentialPropertyStore``
+
+
             **Interfaces:**
                 ``Windows.Foundation.Collections.IPropertySet`` *****
 
@@ -39304,6 +40448,10 @@ class Windows:
                 Represents a Credential Locker of credentials. Lockers are specific to a user.
 
                 Apps running in an AppContainer (for example, UWP apps) can only access the contents of their own locker (for the current user). Apps not running in an AppContainer (for example, regular Desktop apps) can access all the user's lockers, including those of AppContainer apps.
+
+
+            **Activatable:**
+                ``Windows.Security.Credentials.PasswordVault``
 
 
             **Interfaces:**
@@ -39382,6 +40530,10 @@ class Windows:
                 """
                 **Description:**
                     Controls the appearance and behavior of a credential prompt.
+
+
+                **Activatable:**
+                    ``Windows.Security.Credentials.UI.CredentialPickerOptions``
 
 
                 **Interfaces:**
@@ -39507,6 +40659,10 @@ class Windows:
                     Represents a certificate extension.
 
 
+                **Activatable:**
+                    ``Windows.Security.Cryptography.Certificates.CertificateExtension``
+
+
                 **Interfaces:**
                     ``Windows.Security.Cryptography.Certificates.ICertificateExtension`` *****
 
@@ -39518,6 +40674,10 @@ class Windows:
                 """
                 **Description:**
                     Represents the usages of a certificate key.
+
+
+                **Activatable:**
+                    ``Windows.Security.Cryptography.Certificates.CertificateKeyUsages``
 
 
                 **Interfaces:**
@@ -39533,6 +40693,10 @@ class Windows:
                     Represents parameters for a query for certificates from the certificate store for an app.
 
 
+                **Activatable:**
+                    ``Windows.Security.Cryptography.Certificates.CertificateQuery``
+
+
                 **Interfaces:**
                     ``Windows.Security.Cryptography.Certificates.ICertificateQuery`` *****
 
@@ -39546,6 +40710,10 @@ class Windows:
                 """
                 **Description:**
                     Represents the properties of a certificate request.
+
+
+                **Activatable:**
+                    ``Windows.Security.Cryptography.Certificates.CertificateRequestProperties``
 
 
                 **Interfaces:**
@@ -39597,6 +40765,10 @@ class Windows:
                     Represents parameters to use when building a certificate chain.
 
 
+                **Activatable:**
+                    ``Windows.Security.Cryptography.Certificates.ChainBuildingParameters``
+
+
                 **Interfaces:**
                     ``Windows.Security.Cryptography.Certificates.IChainBuildingParameters`` *****
 
@@ -39608,6 +40780,10 @@ class Windows:
                 """
                 **Description:**
                     Represents values to use when verifying a certificate chain.
+
+
+                **Activatable:**
+                    ``Windows.Security.Cryptography.Certificates.ChainValidationParameters``
 
 
                 **Interfaces:**
@@ -39663,6 +40839,10 @@ class Windows:
                 """
                 **Description:**
                     Represents signer information for a signed CMS message which contains a set of properties.
+
+
+                **Activatable:**
+                    ``Windows.Security.Cryptography.Certificates.CmsSignerInfo``
 
 
                 **Interfaces:**
@@ -39736,6 +40916,10 @@ class Windows:
                     Represents PFX import parameters.
 
 
+                **Activatable:**
+                    ``Windows.Security.Cryptography.Certificates.PfxImportParameters``
+
+
                 **Interfaces:**
                     ``Windows.Security.Cryptography.Certificates.IPfxImportParameters`` *****
 
@@ -39760,6 +40944,10 @@ class Windows:
                 """
                 **Description:**
                     Provides info about a subject alternative name.
+
+
+                **Activatable:**
+                    ``Windows.Security.Cryptography.Certificates.SubjectAlternativeNameInfo``
 
 
                 **Interfaces:**
@@ -40363,6 +41551,10 @@ class Windows:
                 For a Windows 8.x sample application showing how mail clients can retrieve device information, see the [EAS policies for mail clients Windows 8.x sample]((https://github.com/microsoftarchive/msdn-code-gallery-microsoft/tree/master/Official%20Windows%20Platform%20Sample/Windows%208.1%20Store%20app%20samples/99866-Windows%208.1%20Store%20app%20samples/EAS%20policies%20for%20mail%20clients%20sample)
 
 
+            **Activatable:**
+                ``Windows.Security.ExchangeActiveSyncProvisioning.EasClientDeviceInformation``
+
+
             **Interfaces:**
                 ``Windows.Security.ExchangeActiveSyncProvisioning.IEasClientDeviceInformation`` *****
 
@@ -40374,6 +41566,10 @@ class Windows:
             """
             EasClientSecurityPolicy = 'Windows.Security.ExchangeActiveSyncProvisioning.EasClientSecurityPolicy'
             """
+            **Activatable:**
+                ``Windows.Security.ExchangeActiveSyncProvisioning.EasClientSecurityPolicy``
+
+
             **Interfaces:**
                 ``Windows.Security.ExchangeActiveSyncProvisioning.IEasClientSecurityPolicy`` *****
 
@@ -40487,6 +41683,10 @@ class Windows:
                 Runtime class that controls various attributes that are applied to the Isolated Windows Environment during creation.
 
 
+            **Activatable:**
+                ``Windows.Security.Isolation.IsolatedWindowsEnvironmentOptions``
+
+
             **Interfaces:**
                 ``Windows.Security.Isolation.IIsolatedWindowsEnvironmentOptions`` *****
 
@@ -40515,6 +41715,10 @@ class Windows:
             """
             **Description:**
                 Class that returns all the registration data from isolatedwindowsenvironmentownerregistration.
+
+
+            **Activatable:**
+                ``Windows.Security.Isolation.IsolatedWindowsEnvironmentOwnerRegistrationData``
 
 
             **Interfaces:**
@@ -40569,6 +41773,10 @@ class Windows:
                 Options for how to perform the share file operation.
 
 
+            **Activatable:**
+                ``Windows.Security.Isolation.IsolatedWindowsEnvironmentShareFileRequestOptions``
+
+
             **Interfaces:**
                 ``Windows.Security.Isolation.IIsolatedWindowsEnvironmentShareFileRequestOptions`` *****
 
@@ -40593,6 +41801,10 @@ class Windows:
             """
             **Description:**
                 Options for how to perform the share folder operation.
+
+
+            **Activatable:**
+                ``Windows.Security.Isolation.IsolatedWindowsEnvironmentShareFolderRequestOptions``
 
 
             **Interfaces:**
@@ -40632,6 +41844,10 @@ class Windows:
             """
             **Description:**
                 Runtime class which encapsulates the correlationid.
+
+
+            **Activatable:**
+                ``Windows.Security.Isolation.IsolatedWindowsEnvironmentTelemetryParameters``
 
 
             **Interfaces:**
@@ -40705,6 +41921,10 @@ class Windows:
             """
             **Description:**
                 Specifies options for refining the insights retrieved through the CortanaActionableInsights methods.
+
+
+            **Activatable:**
+                ``Windows.Services.Cortana.CortanaActionableInsightsOptions``
 
 
             **Interfaces:**
@@ -40882,6 +42102,10 @@ class Windows:
                 Represents advanced routing options.
 
 
+            **Activatable:**
+                ``Windows.Services.Maps.MapRouteDrivingOptions``
+
+
             **Interfaces:**
                 ``Windows.Services.Maps.IMapRouteDrivingOptions`` *****
 
@@ -40997,6 +42221,10 @@ class Windows:
             """
             **Description:**
                 Represents the information about a map location that your app can show in a light-dismissible window within your app.
+
+
+            **Activatable:**
+                ``Windows.Services.Maps.PlaceInfoCreateOptions``
 
 
             **Interfaces:**
@@ -41482,6 +42710,10 @@ class Windows:
                 Represents options that can be specified when using the RequestDownloadAndInstallStorePackagesAsync method to download and install downloadable content (DLC) packages for the current app.
 
 
+            **Activatable:**
+                ``Windows.Services.Store.StorePackageInstallOptions``
+
+
             **Interfaces:**
                 ``Windows.Services.Store.IStorePackageInstallOptions`` *****
 
@@ -41564,6 +42796,10 @@ class Windows:
             """
             **Description:**
                 Contains a collection of filter strings you can use with the GetStoreProductsAsync method to get info for the specified products that are associated with the current app.
+
+
+            **Activatable:**
+                ``Windows.Services.Store.StoreProductOptions``
 
 
             **Interfaces:**
@@ -42038,6 +43274,10 @@ class Windows:
             Represents related app settings that must be serialized and deserialized atomically.
 
 
+        **Activatable:**
+            ``Windows.Storage.ApplicationDataCompositeValue``
+
+
         **Interfaces:**
             ``Windows.Foundation.Collections.IPropertySet`` *****
 
@@ -42332,6 +43572,10 @@ class Windows:
         """
         **Description:**
             Allows callers to call EnableWithOptions on the change tracker to choose to track all changes including last change id, or just the last change id. 
+
+
+        **Activatable:**
+            ``Windows.Storage.StorageLibraryChangeTrackerOptions``
 
 
         **Interfaces:**
@@ -42938,6 +44182,10 @@ class Windows:
                 In a desktop app, before using an instance of this class in a way that displays UI, you'll need to associate the object with its owner's window handle. For more info, and code examples, see Display WinRT UI objects that depend on CoreWindow.
 
 
+            **Activatable:**
+                ``Windows.Storage.Pickers.FileOpenPicker``
+
+
             **Statics:**
                 ``Windows.Storage.Pickers.IFileOpenPickerStatics``
 
@@ -42995,6 +44243,10 @@ class Windows:
                 In a desktop app, before using an instance of this class in a way that displays UI, you'll need to associate the object with its owner's window handle. For more info, and code examples, see Display WinRT UI objects that depend on CoreWindow.
 
 
+            **Activatable:**
+                ``Windows.Storage.Pickers.FileSavePicker``
+
+
             **Statics:**
                 ``Windows.Storage.Pickers.IFileSavePickerStatics``
 
@@ -43018,6 +44270,10 @@ class Windows:
                 Represents a UI element that lets the user choose folders.
 
                 In a desktop app, before using an instance of this class in a way that displays UI, you'll need to associate the object with its owner's window handle. For more info, and code examples, see Display WinRT UI objects that depend on CoreWindow.
+
+
+            **Activatable:**
+                ``Windows.Storage.Pickers.FolderPicker``
 
 
             **Statics:**
@@ -43260,6 +44516,10 @@ class Windows:
                 Provides methods to get additional information about a content URI path.
 
 
+            **Activatable:**
+                ``Windows.Storage.Provider.StorageProviderGetContentInfoForPathResult``
+
+
             **Interfaces:**
                 ``Windows.Storage.Provider.IStorageProviderGetContentInfoForPathResult`` *****
 
@@ -43271,6 +44531,10 @@ class Windows:
             """
             **Description:**
                 Provides methods to get additional information about a content URI result.
+
+
+            **Activatable:**
+                ``Windows.Storage.Provider.StorageProviderGetPathForContentUriResult``
 
 
             **Interfaces:**
@@ -43299,6 +44563,10 @@ class Windows:
                 Defines a Cloud Storage Provider property for a storage item (like a file or folder).
 
 
+            **Activatable:**
+                ``Windows.Storage.Provider.StorageProviderItemProperty``
+
+
             **Interfaces:**
                 ``Windows.Storage.Provider.IStorageProviderItemProperty`` *****
 
@@ -43310,6 +44578,10 @@ class Windows:
             """
             **Description:**
                 Defines the properties of an item from a Cloud Storage Provider.
+
+
+            **Activatable:**
+                ``Windows.Storage.Provider.StorageProviderItemPropertyDefinition``
 
 
             **Interfaces:**
@@ -43325,6 +44597,10 @@ class Windows:
                 The container for the more info UI section of the storage provider flyout. This is used to provide additional information and/or a recommended action a user can take in response to the current sync state.
 
 
+            **Activatable:**
+                ``Windows.Storage.Provider.StorageProviderMoreInfoUI``
+
+
             **Interfaces:**
                 ``Windows.Storage.Provider.IStorageProviderMoreInfoUI`` *****
 
@@ -43336,6 +44612,10 @@ class Windows:
             """
             **Description:**
                 The container for the quota UI section of the storage provider flyout. This specifies the total amount of storage in the cloud files account and how much is used.
+
+
+            **Activatable:**
+                ``Windows.Storage.Provider.StorageProviderQuotaUI``
 
 
             **Interfaces:**
@@ -43351,6 +44631,10 @@ class Windows:
                 The container used to populate the storage provider status UI flyout.
 
 
+            **Activatable:**
+                ``Windows.Storage.Provider.StorageProviderStatusUI``
+
+
             **Interfaces:**
                 ``Windows.Storage.Provider.IStorageProviderStatusUI`` *****
 
@@ -43362,6 +44646,10 @@ class Windows:
             """
             **Description:**
                 Contains the properties of a Cloud Storage Provider's sync root to be registered with the operating system.
+
+
+            **Activatable:**
+                ``Windows.Storage.Provider.StorageProviderSyncRootInfo``
 
 
             **Interfaces:**
@@ -43442,6 +44730,10 @@ class Windows:
             """
             **Description:**
                 Represents app content and properties that can be added to the ContentIndexer.
+
+
+            **Activatable:**
+                ``Windows.Storage.Search.IndexableContent``
 
 
             **Interfaces:**
@@ -43562,6 +44854,10 @@ class Windows:
             """
             **Description:**
                 Specifies the language of a property, as a BCP-47 language code.
+
+
+            **Activatable:**
+                ``Windows.Storage.Search.ValueAndLanguage``
 
 
             **Interfaces:**
@@ -43727,6 +45023,10 @@ class Windows:
             """
             **Description:**
                 Provides random access of data in input and output streams that are stored in memory instead of on disk.
+
+
+            **Activatable:**
+                ``Windows.Storage.Streams.InMemoryRandomAccessStream``
 
 
             **Interfaces:**
@@ -44165,6 +45465,10 @@ class Windows:
             In a desktop app, before using an instance of this class in a way that displays UI, you'll need to associate the object with its owner's window handle. For more info, and code examples, see Display WinRT UI objects that depend on CoreWindow.
 
 
+        **Activatable:**
+            ``Windows.System.FolderLauncherOptions``
+
+
         **Interfaces:**
             ``Windows.System.IFolderLauncherOptions`` *****
 
@@ -44229,6 +45533,10 @@ class Windows:
             Specifies the options used to launch the default app for a file or URI.
 
             In a desktop app, before using an instance of this class in a way that displays UI, you'll need to associate the object with its owner's window handle. For more info, and code examples, see Display WinRT UI objects that depend on CoreWindow.
+
+
+        **Activatable:**
+            ``Windows.System.LauncherOptions``
 
 
         **Interfaces:**
@@ -44297,6 +45605,10 @@ class Windows:
             Specifies the options used to launch the specified process.
 
 
+        **Activatable:**
+            ``Windows.System.ProcessLauncherOptions``
+
+
         **Interfaces:**
             ``Windows.System.IProcessLauncherOptions`` *****
 
@@ -44360,6 +45672,10 @@ class Windows:
         """
         **Description:**
             Specifies the options used to launch the default app for URI on a remote device.
+
+
+        **Activatable:**
+            ``Windows.System.RemoteLauncherOptions``
 
 
         **Interfaces:**
@@ -44491,6 +45807,10 @@ class Windows:
         """
         **Description:**
             Contains methods and properties for allowing a user to select a user account in multi-user scenarios (such as on Xbox).
+
+
+        **Activatable:**
+            ``Windows.System.UserPicker``
 
 
         **Statics:**
@@ -44828,6 +46148,10 @@ class Windows:
                     Describes the settings for registering an app with the Connected User Experience and Telemetry component.
 
 
+                **Activatable:**
+                    ``Windows.System.Diagnostics.Telemetry.PlatformTelemetryRegistrationSettings``
+
+
                 **Interfaces:**
                     ``Windows.System.Diagnostics.Telemetry.IPlatformTelemetryRegistrationSettings`` *****
 
@@ -44898,6 +46222,10 @@ class Windows:
             """
             **Description:**
                 Represents a display request.
+
+
+            **Activatable:**
+                ``Windows.System.Display.DisplayRequest``
 
 
             **Interfaces:**
@@ -45795,6 +47123,10 @@ class Windows:
                 Contains the functionality for receiving and handling invitations to join remote sessions. This class begins listening for invitations when it is instantiated.
 
 
+            **Activatable:**
+                ``Windows.System.RemoteSystems.RemoteSystemSessionInvitationListener``
+
+
             **Interfaces:**
                 ``Windows.System.RemoteSystems.IRemoteSystemSessionInvitationListener`` *****
 
@@ -45875,6 +47207,10 @@ class Windows:
             """
             **Description:**
                 Contains additional options that a RemoteSystemSessionController instance can specify when attempting to create a remote session.
+
+
+            **Activatable:**
+                ``Windows.System.RemoteSystems.RemoteSystemSessionOptions``
 
 
             **Interfaces:**
@@ -46481,6 +47817,10 @@ class Windows:
             """
             **Description:**
                 Provides properties and events associated with a screen reader device.
+
+
+            **Activatable:**
+                ``Windows.UI.Accessibility.ScreenReaderService``
 
 
             **Interfaces:**
@@ -47607,6 +48947,10 @@ class Windows:
                 The Compositor class creates an instance of the Compositor for the application that can be used as a factory for a variety of types in the Windows.UI.Composition namespace spanning the visual layer, effects system and animation system. The Compositor class also manages the lifetime of objects created from the factory.
 
 
+            **Activatable:**
+                ``Windows.UI.Composition.Compositor``
+
+
             **Statics:**
                 ``Windows.UI.Composition.ICompositorStatics``
 
@@ -48216,6 +49560,10 @@ class Windows:
                     Represents a compositor on which intended composition changes must be explicitly committed.
 
 
+                **Activatable:**
+                    ``Windows.UI.Composition.Core.CompositorController``
+
+
                 **Interfaces:**
                     ``Windows.UI.Composition.Core.ICompositorController`` *****
 
@@ -48302,6 +49650,10 @@ class Windows:
                 """
                 **Description:**
                     Controls the reflective properties of a SpriteVisual. A SceneLightingEffect will overwrite CompositionLight defaults. It is used to control the reflective properties of a SpriteVisual. A NormalMap can be used as an input source but is not required.
+
+
+                **Activatable:**
+                    ``Windows.UI.Composition.Effects.SceneLightingEffect``
 
 
                 **Interfaces:**
@@ -49580,6 +50932,10 @@ class Windows:
                 Provides gesture and manipulation recognition, event listeners, and settings.
 
 
+            **Activatable:**
+                ``Windows.UI.Input.GestureRecognizer``
+
+
             **Interfaces:**
                 ``Windows.UI.Input.IGestureRecognizer`` *****
 
@@ -50141,6 +51497,10 @@ class Windows:
                     Provides properties associated with the drawing of an InkStroke.
 
 
+                **Activatable:**
+                    ``Windows.UI.Input.Inking.InkDrawingAttributes``
+
+
                 **Statics:**
                     ``Windows.UI.Input.Inking.IInkDrawingAttributesStatics``
 
@@ -50205,6 +51565,10 @@ class Windows:
                 """
                 InkManager = 'Windows.UI.Input.Inking.InkManager'
                 """
+                **Activatable:**
+                    ``Windows.UI.Input.Inking.InkManager``
+
+
                 **Interfaces:**
                     ``Windows.UI.Input.Inking.IInkManager`` *****
 
@@ -50347,6 +51711,10 @@ class Windows:
                     InkRecognizerContainer is null if a recognition engine is not available on the system.
 
 
+                **Activatable:**
+                    ``Windows.UI.Input.Inking.InkRecognizerContainer``
+
+
                 **Interfaces:**
                     ``Windows.UI.Input.Inking.IInkRecognizerContainer`` *****
 
@@ -50379,6 +51747,10 @@ class Windows:
                     Builds strokes from raw pointer input.
 
 
+                **Activatable:**
+                    ``Windows.UI.Input.Inking.InkStrokeBuilder``
+
+
                 **Interfaces:**
                     ``Windows.UI.Input.Inking.IInkStrokeBuilder`` *****
 
@@ -50396,6 +51768,10 @@ class Windows:
                     Provides properties and methods to store and manage the collection of InkStroke objects rendered by the InkPresenter.
 
                     Modifications made to any of the ink strokes in the stroke container are immediately rendered to the drawing surface associated with the InkPresenter.
+
+
+                **Activatable:**
+                    ``Windows.UI.Input.Inking.InkStrokeContainer``
 
 
                 **Interfaces:**
@@ -50691,6 +52067,10 @@ class Windows:
                         Provides access to an object that can categorize ink strokes into either writing or drawing strokes, and recognize text, shapes, and basic layout structures.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Input.Inking.Analysis.InkAnalyzer``
+
+
                     **Interfaces:**
                         ``Windows.UI.Input.Inking.Analysis.IInkAnalyzer`` *****
 
@@ -50754,6 +52134,10 @@ class Windows:
                     """
                     **Description:**
                         Represents an object that hosts an InkPresenter without the need for an InkCanvas control.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Input.Inking.Core.CoreInkPresenterHost``
 
 
                     **Interfaces:**
@@ -50878,6 +52262,10 @@ class Windows:
                         Represents programmatically generated keyboard input, such as a Tab or Shift+Tab (Reverse Tabbing).
 
 
+                    **Activatable:**
+                        ``Windows.UI.Input.Preview.Injection.InjectedInputKeyboardInfo``
+
+
                     **Interfaces:**
                         ``Windows.UI.Input.Preview.Injection.IInjectedInputKeyboardInfo`` *****
 
@@ -50889,6 +52277,10 @@ class Windows:
                     """
                     **Description:**
                         Represents programmatically generated mouse input.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Input.Preview.Injection.InjectedInputMouseInfo``
 
 
                     **Interfaces:**
@@ -50904,6 +52296,10 @@ class Windows:
                         Represents programmatically generated pen input.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Input.Preview.Injection.InjectedInputPenInfo``
+
+
                     **Interfaces:**
                         ``Windows.UI.Input.Preview.Injection.IInjectedInputPenInfo`` *****
 
@@ -50915,6 +52311,10 @@ class Windows:
                     """
                     **Description:**
                         Represents programmatically generated touch input.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Input.Preview.Injection.InjectedInputTouchInfo``
 
 
                     **Interfaces:**
@@ -51377,6 +52777,10 @@ class Windows:
                 Represents the text content of an adaptive notification.
 
 
+            **Activatable:**
+                ``Windows.UI.Notifications.AdaptiveNotificationText``
+
+
             **Interfaces:**
                 ``Windows.UI.Notifications.IAdaptiveNotificationText`` *****
 
@@ -51487,6 +52891,10 @@ class Windows:
             """
             **Description:**
                 Represents a notification.
+
+
+            **Activatable:**
+                ``Windows.UI.Notifications.Notification``
 
 
             **Interfaces:**
@@ -52008,6 +53416,10 @@ class Windows:
                 In a desktop app, before using an instance of this class in a way that displays UI, you'll need to associate the object with its owner's window handle. For more info, and code examples, see Display WinRT UI objects that depend on CoreWindow.
 
 
+            **Activatable:**
+                ``Windows.UI.Popups.PopupMenu``
+
+
             **Interfaces:**
                 ``Windows.UI.Popups.IPopupMenu`` *****
 
@@ -52036,6 +53448,10 @@ class Windows:
             """
             **Description:**
                 Represents a command separator in a context menu.
+
+
+            **Activatable:**
+                ``Windows.UI.Popups.UICommandSeparator``
 
 
             **Interfaces:**
@@ -52104,6 +53520,10 @@ class Windows:
                 No description.
 
 
+            **Activatable:**
+                ``Windows.UI.Shell.SecurityAppManager``
+
+
             **Interfaces:**
                 ``Windows.UI.Shell.ISecurityAppManager`` *****
 
@@ -52168,6 +53588,10 @@ class Windows:
                 Represents information about how a tab in an application should be displayed by the system.
 
 
+            **Activatable:**
+                ``Windows.UI.Shell.WindowTab``
+
+
             **Interfaces:**
                 ``Windows.UI.Shell.IWindowTab`` *****
 
@@ -52209,6 +53633,10 @@ class Windows:
             """
             **Description:**
                 Represents a group that a WindowTab can be associated with.
+
+
+            **Activatable:**
+                ``Windows.UI.Shell.WindowTabGroup``
 
 
             **Interfaces:**
@@ -52472,6 +53900,10 @@ class Windows:
             """
             **Description:**
                 Represents information about a ContentLink.
+
+
+            **Activatable:**
+                ``Windows.UI.Text.ContentLinkInfo``
 
 
             **Interfaces:**
@@ -52875,6 +54307,10 @@ class Windows:
                     Represents an entry point for UI Automation (UIA) clients to use remote operations.
 
 
+                **Activatable:**
+                    ``Windows.UI.UIAutomation.Core.CoreAutomationRemoteOperation``
+
+
                 **Interfaces:**
                     ``Windows.UI.UIAutomation.Core.ICoreAutomationRemoteOperation`` *****
 
@@ -52980,6 +54416,10 @@ class Windows:
             """
             **Description:**
                 Provides access to the high contrast accessibility settings.
+
+
+            **Activatable:**
+                ``Windows.UI.ViewManagement.AccessibilitySettings``
 
 
             **Interfaces:**
@@ -53109,6 +54549,10 @@ class Windows:
                 Represents information about a window drag operation.
 
 
+            **Activatable:**
+                ``Windows.UI.ViewManagement.ApplicationViewTransferContext``
+
+
             **Statics:**
                 ``Windows.UI.ViewManagement.IApplicationViewTransferContextStatics``
 
@@ -53205,6 +54649,10 @@ class Windows:
             """
             **Description:**
                 Contains a set of common app user interface settings and operations.
+
+
+            **Activatable:**
+                ``Windows.UI.ViewManagement.UISettings``
 
 
             **Interfaces:**
@@ -54764,6 +56212,10 @@ class Windows:
                 Represents the compact overlay configuration for an AppWindowPresenter.
 
 
+            **Activatable:**
+                ``Windows.UI.WindowManagement.CompactOverlayPresentationConfiguration``
+
+
             **Interfaces:**
                 ``Windows.UI.WindowManagement.ICompactOverlayPresentationConfiguration`` *****
 
@@ -54775,6 +56227,10 @@ class Windows:
             """
             **Description:**
                 Represents the default configuration for an AppWindowPresenter.
+
+
+            **Activatable:**
+                ``Windows.UI.WindowManagement.DefaultPresentationConfiguration``
 
 
             **Interfaces:**
@@ -54801,6 +56257,10 @@ class Windows:
             """
             **Description:**
                 Represents the full screen configuration for an AppWindowPresenter.
+
+
+            **Activatable:**
+                ``Windows.UI.WindowManagement.FullScreenPresentationConfiguration``
 
 
             **Interfaces:**
@@ -54988,6 +56448,10 @@ class Windows:
             """
             **Description:**
                 Represents the options that can be applied when an element is brought into view.
+
+
+            **Activatable:**
+                ``Windows.UI.Xaml.BringIntoViewOptions``
 
 
             **Interfaces:**
@@ -55359,6 +56823,10 @@ class Windows:
                 Represents a trigger that applies a set of actions (animation storyboards) in response to an event. Not commonly used. See Remarks.
 
 
+            **Activatable:**
+                ``Windows.UI.Xaml.EventTrigger``
+
+
             **Interfaces:**
                 ``Windows.UI.Xaml.IEventTrigger`` *****
 
@@ -55439,6 +56907,10 @@ class Windows:
                 Represents the UI window of an application.
 
 
+            **Activatable:**
+                ``Windows.UI.Xaml.FrameworkView``
+
+
             **Interfaces:**
                 ``Windows.UI.Xaml.IFrameworkView`` *****
 
@@ -55452,6 +56924,10 @@ class Windows:
             """
             **Description:**
                 Creates views, specifically FrameworkView instances. This is infrastructure and does not need to be accessed in most app scenarios.
+
+
+            **Activatable:**
+                ``Windows.UI.Xaml.FrameworkViewSource``
 
 
             **Interfaces:**
@@ -55655,6 +57131,10 @@ class Windows:
                 Represents a collection of objects that inherit from SetterBase.
 
 
+            **Activatable:**
+                ``Windows.UI.Xaml.SetterBaseCollection``
+
+
             **Interfaces:**
                 ``Windows.UI.Xaml.ISetterBaseCollection`` *****
 
@@ -55700,6 +57180,10 @@ class Windows:
             """
             **Description:**
                 Represents a trigger that applies visual states conditionally.
+
+
+            **Activatable:**
+                ``Windows.UI.Xaml.StateTrigger``
 
 
             **Statics:**
@@ -55796,6 +57280,10 @@ class Windows:
             """
             **Description:**
                 Represents a collection of BeginStoryboard objects.
+
+
+            **Activatable:**
+                ``Windows.UI.Xaml.TriggerActionCollection``
 
 
             **Interfaces:**
@@ -55947,6 +57435,10 @@ class Windows:
                 Represents the visual appearance of a UI element when it is in a specific state. Visual states use Setters or a Storyboard to set UI properties within pages or control templates where the VisualState is defined.
 
 
+            **Activatable:**
+                ``Windows.UI.Xaml.VisualState``
+
+
             **Interfaces:**
                 ``Windows.UI.Xaml.IVisualState`` *****
 
@@ -55962,6 +57454,10 @@ class Windows:
                 Provides data for the CurrentStateChanging and CurrentStateChanged events.
 
 
+            **Activatable:**
+                ``Windows.UI.Xaml.VisualStateChangedEventArgs``
+
+
             **Interfaces:**
                 ``Windows.UI.Xaml.IVisualStateChangedEventArgs`` *****
 
@@ -55973,6 +57469,10 @@ class Windows:
             """
             **Description:**
                 Contains mutually exclusive VisualState objects and VisualTransition objects that are used to go from one state to another.
+
+
+            **Activatable:**
+                ``Windows.UI.Xaml.VisualStateGroup``
 
 
             **Interfaces:**
@@ -58106,6 +59606,10 @@ class Windows:
                     Represents a text control that makes suggestions to users as they enter text using a keyboard or pen (using ink and handwriting recognition). The app is notified when text has been changed by the user and is responsible for providing relevant suggestions for this control to display.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.AutoSuggestBox``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Controls.IAutoSuggestBoxStatics``
 
@@ -58135,6 +59639,10 @@ class Windows:
                     Provides event data for the AutoSuggestBox.QuerySubmitted event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.AutoSuggestBoxQuerySubmittedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.IAutoSuggestBoxQuerySubmittedEventArgs`` *****
 
@@ -58148,6 +59656,10 @@ class Windows:
                     Provides data for the SuggestionChosen event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.AutoSuggestBoxSuggestionChosenEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.IAutoSuggestBoxSuggestionChosenEventArgs`` *****
 
@@ -58159,6 +59671,10 @@ class Windows:
                 """
                 **Description:**
                     Provides data for the TextChanged event.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.AutoSuggestBoxTextChangedEventArgs``
 
 
                 **Statics:**
@@ -58176,6 +59692,10 @@ class Windows:
                 """
                 **Description:**
                     Provides event data for the SettingsFlyout.BackClick event.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.BackClickEventArgs``
 
 
                 **Interfaces:**
@@ -58229,6 +59749,10 @@ class Windows:
                 """
                 **Description:**
                     Draws a border, background, or both, around another object.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.Border``
 
 
                 **Statics:**
@@ -58403,6 +59927,10 @@ class Windows:
                     Renders a stream from a capture device, such as a camera or webcam.  CaptureElement is used in conjunction with the Windows.Media.Capture.MediaCapture API, and must be hooked up in the code behind.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.CaptureElement``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Controls.ICaptureElementStatics``
 
@@ -58433,6 +59961,10 @@ class Windows:
                     Provides event data for the ListViewBase.ChoosingGroupHeaderContainer event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ChoosingGroupHeaderContainerEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.IChoosingGroupHeaderContainerEventArgs`` *****
 
@@ -58444,6 +59976,10 @@ class Windows:
                 """
                 **Description:**
                     Provides event data for the ListViewBase.ChoosingItemContainer event.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ChoosingItemContainerEventArgs``
 
 
                 **Interfaces:**
@@ -58504,6 +60040,10 @@ class Windows:
                 """
                 **Description:**
                     Defines column-specific properties that apply to Grid objects.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ColumnDefinition``
 
 
                 **Statics:**
@@ -58654,6 +60194,10 @@ class Windows:
                 """
                 **Description:**
                     Provides data for the ContainerContentChanging event.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ContainerContentChangingEventArgs``
 
 
                 **Interfaces:**
@@ -58895,6 +60439,10 @@ class Windows:
                     Defines the element tree that is used as the control template for a control.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ControlTemplate``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.IControlTemplate`` *****
 
@@ -58927,6 +60475,10 @@ class Windows:
                 """
                 **Description:**
                     Provides data for the DatePicked event.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.DatePickedEventArgs``
 
 
                 **Interfaces:**
@@ -58965,6 +60517,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a control that allows a user to pick a date.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.DatePickerFlyout``
 
 
                 **Statics:**
@@ -59065,6 +60621,10 @@ class Windows:
                     Provides event data for the DragItemsStarting event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.DragItemsStartingEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.IDragItemsStartingEventArgs`` *****
 
@@ -59108,6 +60668,10 @@ class Windows:
                 """
                 **Description:**
                     Provides data for the CommandBar.DynamicOverflowItemsChanging event.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.DynamicOverflowItemsChangingEventArgs``
 
 
                 **Interfaces:**
@@ -59531,6 +61095,10 @@ class Windows:
                     Provides data for the Hub.SectionHeaderClick event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.HubSectionHeaderClickEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.IHubSectionHeaderClickEventArgs`` *****
 
@@ -59612,6 +61180,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a control that displays an image. The image source is specified by referring to an image file, using several supported formats. The image source can also be set with a stream. See Remarks for the list of supported image source formats.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.Image``
 
 
                 **Statics:**
@@ -59797,6 +61369,10 @@ class Windows:
                     Provides data for the IsStencilButtonCheckedChanged event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.InkToolbarIsStencilButtonCheckedChangedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.IInkToolbarIsStencilButtonCheckedChangedEventArgs`` *****
 
@@ -59951,6 +61527,10 @@ class Windows:
                     Provides event data for the ItemClick event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ItemClickEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.IItemClickEventArgs`` *****
 
@@ -60019,6 +61599,10 @@ class Windows:
                     Specifies the panel that the ItemsPresenter creates for the layout of the items of an ItemsControl.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ItemsPanelTemplate``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.IItemsPanelTemplate`` *****
 
@@ -60032,6 +61616,10 @@ class Windows:
                     Provides data for the ItemsPicked event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ItemsPickedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.IItemsPickedEventArgs`` *****
 
@@ -60043,6 +61631,10 @@ class Windows:
                 """
                 **Description:**
                     Specifies where items are placed in a control, usually an ItemsControl.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ItemsPresenter``
 
 
                 **Statics:**
@@ -60068,6 +61660,10 @@ class Windows:
                     Arranges child elements of an ItemsControl into a single line that can be oriented horizontally or vertically. Supports pixel-based UI virtualization and grouped layouts.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ItemsStackPanel``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Controls.IItemsStackPanelStatics``
 
@@ -60087,6 +61683,10 @@ class Windows:
                 """
                 **Description:**
                     Positions child elements sequentially from left to right or top to bottom in an ItemsControl that shows multiple items. When elements extend beyond the container edge, elements are positioned in the next row or column. Supports pixel-based UI virtualization and grouped layouts.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ItemsWrapGrid``
 
 
                 **Statics:**
@@ -60142,6 +61742,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a control that allows a user to pick one or more items from a list. See Remarks.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ListPickerFlyout``
 
 
                 **Statics:**
@@ -60278,6 +61882,10 @@ class Windows:
                 """
                 **Description:**
                     Represents an object that renders audio and video to the display. See Remarks.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.MediaElement``
 
 
                 **Statics:**
@@ -60527,6 +62135,10 @@ class Windows:
                     Represents a menu item that displays a sub-menu in a MenuFlyout control.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.MenuFlyoutSubItem``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Controls.IMenuFlyoutSubItemStatics``
 
@@ -60658,6 +62270,10 @@ class Windows:
                     Provides event data for the NavigationView.ItemInvoked event.
 
                     Equivalent WinUI 2 API for UWP: Microsoft.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs (for WinUI in the Windows App SDK, see the Windows App SDK namespaces).
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs``
 
 
                 **Interfaces:**
@@ -60828,6 +62444,10 @@ class Windows:
                     Represents a control for entering passwords.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.PasswordBox``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Controls.IPasswordBoxStatics``
 
@@ -60927,6 +62547,10 @@ class Windows:
                     Provides data for the PickerConfirmed event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.PickerConfirmedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.IPickerConfirmedEventArgs`` *****
 
@@ -60938,6 +62562,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a custom picker control. (Not recommended for Universal Windows Platform (UWP) app. See Flyout.)
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.PickerFlyout``
 
 
                 **Statics:**
@@ -61012,6 +62640,10 @@ class Windows:
                     Event arguments for dynamically interacting with the PivotItem before use, allowing for delay load scenarios.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.PivotItemEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.IPivotItemEventArgs`` *****
 
@@ -61044,6 +62676,10 @@ class Windows:
                     Represents a control that indicates that an operation is ongoing. The typical visual appearance is a ring-shaped "spinner" that cycles an animation as progress continues.
 
                     Equivalent WinUI 2 API for UWP: Microsoft.UI.Xaml.Controls.ProgressRing (for WinUI in the Windows App SDK, see the Windows App SDK namespaces).
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ProgressRing``
 
 
                 **Statics:**
@@ -61329,6 +62965,10 @@ class Windows:
                     Represents a rich text display container that supports formatted text, hyperlinks, inline images, and other rich content. RichTextBlock supports a built-in overflow model.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.RichTextBlock``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Controls.IRichTextBlockStatics``
 
@@ -61366,6 +63006,10 @@ class Windows:
                     Represents a rich text display overflow container. This element cannot have direct content. The only purpose of RichTextBlockOverflow is to display text content that does not fit in the bounds of a RichTextBlock or another RichTextBlockOverflow element.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.RichTextBlockOverflow``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Controls.IRichTextBlockOverflowStatics``
 
@@ -61389,6 +63033,10 @@ class Windows:
                 """
                 **Description:**
                     Defines row-specific properties that apply to Grid elements.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.RowDefinition``
 
 
                 **Statics:**
@@ -61423,6 +63071,10 @@ class Windows:
                     Displays the content of a ScrollViewer control.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ScrollContentPresenter``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Controls.IScrollContentPresenterStatics2``
 
@@ -61440,6 +63092,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a scrollable area that can contain other visible elements.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ScrollViewer``
 
 
                 **Statics:**
@@ -61482,6 +63138,10 @@ class Windows:
                 """
                 **Description:**
                     Provides event data for the ViewChanged event and similar control-specific events.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ScrollViewerViewChangedEventArgs``
 
 
                 **Interfaces:**
@@ -61553,6 +63213,10 @@ class Windows:
                     Provides event data for the SearchBox.ResultSuggestionChosen event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.SearchBoxResultSuggestionChosenEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.ISearchBoxResultSuggestionChosenEventArgs`` *****
 
@@ -61605,6 +63269,10 @@ class Windows:
                     Represents a scrollable control that incorporates two views that have a semantic relationship. For example, the ZoomedOutView might be an index of titles, and the ZoomedInView might include details and summaries for each of the title entries. Views can be changed using zoom or other interactions.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.SemanticZoom``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Controls.ISemanticZoomStatics``
 
@@ -61622,6 +63290,10 @@ class Windows:
                     Communicates information for items and view state in a SemanticZoom, such that hosts for scrolling and virtualization (such as ListViewBase) can get correct item and bounds information.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.SemanticZoomLocation``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.ISemanticZoomLocation`` *****
 
@@ -61633,6 +63305,10 @@ class Windows:
                 """
                 **Description:**
                     Provides event data for the ViewChangeStarted and ViewChangeCompleted events.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.SemanticZoomViewChangedEventArgs``
 
 
                 **Interfaces:**
@@ -61967,6 +63643,10 @@ class Windows:
                     Provides a lightweight control for displaying small amounts of text.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.TextBlock``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Controls.ITextBlockStatics``
 
@@ -62196,6 +63876,10 @@ class Windows:
                     Provides data for the TimePicked event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.TimePickedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Controls.ITimePickedEventArgs`` *****
 
@@ -62232,6 +63916,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a control that allows a user to pick a time value.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.TimePickerFlyout``
 
 
                 **Statics:**
@@ -62360,6 +64048,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a switch that can be toggled between two states.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.ToggleSwitch``
 
 
                 **Statics:**
@@ -62650,6 +64342,10 @@ class Windows:
                     Provides a grid-style layout panel where each tile/cell can be variable size based on content.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.VariableSizedWrapGrid``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Controls.IVariableSizedWrapGridStatics``
 
@@ -62665,6 +64361,10 @@ class Windows:
                 """
                 **Description:**
                     Defines a content decorator that can stretch and scale a single child to fill the available space.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.Viewbox``
 
 
                 **Statics:**
@@ -62699,6 +64399,10 @@ class Windows:
                 """
                 **Description:**
                     Arranges and virtualizes content on a single line that is oriented either horizontally or vertically. Can only be used to display items in an ItemsControl.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.VirtualizingStackPanel``
 
 
                 **Statics:**
@@ -62759,6 +64463,10 @@ class Windows:
                 """
                 **Description:**
                     Provides a brush that renders the content that is currently hosted in a WebView control.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.WebViewBrush``
 
 
                 **Statics:**
@@ -62975,6 +64683,10 @@ class Windows:
                     Positions child elements sequentially from left to right or top to bottom. When elements extend beyond the container edge, elements are positioned in the next row or column. Can only be used to display items in an ItemsControl. See Remarks.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Controls.WrapGrid``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Controls.IWrapGridStatics``
 
@@ -63041,6 +64753,10 @@ class Windows:
                         Provides data for the ActualCameraChanged event.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapActualCameraChangedEventArgs``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapActualCameraChangedEventArgs`` *****
 
@@ -63054,6 +64770,10 @@ class Windows:
                     """
                     **Description:**
                         Provides data for the ActualCameraChanging event.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapActualCameraChangingEventArgs``
 
 
                     **Interfaces:**
@@ -63109,6 +64829,10 @@ class Windows:
                         Provides event data for the MapContextRequested event.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapContextRequestedEventArgs``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapContextRequestedEventArgs`` *****
 
@@ -63120,6 +64844,10 @@ class Windows:
                     """
                     **Description:**
                         Represents a symbolic or photorealistic map of the Earth.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapControl``
 
 
                     **Statics:**
@@ -63165,6 +64893,10 @@ class Windows:
                         Provides data for the BusinessLandmarkClick event.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapControlBusinessLandmarkClickEventArgs``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapControlBusinessLandmarkClickEventArgs`` *****
 
@@ -63176,6 +64908,10 @@ class Windows:
                     """
                     **Description:**
                         Provides data for the BusinessLandmarkPointerEntered event.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapControlBusinessLandmarkPointerEnteredEventArgs``
 
 
                     **Interfaces:**
@@ -63191,6 +64927,10 @@ class Windows:
                         Provides data for the BusinessLandmarkPointerExited event.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapControlBusinessLandmarkPointerExitedEventArgs``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapControlBusinessLandmarkPointerExitedEventArgs`` *****
 
@@ -63202,6 +64942,10 @@ class Windows:
                     """
                     **Description:**
                         Provides data for the BusinessLandmarkRightTapped event.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapControlBusinessLandmarkRightTappedEventArgs``
 
 
                     **Interfaces:**
@@ -63240,6 +64984,10 @@ class Windows:
                         Provides data for the TransitFeatureClick event.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapControlTransitFeatureClickEventArgs``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapControlTransitFeatureClickEventArgs`` *****
 
@@ -63251,6 +64999,10 @@ class Windows:
                     """
                     **Description:**
                         Provides data for the TransitFeaturePointerEntered event.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapControlTransitFeaturePointerEnteredEventArgs``
 
 
                     **Interfaces:**
@@ -63266,6 +65018,10 @@ class Windows:
                         Provides data to the TransitFeaturePointerExited event.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapControlTransitFeaturePointerExitedEventArgs``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapControlTransitFeaturePointerExitedEventArgs`` *****
 
@@ -63277,6 +65033,10 @@ class Windows:
                     """
                     **Description:**
                         Provides data for the TransitFeatureRightTapped event.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapControlTransitFeatureRightTappedEventArgs``
 
 
                     **Interfaces:**
@@ -63303,6 +65063,10 @@ class Windows:
                     """
                     **Description:**
                         Provides data for the CustomExperienceChanged event.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapCustomExperienceChangedEventArgs``
 
 
                     **Interfaces:**
@@ -63347,6 +65111,10 @@ class Windows:
                         Represents a 3D element displayed on a MapControl.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapElement3D``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapElement3DStatics``
 
@@ -63364,6 +65132,10 @@ class Windows:
                         Provides data for the MapElementClick event.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapElementClickEventArgs``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapElementClickEventArgs`` *****
 
@@ -63375,6 +65147,10 @@ class Windows:
                     """
                     **Description:**
                         Provides data for the MapElementPointerEntered event.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapElementPointerEnteredEventArgs``
 
 
                     **Interfaces:**
@@ -63390,6 +65166,10 @@ class Windows:
                         Provides data for the MapElementPointerExited event.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapElementPointerExitedEventArgs``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapElementPointerExitedEventArgs`` *****
 
@@ -63401,6 +65181,10 @@ class Windows:
                     """
                     **Description:**
                         Represents a collection of map elements to which you can bind data and manipulate independently of other map elements.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapElementsLayer``
 
 
                     **Statics:**
@@ -63420,6 +65204,10 @@ class Windows:
                         Provides data for the MapElementClick event.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapElementsLayerClickEventArgs``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapElementsLayerClickEventArgs`` *****
 
@@ -63431,6 +65219,10 @@ class Windows:
                     """
                     **Description:**
                         Provides event data for the MapContextRequested event.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapElementsLayerContextRequestedEventArgs``
 
 
                     **Interfaces:**
@@ -63446,6 +65238,10 @@ class Windows:
                         Provides data for the MapElementPointerEntered event.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapElementsLayerPointerEnteredEventArgs``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapElementsLayerPointerEnteredEventArgs`` *****
 
@@ -63459,6 +65255,10 @@ class Windows:
                         Provides data for the MapElementPointerExited event.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapElementsLayerPointerExitedEventArgs``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapElementsLayerPointerExitedEventArgs`` *****
 
@@ -63470,6 +65270,10 @@ class Windows:
                     """
                     **Description:**
                         Displays an image such as a pushpin with optional text on a MapControl. Use the default image or provide a custom image.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapIcon``
 
 
                     **Statics:**
@@ -63493,6 +65297,10 @@ class Windows:
                         Provides data about user input for the MapTapped, MapDoubleTapped, and MapHolding events of the MapControl.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapInputEventArgs``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapInputEventArgs`` *****
 
@@ -63504,6 +65312,10 @@ class Windows:
                     """
                     **Description:**
                         Contains a collection of XAML controls to be displayed on a MapControl.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapItemsControl``
 
 
                     **Statics:**
@@ -63557,6 +65369,10 @@ class Windows:
                         Represents a polygon on a MapControl.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapPolygon``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapPolygonStatics``
 
@@ -63576,6 +65392,10 @@ class Windows:
                         Represents a polyline on a MapControl.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapPolyline``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapPolylineStatics``
 
@@ -63591,6 +65411,10 @@ class Windows:
                     """
                     **Description:**
                         Provides data for the MapRightTapped event.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapRightTappedEventArgs``
 
 
                     **Interfaces:**
@@ -63682,6 +65506,10 @@ class Windows:
                         Provides data for the TargetCameraChanged event.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapTargetCameraChangedEventArgs``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapTargetCameraChangedEventArgs`` *****
 
@@ -63697,6 +65525,10 @@ class Windows:
                         Represents a bitmap request for a tile for a CustomMapTileDataSource.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapTileBitmapRequest``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapTileBitmapRequest`` *****
 
@@ -63710,6 +65542,10 @@ class Windows:
                         Represents a deferral that can be used by an app to respond asynchronously to a bitmap request for a tile.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapTileBitmapRequestDeferral``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapTileBitmapRequestDeferral`` *****
 
@@ -63721,6 +65557,10 @@ class Windows:
                     """
                     **Description:**
                         Provides data for the CustomMapTileDataSource.BitmapRequested event.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapTileBitmapRequestedEventArgs``
 
 
                     **Interfaces:**
@@ -63772,6 +65612,10 @@ class Windows:
                         Represents a Uri request for a tile for an HttpMapTileDataSource or a LocalMapTileDataSource.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapTileUriRequest``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapTileUriRequest`` *****
 
@@ -63785,6 +65629,10 @@ class Windows:
                         Represents a deferral that can be used by an app to respond asynchronously to a Uri request for a tile.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapTileUriRequestDeferral``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Maps.IMapTileUriRequestDeferral`` *****
 
@@ -63796,6 +65644,10 @@ class Windows:
                     """
                     **Description:**
                         Provides data for the HttpMapTileDataSource.UriRequested event and the LocalMapTileDataSource.UriRequested event.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Maps.MapTileUriRequestedEventArgs``
 
 
                     **Interfaces:**
@@ -63913,6 +65765,10 @@ class Windows:
                     """
                     **Description:**
                         Represents a panel that contains a calendar.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Primitives.CalendarPanel``
 
 
                     **Interfaces:**
@@ -64222,6 +66078,10 @@ class Windows:
                         Provides the appropriate background Brush for elements in the item template of a jump list to bind to. The Brush reflects the current theme and accent color, and it's also used to shade empty-group jump list items. By default, the Brush matches built-in apps, but you can override that to suit your design needs using the Enabled and Disabled properties.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Primitives.JumpListItemBackgroundConverter``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Controls.Primitives.IJumpListItemBackgroundConverterStatics``
 
@@ -64239,6 +66099,10 @@ class Windows:
                     """
                     **Description:**
                         Provides the appropriate foreground Brush for elements in the item template of a jump list to bind to. The Brush reflects the current theme and accent color, and it's also used to shade empty-group jump list items. By default, the Brush matches built-in apps, but you can override that to suit your design needs using the Enabled and Disabled properties.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Primitives.JumpListItemForegroundConverter``
 
 
                     **Statics:**
@@ -64460,6 +66324,10 @@ class Windows:
                         Displays the header text of the items in a Pivot control.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Primitives.PivotHeaderPanel``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Controls.Primitives.IPivotHeaderPanel`` *****
 
@@ -64471,6 +66339,10 @@ class Windows:
                     """
                     **Description:**
                         Displays the items in a Pivot control.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Primitives.PivotPanel``
 
 
                     **Interfaces:**
@@ -64486,6 +66358,10 @@ class Windows:
                     """
                     **Description:**
                         Displays content on top of existing content.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Primitives.Popup``
 
 
                     **Statics:**
@@ -64575,6 +66451,10 @@ class Windows:
                         Represents a control that raises its Click event repeatedly when it is pressed and held.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Primitives.RepeatButton``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Controls.Primitives.IRepeatButtonStatics``
 
@@ -64592,6 +66472,10 @@ class Windows:
                         Represents a control that provides a scroll bar that has a sliding Thumb whose position corresponds to a value.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Primitives.ScrollBar``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Controls.Primitives.IScrollBarStatics``
 
@@ -64607,6 +66491,10 @@ class Windows:
                     """
                     **Description:**
                         Provides data for the Scroll event.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Primitives.ScrollEventArgs``
 
 
                     **Interfaces:**
@@ -64682,6 +66570,10 @@ class Windows:
                         Represents a control that can be dragged by the user.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Primitives.Thumb``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Controls.Primitives.IThumbStatics``
 
@@ -64697,6 +66589,10 @@ class Windows:
                     """
                     **Description:**
                         Represents a tick mark on a Slider control. Not intended for general use.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Controls.Primitives.TickBar``
 
 
                     **Statics:**
@@ -64874,6 +66770,10 @@ class Windows:
                     Provides a data source that adds grouping and current-item support to collection classes.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Data.CollectionViewSource``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Data.ICollectionViewSourceStatics``
 
@@ -64989,6 +66889,10 @@ class Windows:
                     Provides an inline-level content element that causes content to render with a bold font weight.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Documents.Bold``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Documents.IBold`` *****
 
@@ -65002,6 +66906,10 @@ class Windows:
                     Defines a ContentLink that contains a contact.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Documents.ContactContentLinkProvider``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Documents.IContactContentLinkProvider`` *****
 
@@ -65013,6 +66921,10 @@ class Windows:
                 """
                 **Description:**
                     Provides an inline-level content element that provides facilities for hosting links to contextual information.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Documents.ContentLink``
 
 
                 **Statics:**
@@ -65058,6 +66970,10 @@ class Windows:
                     Represents a collection of ContentLinkProvider objects that can be individually accessed by index.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Documents.ContentLinkProviderCollection``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Documents.IContentLinkProviderCollection`` *****
 
@@ -65073,6 +66989,10 @@ class Windows:
                 """
                 **Description:**
                     Provides a visual representation of letters, characters, or symbols, in a specific font and style.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Documents.Glyphs``
 
 
                 **Statics:**
@@ -65094,6 +67014,10 @@ class Windows:
                 """
                 **Description:**
                     Provides an inline-level content element that provides facilities for hosting hyperlinks.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Documents.Hyperlink``
 
 
                 **Statics:**
@@ -65170,6 +67094,10 @@ class Windows:
                     Provides an inline content element that enables UIElement types to be embedded in the content of a RichTextBlock.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Documents.InlineUIContainer``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Documents.IInlineUIContainer`` *****
 
@@ -65181,6 +67109,10 @@ class Windows:
                 """
                 **Description:**
                     Provides an inline-level flow content element that causes content to render with an italic font style.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Documents.Italic``
 
 
                 **Interfaces:**
@@ -65196,6 +67128,10 @@ class Windows:
                     Represents an inline element that causes a new line to begin in content when rendered in a text container.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Documents.LineBreak``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Documents.ILineBreak`` *****
 
@@ -65207,6 +67143,10 @@ class Windows:
                 """
                 **Description:**
                     Provides a block-level content element that is used to group content into a paragraph.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Documents.Paragraph``
 
 
                 **Statics:**
@@ -65226,6 +67166,10 @@ class Windows:
                     Defines a ContentLink that contains a place.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Documents.PlaceContentLinkProvider``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Documents.IPlaceContentLinkProvider`` *****
 
@@ -65237,6 +67181,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a discrete section of formatted or unformatted text.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Documents.Run``
 
 
                 **Statics:**
@@ -65360,6 +67308,10 @@ class Windows:
                 """
                 **Description:**
                     Provides an inline-level content element that causes content to render with an underlined text decoration.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Documents.Underline``
 
 
                 **Interfaces:**
@@ -65576,6 +67528,10 @@ class Windows:
                     Provides event data for the AccessKeyDisplayDismissed event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.AccessKeyDisplayDismissedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Input.IAccessKeyDisplayDismissedEventArgs`` *****
 
@@ -65589,6 +67545,10 @@ class Windows:
                     Provides event data for the AccessKeyDisplayRequested event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.AccessKeyDisplayRequestedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Input.IAccessKeyDisplayRequestedEventArgs`` *****
 
@@ -65600,6 +67560,10 @@ class Windows:
                 """
                 **Description:**
                     Provides event data for the AccessKeyInvoked event.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.AccessKeyInvokedEventArgs``
 
 
                 **Interfaces:**
@@ -65660,6 +67624,10 @@ class Windows:
                     Provides event data for the ContextRequested event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.ContextRequestedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Input.IContextRequestedEventArgs`` *****
 
@@ -65671,6 +67639,10 @@ class Windows:
                 """
                 **Description:**
                     Provides event data for the DoubleTapped event.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.DoubleTappedRoutedEventArgs``
 
 
                 **Interfaces:**
@@ -65697,6 +67669,10 @@ class Windows:
                 """
                 **Description:**
                     Provides options to help identify the next element that can programmatically receive navigation focus.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.FindNextElementOptions``
 
 
                 **Interfaces:**
@@ -65797,6 +67773,10 @@ class Windows:
                     Provides event data for the Holding event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.HoldingRoutedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Input.IHoldingRoutedEventArgs`` *****
 
@@ -65847,6 +67827,10 @@ class Windows:
                 """
                 **Description:**
                     Represents information related to the data provided by an input method.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.InputScope``
 
 
                 **Interfaces:**
@@ -65947,6 +67931,10 @@ class Windows:
                     Provides data for the ManipulationCompleted event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Input.IManipulationCompletedRoutedEventArgs`` *****
 
@@ -65960,6 +67948,10 @@ class Windows:
                     Provides data for the ManipulationDelta event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Input.IManipulationDeltaRoutedEventArgs`` *****
 
@@ -65971,6 +67963,10 @@ class Windows:
                 """
                 **Description:**
                     Provides data for the ManipulationInertiaStarting event.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.ManipulationInertiaStartingRoutedEventArgs``
 
 
                 **Interfaces:**
@@ -66014,6 +68010,10 @@ class Windows:
                 """
                 **Description:**
                     Provides data for the ManipulationStarting, event.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.ManipulationStartingRoutedEventArgs``
 
 
                 **Interfaces:**
@@ -66083,6 +68083,10 @@ class Windows:
                     Provides event data for the RightTapped event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.RightTappedRoutedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Input.IRightTappedRoutedEventArgs`` *****
 
@@ -66113,6 +68117,10 @@ class Windows:
                 """
                 **Description:**
                     Provides event data for the Tapped event.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Input.TappedRoutedEventArgs``
 
 
                 **Interfaces:**
@@ -66296,6 +68304,10 @@ class Windows:
                     Represents an elliptical arc between two points.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.ArcSegment``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Media.IArcSegmentStatics``
 
@@ -66313,6 +68325,10 @@ class Windows:
                     Represents a cubic Bezier curve drawn between two points.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.BezierSegment``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Media.IBezierSegmentStatics``
 
@@ -66328,6 +68344,10 @@ class Windows:
                 """
                 **Description:**
                     Represents the behavior of caching a visual element or tree of elements as bitmap surfaces.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.BitmapCache``
 
 
                 **Interfaces:**
@@ -66364,6 +68384,10 @@ class Windows:
                     Represents an ordered collection of Brush values.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.BrushCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Windows.UI.Xaml.Media.Brush*>`` *****
 
@@ -66390,6 +68414,10 @@ class Windows:
                 """
                 **Description:**
                     Applies multiple transform operations to an object.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.CompositeTransform``
 
 
                 **Statics:**
@@ -66428,6 +68456,10 @@ class Windows:
                     Represents an ordered collection of Double values.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.DoubleCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<DOUBLE>`` *****
 
@@ -66441,6 +68473,10 @@ class Windows:
                 """
                 **Description:**
                     Represents the geometry of a circle or ellipse.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.EllipseGeometry``
 
 
                 **Statics:**
@@ -66509,6 +68545,10 @@ class Windows:
                     Represents a collection of Geometry objects.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.GeometryCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Windows.UI.Xaml.Media.Geometry*>`` *****
 
@@ -66522,6 +68562,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a composite geometry, composed of other Geometry objects.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.GeometryGroup``
 
 
                 **Statics:**
@@ -66558,6 +68602,10 @@ class Windows:
                     Describes the location and color of a transition point in a gradient.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.GradientStop``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Media.IGradientStopStatics``
 
@@ -66575,6 +68623,10 @@ class Windows:
                     Represents a collection of GradientStop objects that can be individually accessed by index.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.GradientStopCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Windows.UI.Xaml.Media.GradientStop*>`` *****
 
@@ -66588,6 +68640,10 @@ class Windows:
                 """
                 **Description:**
                     Paints an area with an image. The image source is typically obtained from file formats such as Joint Photographic Experts Group (JPEG).
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.ImageBrush``
 
 
                 **Statics:**
@@ -66620,6 +68676,10 @@ class Windows:
                     Represents the geometry of a line.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.LineGeometry``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Media.ILineGeometryStatics``
 
@@ -66635,6 +68695,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a line drawn between two points, which can be part of a PathFigure within Path data.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.LineSegment``
 
 
                 **Statics:**
@@ -66709,6 +68773,10 @@ class Windows:
                     Applies a Matrix3D projection to an object.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.Matrix3DProjection``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Media.IMatrix3DProjectionStatics``
 
@@ -66743,6 +68811,10 @@ class Windows:
                     Creates an arbitrary affine matrix transformation that is used to manipulate objects or coordinate systems in a two-dimensional plane.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.MatrixTransform``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Media.IMatrixTransformStatics``
 
@@ -66773,6 +68845,10 @@ class Windows:
                     Provides data for the PartialMediaFailureDetected event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.PartialMediaFailureDetectedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Media.IPartialMediaFailureDetectedEventArgs`` *****
 
@@ -66786,6 +68862,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a subsection of a geometry, a single connected series of two-dimensional geometric segments.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.PathFigure``
 
 
                 **Statics:**
@@ -66805,6 +68885,10 @@ class Windows:
                     Represents a collection of PathFigure objects that collectively make up the geometry of a PathGeometry.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.PathFigureCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Windows.UI.Xaml.Media.PathFigure*>`` *****
 
@@ -66818,6 +68902,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a complex vector-based shape that may be composed of arcs, curves, ellipses, lines, and rectangles.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.PathGeometry``
 
 
                 **Statics:**
@@ -66850,6 +68938,10 @@ class Windows:
                     Represents a collection of PathSegment objects that can be individually accessed by index.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.PathSegmentCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Windows.UI.Xaml.Media.PathSegment*>`` *****
 
@@ -66863,6 +68955,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a perspective transform (a 3-D-like effect) on an object.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.PlaneProjection``
 
 
                 **Statics:**
@@ -66882,6 +68978,10 @@ class Windows:
                     Represents a collection of Point values that can be individually accessed by index.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.PointCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Windows.Foundation.Point>`` *****
 
@@ -66895,6 +68995,10 @@ class Windows:
                 """
                 **Description:**
                     Represents one or more cubic Bezier curves.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.PolyBezierSegment``
 
 
                 **Statics:**
@@ -66914,6 +69018,10 @@ class Windows:
                     Represents a set of line segments defined by a Point collection with each Point specifying the end point of a line segment.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.PolyLineSegment``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Media.IPolyLineSegmentStatics``
 
@@ -66929,6 +69037,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a set of quadratic Bezier segments.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.PolyQuadraticBezierSegment``
 
 
                 **Statics:**
@@ -66961,6 +69073,10 @@ class Windows:
                     Creates a quadratic Bezier curve between two points in a PathFigure.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.QuadraticBezierSegment``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Media.IQuadraticBezierSegmentStatics``
 
@@ -66978,6 +69094,10 @@ class Windows:
                     Provides event data for the RateChanged event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.RateChangedRoutedEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Media.IRateChangedRoutedEventArgs`` *****
 
@@ -66989,6 +69109,10 @@ class Windows:
                 """
                 **Description:**
                     Describes a two-dimensional rectangular geometry.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.RectangleGeometry``
 
 
                 **Statics:**
@@ -67065,6 +69189,10 @@ class Windows:
                     Rotates an object around a specified point in a two-dimensional x-y coordinate system.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.RotateTransform``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Media.IRotateTransformStatics``
 
@@ -67080,6 +69208,10 @@ class Windows:
                 """
                 **Description:**
                     Scales an object in the two-dimensional x-y coordinate system.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.ScaleTransform``
 
 
                 **Statics:**
@@ -67110,6 +69242,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a two-dimensional skew.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.SkewTransform``
 
 
                 **Statics:**
@@ -67180,6 +69316,10 @@ class Windows:
                     Represents metadata associated with a specific point in a media file.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.TimelineMarker``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Media.ITimelineMarkerStatics``
 
@@ -67197,6 +69337,10 @@ class Windows:
                     Represents a collection of TimelineMarker objects that can be individually accessed by index. A TimelineMarkerCollection is an ordered list where the order is determined by the Time value of each TimelineMarker item contained in the collection. For more info on how this affects the collection API, see Remarks.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.TimelineMarkerCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Windows.UI.Xaml.Media.TimelineMarker*>`` *****
 
@@ -67210,6 +69354,10 @@ class Windows:
                 """
                 **Description:**
                     Provides event data for the MarkerReached event.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.TimelineMarkerRoutedEventArgs``
 
 
                 **Interfaces:**
@@ -67238,6 +69386,10 @@ class Windows:
                     Represents a collection of Transform objects that can be individually accessed by index.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.TransformCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Windows.UI.Xaml.Media.Transform*>`` *****
 
@@ -67251,6 +69403,10 @@ class Windows:
                 """
                 **Description:**
                     Represents a composite Transform composed of other Transform objects.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.TransformGroup``
 
 
                 **Statics:**
@@ -67268,6 +69424,10 @@ class Windows:
                 """
                 **Description:**
                     Translates (moves) an object in the two-dimensional x-y coordinate system.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Media.TranslateTransform``
 
 
                 **Statics:**
@@ -67360,6 +69520,10 @@ class Windows:
                         Provides the animated transition behavior for when controls add or delete children of a panel. For example, if you have a collection of photos displayed in a Grid, you can associate this animation to the Grid so that when photos are added or deleted, the photos will animate in and out of view.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.AddDeleteThemeTransition``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Media.Animation.IAddDeleteThemeTransition`` *****
 
@@ -67371,6 +69535,10 @@ class Windows:
                     """
                     **Description:**
                         Represents an easing function that changes a value in the opposite direction of the main function during part of a duration, then reverses and finishes the function-over-time behavior in a conventional way.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.BackEase``
 
 
                     **Statics:**
@@ -67403,6 +69571,10 @@ class Windows:
                         A trigger action that begins a Storyboard. Not commonly used. See Remarks.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.BeginStoryboard``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IBeginStoryboardStatics``
 
@@ -67418,6 +69590,10 @@ class Windows:
                     """
                     **Description:**
                         Represents an easing function that creates an animated bouncing effect.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.BounceEase``
 
 
                     **Statics:**
@@ -67437,6 +69613,10 @@ class Windows:
                         Represents an easing function that creates an animation that accelerates and/or decelerates using a circular function.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.CircleEase``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Media.Animation.ICircleEase`` *****
 
@@ -67448,6 +69628,10 @@ class Windows:
                     """
                     **Description:**
                         Animates the value of a Color property between two target values using linear interpolation over a specified Duration.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.ColorAnimation``
 
 
                     **Statics:**
@@ -67465,6 +69649,10 @@ class Windows:
                     """
                     **Description:**
                         Animates the value of a Color property along a set of key frames.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.ColorAnimationUsingKeyFrames``
 
 
                     **Statics:**
@@ -67501,6 +69689,10 @@ class Windows:
                         Represents a collection of ColorKeyFrame objects that can be individually accessed by index. ColorKeyFrameCollection is the value of the ColorAnimationUsingKeyFrames.KeyFrames property.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.ColorKeyFrameCollection``
+
+
                     **Interfaces:**
                         ``Windows.Foundation.Collections.IVector<Windows.UI.Xaml.Media.Animation.ColorKeyFrame*>`` *****
 
@@ -67514,6 +69706,10 @@ class Windows:
                     """
                     **Description:**
                         Provides common parameters for navigation transition animations.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.CommonNavigationTransitionInfo``
 
 
                     **Statics:**
@@ -67580,6 +69776,10 @@ class Windows:
                         Provides the animated transition behavior for when the content of a control is changing. This might be applied in addition to AddDeleteThemeTransition.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.ContentThemeTransition``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IContentThemeTransitionStatics``
 
@@ -67597,6 +69797,10 @@ class Windows:
                         Specifies the object that will fly between pages to provide context during a continuum transition.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.ContinuumNavigationTransitionInfo``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IContinuumNavigationTransitionInfoStatics``
 
@@ -67612,6 +69816,10 @@ class Windows:
                     """
                     **Description:**
                         Represents an easing function that creates an animation that accelerates and/or decelerates using the formula f (t) = t3.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.CubicEase``
 
 
                     **Interfaces:**
@@ -67640,6 +69848,10 @@ class Windows:
                         Animates from the Color value of the previous key frame to its own Value using discrete values.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.DiscreteColorKeyFrame``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Media.Animation.IDiscreteColorKeyFrame`` *****
 
@@ -67651,6 +69863,10 @@ class Windows:
                     """
                     **Description:**
                         Animates from the Double value of the previous key frame to its own Value using discrete values.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.DiscreteDoubleKeyFrame``
 
 
                     **Interfaces:**
@@ -67666,6 +69882,10 @@ class Windows:
                         Animates from the Object value of the previous key frame to its own Value using discrete values.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.DiscreteObjectKeyFrame``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Media.Animation.IDiscreteObjectKeyFrame`` *****
 
@@ -67679,6 +69899,10 @@ class Windows:
                         Animates from the Point value of the previous key frame to its own Value using discrete frames.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.DiscretePointKeyFrame``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Media.Animation.IDiscretePointKeyFrame`` *****
 
@@ -67690,6 +69914,10 @@ class Windows:
                     """
                     **Description:**
                         Animates the value of a Double property between two target values using linear interpolation over a specified Duration.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.DoubleAnimation``
 
 
                     **Statics:**
@@ -67707,6 +69935,10 @@ class Windows:
                     """
                     **Description:**
                         Animates the value of a Double property along a set of key frames.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.DoubleAnimationUsingKeyFrames``
 
 
                     **Statics:**
@@ -67743,6 +69975,10 @@ class Windows:
                         Represents a collection of DoubleKeyFrame objects that can be individually accessed by index. DoubleKeyFrameCollection is the value of the DoubleAnimationUsingKeyFrames.KeyFrames property.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.DoubleKeyFrameCollection``
+
+
                     **Interfaces:**
                         ``Windows.Foundation.Collections.IVector<Windows.UI.Xaml.Media.Animation.DoubleKeyFrame*>`` *****
 
@@ -67756,6 +69992,10 @@ class Windows:
                     """
                     **Description:**
                         Represents the preconfigured animation that applies to item elements being dragged.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.DragItemThemeAnimation``
 
 
                     **Statics:**
@@ -67775,6 +70015,10 @@ class Windows:
                         Represents the preconfigured animation that applies to the elements underneath an element being dragged.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.DragOverThemeAnimation``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IDragOverThemeAnimationStatics``
 
@@ -67792,6 +70036,10 @@ class Windows:
                         Specifies the animation to run when a user navigates forward in a logical hierarchy, like from a master list to a detail page.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.DrillInNavigationTransitionInfo``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Media.Animation.IDrillInNavigationTransitionInfo`` *****
 
@@ -67803,6 +70051,10 @@ class Windows:
                     """
                     **Description:**
                         Represents a preconfigured animation that runs when a user navigates forward in a logical hierarchy, like from a master page to a detail page.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.DrillInThemeAnimation``
 
 
                     **Statics:**
@@ -67822,6 +70074,10 @@ class Windows:
                         Represents a preconfigured animation that runs when a user navigates backward in a logical hierarchy, like from a detail page to a master page.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.DrillOutThemeAnimation``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IDrillOutThemeAnimationStatics``
 
@@ -67837,6 +70093,10 @@ class Windows:
                     """
                     **Description:**
                         Represents the preconfigured animation that applies to potential drop target elements.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.DropTargetItemThemeAnimation``
 
 
                     **Statics:**
@@ -67856,6 +70116,10 @@ class Windows:
                         Associates easing functions with a ColorAnimationUsingKeyFrames key-frame animation.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.EasingColorKeyFrame``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IEasingColorKeyFrameStatics``
 
@@ -67871,6 +70135,10 @@ class Windows:
                     """
                     **Description:**
                         Associates an easing function with a DoubleAnimationUsingKeyFrames key-frame animation.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.EasingDoubleKeyFrame``
 
 
                     **Statics:**
@@ -67907,6 +70175,10 @@ class Windows:
                         Associates an easing function with a PointAnimationUsingKeyFrames key-frame animation.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.EasingPointKeyFrame``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IEasingPointKeyFrameStatics``
 
@@ -67922,6 +70194,10 @@ class Windows:
                     """
                     **Description:**
                         Provides the animated transition behavior for an edge UI transition. 
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.EdgeUIThemeTransition``
 
 
                     **Statics:**
@@ -67941,6 +70217,10 @@ class Windows:
                         Represents an easing function that creates an animation that resembles a spring oscillating back and forth until it comes to rest.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.ElasticEase``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IElasticEaseStatics``
 
@@ -67956,6 +70236,10 @@ class Windows:
                     """
                     **Description:**
                         Specifies the animation to run when content appears on a Page.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo``
 
 
                     **Statics:**
@@ -67975,6 +70259,10 @@ class Windows:
                         Provides the animated transition behavior on controls when they first appear. You can use this on individual objects or on containers of objects. In the latter case, child elements will animate into view in sequence rather than all at the same time.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.EntranceThemeTransition``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IEntranceThemeTransitionStatics``
 
@@ -67990,6 +70278,10 @@ class Windows:
                     """
                     **Description:**
                         Represents an easing function that creates an animation that accelerates and/or decelerates using an exponential formula.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.ExponentialEase``
 
 
                     **Statics:**
@@ -68009,6 +70301,10 @@ class Windows:
                         Represents the preconfigured opacity animation that applies to controls when they are first shown.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.FadeInThemeAnimation``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IFadeInThemeAnimationStatics``
 
@@ -68024,6 +70320,10 @@ class Windows:
                     """
                     **Description:**
                         Represents the preconfigured opacity animation that applies to controls when they are removed from the UI or hidden.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.FadeOutThemeAnimation``
 
 
                     **Statics:**
@@ -68058,6 +70358,10 @@ class Windows:
                         Represents a spline key frame to define animation progress.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.KeySpline``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Media.Animation.IKeySpline`` *****
 
@@ -68088,6 +70392,10 @@ class Windows:
                         Animates from the Color value of the previous key frame to its own Value using linear interpolation.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.LinearColorKeyFrame``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Media.Animation.ILinearColorKeyFrame`` *****
 
@@ -68099,6 +70407,10 @@ class Windows:
                     """
                     **Description:**
                         Animates from the Double value of the previous key frame to its own Value using linear interpolation.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.LinearDoubleKeyFrame``
 
 
                     **Interfaces:**
@@ -68114,6 +70426,10 @@ class Windows:
                         Animates from the Point value of the previous key frame to its own Value, using linear interpolation.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.LinearPointKeyFrame``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Media.Animation.ILinearPointKeyFrame`` *****
 
@@ -68125,6 +70441,10 @@ class Windows:
                     """
                     **Description:**
                         Provides page navigation animations.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.NavigationThemeTransition``
 
 
                     **Statics:**
@@ -68157,6 +70477,10 @@ class Windows:
                     """
                     **Description:**
                         Animates the value of an Object property along a set of KeyFrames over a specified Duration.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.ObjectAnimationUsingKeyFrames``
 
 
                     **Statics:**
@@ -68193,6 +70517,10 @@ class Windows:
                         Represents a collection of ObjectKeyFrame objects that can be individually accessed by index. ObjectKeyFrameCollection is the value of the ObjectAnimationUsingKeyFrames.KeyFrames property.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.ObjectKeyFrameCollection``
+
+
                     **Interfaces:**
                         ``Windows.Foundation.Collections.IVector<Windows.UI.Xaml.Media.Animation.ObjectKeyFrame*>`` *****
 
@@ -68206,6 +70534,10 @@ class Windows:
                     """
                     **Description:**
                         Provides the animated transition behavior for a panel UI transition.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.PaneThemeTransition``
 
 
                     **Statics:**
@@ -68225,6 +70557,10 @@ class Windows:
                         Animates the value of a Point property between two target values using linear interpolation over a specified Duration.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.PointAnimation``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IPointAnimationStatics``
 
@@ -68240,6 +70576,10 @@ class Windows:
                     """
                     **Description:**
                         Animates the value of a Point property along a set of KeyFrames.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.PointAnimationUsingKeyFrames``
 
 
                     **Statics:**
@@ -68276,6 +70616,10 @@ class Windows:
                         Represents a collection of PointKeyFrame objects that can be individually accessed by index. PointKeyFrameCollection is the value of the PointAnimation.KeyFrames property.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.PointKeyFrameCollection``
+
+
                     **Interfaces:**
                         ``Windows.Foundation.Collections.IVector<Windows.UI.Xaml.Media.Animation.PointKeyFrame*>`` *****
 
@@ -68289,6 +70633,10 @@ class Windows:
                     """
                     **Description:**
                         Represents a preconfigured animation that runs when a pointer down is detected on an item or element.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.PointerDownThemeAnimation``
 
 
                     **Statics:**
@@ -68308,6 +70656,10 @@ class Windows:
                         Represents a preconfigured animation that runs after a pointer down is detected on an item or element and the tap action is released.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.PointerUpThemeAnimation``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IPointerUpThemeAnimationStatics``
 
@@ -68323,6 +70675,10 @@ class Windows:
                     """
                     **Description:**
                         Represents the preconfigured animation that applies to pop-in components of controls (for example, tooltip-like UI on an object) as they appear. This animation combines opacity and translation.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.PopInThemeAnimation``
 
 
                     **Statics:**
@@ -68342,6 +70698,10 @@ class Windows:
                         Represents the preconfigured animation that applies to pop-in components of controls (for example, tooltip-like UI on an object) as they are closed/removed. This animation combines opacity and translation.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.PopOutThemeAnimation``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IPopOutThemeAnimationStatics``
 
@@ -68357,6 +70717,10 @@ class Windows:
                     """
                     **Description:**
                         Provides the animated transition behavior that applies to pop-in components of controls (for example, tooltip-like UI on an object) as they appear.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.PopupThemeTransition``
 
 
                     **Statics:**
@@ -68376,6 +70740,10 @@ class Windows:
                         Represents an easing function that creates an animation that accelerates and/or decelerates using the formula f (t) = tp where p is equal to the Power property.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.PowerEase``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IPowerEaseStatics``
 
@@ -68393,6 +70761,10 @@ class Windows:
                         Represents an easing function that creates an animation that accelerates and/or decelerates using the formula f (t) = t2
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.QuadraticEase``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Media.Animation.IQuadraticEase`` *****
 
@@ -68404,6 +70776,10 @@ class Windows:
                     """
                     **Description:**
                         Represents an easing function that creates an animation that accelerates and/or decelerates using the formula f (t) = t4.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.QuarticEase``
 
 
                     **Interfaces:**
@@ -68419,6 +70795,10 @@ class Windows:
                         Represents an easing function that creates an animation that accelerates and/or decelerates using the formula f (t) = t5.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.QuinticEase``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Media.Animation.IQuinticEase`` *****
 
@@ -68430,6 +70810,10 @@ class Windows:
                     """
                     **Description:**
                         Provides the animated transition behavior for when list-view controls items change order. Typically this is due to a drag-drop operation. Different controls and themes potentially have varying characteristics for the animations involved.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.ReorderThemeTransition``
 
 
                     **Interfaces:**
@@ -68462,6 +70846,10 @@ class Windows:
                         Use to animate an object that is being repositioned.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.RepositionThemeAnimation``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.IRepositionThemeAnimationStatics``
 
@@ -68477,6 +70865,10 @@ class Windows:
                     """
                     **Description:**
                         Reacts to layout moves when no context is set and a trigger of move is passed.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.RepositionThemeTransition``
 
 
                     **Statics:**
@@ -68498,6 +70890,10 @@ class Windows:
                         Represents an easing function that creates an animation that accelerates and/or decelerates using a sine formula.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.SineEase``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Media.Animation.ISineEase`` *****
 
@@ -68509,6 +70905,10 @@ class Windows:
                     """
                     **Description:**
                         Provides the parameters for a slide navigation transition.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo``
 
 
                     **Statics:**
@@ -68530,6 +70930,10 @@ class Windows:
                         Animates from the Color value of the previous key frame to its own Value using splined interpolation.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.SplineColorKeyFrame``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.ISplineColorKeyFrameStatics``
 
@@ -68545,6 +70949,10 @@ class Windows:
                     """
                     **Description:**
                         Animates from the Double value of the previous key frame to its own Value using splined interpolation.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.SplineDoubleKeyFrame``
 
 
                     **Statics:**
@@ -68564,6 +70972,10 @@ class Windows:
                         Animates from the Point value of the previous key frame to its own Value using splined interpolation.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.SplinePointKeyFrame``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.ISplinePointKeyFrameStatics``
 
@@ -68579,6 +70991,10 @@ class Windows:
                     """
                     **Description:**
                         Represents the preconfigured animation that conceals a target UI using a split animation.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.SplitCloseThemeAnimation``
 
 
                     **Statics:**
@@ -68598,6 +71014,10 @@ class Windows:
                         Represents the preconfigured animation that reveals a target UI using a split animation.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.SplitOpenThemeAnimation``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Animation.ISplitOpenThemeAnimationStatics``
 
@@ -68613,6 +71033,10 @@ class Windows:
                     """
                     **Description:**
                         Controls animations with a timeline, and provides object and property targeting information for its child animations.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.Storyboard``
 
 
                     **Statics:**
@@ -68632,6 +71056,10 @@ class Windows:
                         Specifies that animations are suppressed during navigation.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.SuppressNavigationTransitionInfo``
+
+
                     **Interfaces:**
                         ``Windows.UI.Xaml.Media.Animation.ISuppressNavigationTransitionInfo`` *****
 
@@ -68643,6 +71071,10 @@ class Windows:
                     """
                     **Description:**
                         Represents the preconfigured animation that applies to controls when an element slides back into its layout slot after a Swipe interaction.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.SwipeBackThemeAnimation``
 
 
                     **Statics:**
@@ -68660,6 +71092,10 @@ class Windows:
                     """
                     **Description:**
                         Represents the preconfigured animation that indicates that a Swipe gesture is now possible.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.SwipeHintThemeAnimation``
 
 
                     **Statics:**
@@ -68696,6 +71132,10 @@ class Windows:
                         Represents a collection of Timeline objects (specific type animations). A TimelineCollection is the value of the Storyboard.Children property.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.TimelineCollection``
+
+
                     **Interfaces:**
                         ``Windows.Foundation.Collections.IVector<Windows.UI.Xaml.Media.Animation.Timeline*>`` *****
 
@@ -68722,6 +71162,10 @@ class Windows:
                     """
                     **Description:**
                         Represents a collection of Transition objects. Each Transition object represents a different theme transition, part of the Windows Runtime animation library.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Animation.TransitionCollection``
 
 
                     **Interfaces:**
@@ -68808,6 +71252,10 @@ class Windows:
                         Represents an image source that can be populated with the combined contents of a XAML visual tree. See  for some notable limitations on which XAML visuals can be captured in a RenderTargetBitmap.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Imaging.RenderTargetBitmap``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Imaging.IRenderTargetBitmapStatics``
 
@@ -68823,6 +71271,10 @@ class Windows:
                     """
                     **Description:**
                         Provides a source object, backed by a SoftwareBitmap, for properties that use a bitmap-format image source.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Imaging.SoftwareBitmapSource``
 
 
                     **Interfaces:**
@@ -68955,6 +71407,10 @@ class Windows:
                         Represents 3-D scale, rotation, and translate transforms to be applied to an element.
 
 
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Media3D.CompositeTransform3D``
+
+
                     **Statics:**
                         ``Windows.UI.Xaml.Media.Media3D.ICompositeTransform3DStatics``
 
@@ -68987,6 +71443,10 @@ class Windows:
                     """
                     **Description:**
                         Represents a 3-D perspective effect.
+
+
+                    **Activatable:**
+                        ``Windows.UI.Xaml.Media.Media3D.PerspectiveTransform3D``
 
 
                     **Statics:**
@@ -69118,6 +71578,10 @@ class Windows:
                     Provides event data for the AddPages event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Printing.AddPagesEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Printing.IAddPagesEventArgs`` *****
 
@@ -69131,6 +71595,10 @@ class Windows:
                     Provides event data for the GetPreviewPage event.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Printing.GetPreviewPageEventArgs``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Printing.IGetPreviewPageEventArgs`` *****
 
@@ -69142,6 +71610,10 @@ class Windows:
                 """
                 **Description:**
                     Provides event data for the Paginate event.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Printing.PaginateEventArgs``
 
 
                 **Interfaces:**
@@ -69213,6 +71685,10 @@ class Windows:
                     Draws an ellipse with a given Height and Width specified in device-independent pixel (DIP).
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Shapes.Ellipse``
+
+
                 **Interfaces:**
                     ``Windows.UI.Xaml.Shapes.IEllipse`` *****
 
@@ -69224,6 +71700,10 @@ class Windows:
                 """
                 **Description:**
                     Draws a straight line between two points.
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Shapes.Line``
 
 
                 **Statics:**
@@ -69260,6 +71740,10 @@ class Windows:
                     Draws a polygon, which is a connected series of lines that form a closed shape.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Shapes.Polygon``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Shapes.IPolygonStatics``
 
@@ -69277,6 +71761,10 @@ class Windows:
                     Draws a series of connected straight lines.
 
 
+                **Activatable:**
+                    ``Windows.UI.Xaml.Shapes.Polyline``
+
+
                 **Statics:**
                     ``Windows.UI.Xaml.Shapes.IPolylineStatics``
 
@@ -69292,6 +71780,10 @@ class Windows:
                 """
                 **Description:**
                     Draws a rectangle with a given Height and Width specified in device-independent pixel (DIP).
+
+
+                **Activatable:**
+                    ``Windows.UI.Xaml.Shapes.Rectangle``
 
 
                 **Statics:**
@@ -69895,6 +72387,10 @@ class Windows:
                     The base protocol filter for an HttpClient instance.
 
 
+                **Activatable:**
+                    ``Windows.Web.Http.Filters.HttpBaseProtocolFilter``
+
+
                 **Statics:**
                     ``Windows.Web.Http.Filters.IHttpBaseProtocolFilterStatics``
 
@@ -70168,6 +72664,10 @@ class Windows:
                 """
                 **Description:**
                     Provides a collection of the HTTP headers associated with content on an HTTP request or response.
+
+
+                **Activatable:**
+                    ``Windows.Web.Http.Headers.HttpContentHeaderCollection``
 
 
                 **Interfaces:**
@@ -71145,6 +73645,10 @@ class Windows:
                     This class contains options that can be set when creating a Windows.Web.UI.Interop.WebViewControl object.
 
 
+                **Activatable:**
+                    ``Windows.Web.UI.Interop.WebViewControlProcessOptions``
+
+
                 **Interfaces:**
                     ``Windows.Web.UI.Interop.IWebViewControlProcessOptions`` *****
 
@@ -71500,6 +74004,10 @@ class Microsoft:
             """
             **Description:**
                 Provides the ability to check system hardware capabilities so that Visual Layer Effects may be scaled accordingly. This allows you to ensure that your application's use of rendering-intensive operations is tailored to match the device's capabilities, providing optimum performance and pleasant visual results.
+
+
+            **Activatable:**
+                ``Microsoft.UI.Composition.CompositionCapabilities``
 
 
             **Interfaces:**
@@ -72186,6 +74694,10 @@ class Microsoft:
                 The Compositor class creates an instance of the Compositor for the application that can be used as a factory for a variety of types in the Windows.UI.Composition namespace spanning the visual layer, effects system and animation system. The Compositor class also manages the lifetime of objects created from the factory.
 
 
+            **Activatable:**
+                ``Microsoft.UI.Composition.Compositor``
+
+
             **Statics:**
                 ``Microsoft.UI.Composition.ICompositorStatics``
 
@@ -72783,6 +75295,10 @@ class Microsoft:
                     Represents a compositor on which intended composition changes must be explicitly committed.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Composition.Core.CompositorController``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Composition.Core.ICompositorController`` *****
 
@@ -72846,6 +75362,10 @@ class Microsoft:
                 """
                 **Description:**
                     Controls the reflective properties of a SpriteVisual. A SceneLightingEffect will overwrite CompositionLight defaults. It is used to control the reflective properties of a SpriteVisual. A NormalMap can be used as an input source but is not required.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Composition.Effects.SceneLightingEffect``
 
 
                 **Interfaces:**
@@ -73445,6 +75965,10 @@ class Microsoft:
                     Manages rendering and system policy for the background acrylic material.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController``
+
+
                 **Statics:**
                     ``Microsoft.UI.Composition.SystemBackdrops.IDesktopAcrylicControllerStatics``
 
@@ -73474,6 +75998,10 @@ class Microsoft:
                     Manages rendering and system policy for the mica material.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Composition.SystemBackdrops.MicaController``
+
+
                 **Statics:**
                     ``Microsoft.UI.Composition.SystemBackdrops.IMicaControllerStatics``
 
@@ -73499,6 +76027,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents the system policies applied to a system backdrop target.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Composition.SystemBackdrops.SystemBackdropConfiguration``
 
 
                 **Interfaces:**
@@ -73629,6 +76161,10 @@ class Microsoft:
             """
             DispatcherExitDeferral = 'Microsoft.UI.Dispatching.DispatcherExitDeferral'
             """
+            **Activatable:**
+                ``Microsoft.UI.Dispatching.DispatcherExitDeferral``
+
+
             **Interfaces:**
                 ``Microsoft.UI.Dispatching.IDispatcherExitDeferral`` *****
             """
@@ -73755,6 +76291,10 @@ class Microsoft:
                 Provides gesture and manipulation recognition, event listeners, and settings.
 
                 For more details on this API, please see the the UWP WinRT GestureRecognizer topic.
+
+
+            **Activatable:**
+                ``Microsoft.UI.Input.GestureRecognizer``
 
 
             **Interfaces:**
@@ -74200,6 +76740,10 @@ class Microsoft:
                 """
                 DragOperation = 'Microsoft.UI.Input.DragDrop.DragOperation'
                 """
+                **Activatable:**
+                    ``Microsoft.UI.Input.DragDrop.DragOperation``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Input.DragDrop.IDragOperation`` *****
 
@@ -74567,6 +77111,10 @@ class Microsoft:
                 Represents the options that can be applied when an element is brought into view.
 
 
+            **Activatable:**
+                ``Microsoft.UI.Xaml.BringIntoViewOptions``
+
+
             **Interfaces:**
                 ``Microsoft.UI.Xaml.IBringIntoViewOptions`` *****
 
@@ -74920,6 +77468,10 @@ class Microsoft:
                 Represents a trigger that applies a set of actions (animation storyboards) in response to an event. Not commonly used. See Remarks.
 
 
+            **Activatable:**
+                ``Microsoft.UI.Xaml.EventTrigger``
+
+
             **Interfaces:**
                 ``Microsoft.UI.Xaml.IEventTrigger`` *****
 
@@ -74980,6 +77532,10 @@ class Microsoft:
                 Represents the UI window of an application.
 
 
+            **Activatable:**
+                ``Microsoft.UI.Xaml.FrameworkView``
+
+
             **Interfaces:**
                 ``Microsoft.UI.Xaml.IFrameworkView`` *****
 
@@ -74993,6 +77549,10 @@ class Microsoft:
             """
             **Description:**
                 Creates views, specifically FrameworkView instances. This is infrastructure and does not need to be accessed in most app scenarios.
+
+
+            **Activatable:**
+                ``Microsoft.UI.Xaml.FrameworkViewSource``
 
 
             **Interfaces:**
@@ -75212,6 +77772,10 @@ class Microsoft:
                 Represents a collection of objects that inherit from SetterBase.
 
 
+            **Activatable:**
+                ``Microsoft.UI.Xaml.SetterBaseCollection``
+
+
             **Interfaces:**
                 ``Microsoft.UI.Xaml.ISetterBaseCollection`` *****
 
@@ -75257,6 +77821,10 @@ class Microsoft:
             """
             **Description:**
                 Represents a trigger that applies visual states conditionally.
+
+
+            **Activatable:**
+                ``Microsoft.UI.Xaml.StateTrigger``
 
 
             **Statics:**
@@ -75353,6 +77921,10 @@ class Microsoft:
             """
             **Description:**
                 Represents a collection of BeginStoryboard objects.
+
+
+            **Activatable:**
+                ``Microsoft.UI.Xaml.TriggerActionCollection``
 
 
             **Interfaces:**
@@ -75466,6 +78038,10 @@ class Microsoft:
                 Represents the visual appearance of a UI element when it is in a specific state. Visual states use Setters or a Storyboard to set UI properties within pages or control templates where the VisualState is defined.
 
 
+            **Activatable:**
+                ``Microsoft.UI.Xaml.VisualState``
+
+
             **Interfaces:**
                 ``Microsoft.UI.Xaml.IVisualState`` *****
 
@@ -75479,6 +78055,10 @@ class Microsoft:
                 Provides data for the CurrentStateChanging and CurrentStateChanged events.
 
 
+            **Activatable:**
+                ``Microsoft.UI.Xaml.VisualStateChangedEventArgs``
+
+
             **Interfaces:**
                 ``Microsoft.UI.Xaml.IVisualStateChangedEventArgs`` *****
 
@@ -75490,6 +78070,10 @@ class Microsoft:
             """
             **Description:**
                 Contains mutually exclusive VisualState objects and VisualTransition objects that are used to go from one state to another.
+
+
+            **Activatable:**
+                ``Microsoft.UI.Xaml.VisualStateGroup``
 
 
             **Interfaces:**
@@ -77793,6 +80377,10 @@ class Microsoft:
                     Represents a text control that makes suggestions to users as they enter text using a keyboard or pen (using ink and handwriting recognition). The app is notified when text has been changed by the user and is responsible for providing relevant suggestions for this control to display.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.AutoSuggestBox``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Controls.IAutoSuggestBoxStatics``
 
@@ -77810,6 +80398,10 @@ class Microsoft:
                     Provides event data for the AutoSuggestBox.QuerySubmitted event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.AutoSuggestBoxQuerySubmittedEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.IAutoSuggestBoxQuerySubmittedEventArgs`` *****
 
@@ -77823,6 +80415,10 @@ class Microsoft:
                     Provides data for the SuggestionChosen event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.AutoSuggestBoxSuggestionChosenEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.IAutoSuggestBoxSuggestionChosenEventArgs`` *****
 
@@ -77834,6 +80430,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides data for the TextChanged event.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.AutoSuggestBoxTextChangedEventArgs``
 
 
                 **Statics:**
@@ -77885,6 +80485,10 @@ class Microsoft:
                 """
                 **Description:**
                     Draws a border, background, or both, around another object.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.Border``
 
 
                 **Statics:**
@@ -78097,6 +80701,10 @@ class Microsoft:
                     Provides event data for the ListViewBase.ChoosingGroupHeaderContainer event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ChoosingGroupHeaderContainerEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.IChoosingGroupHeaderContainerEventArgs`` *****
 
@@ -78108,6 +80716,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides event data for the ListViewBase.ChoosingItemContainer event.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ChoosingItemContainerEventArgs``
 
 
                 **Interfaces:**
@@ -78168,6 +80780,10 @@ class Microsoft:
                 """
                 **Description:**
                     Defines column-specific properties that apply to Grid objects.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ColumnDefinition``
 
 
                 **Statics:**
@@ -78290,6 +80906,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides data for the ContainerContentChanging event.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ContainerContentChangingEventArgs``
 
 
                 **Interfaces:**
@@ -78472,6 +81092,10 @@ class Microsoft:
                     Defines the element tree that is used as the control template for a control.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ControlTemplate``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.IControlTemplate`` *****
 
@@ -78515,6 +81139,10 @@ class Microsoft:
                     Provides data for the DatePicked event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.DatePickedEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.IDatePickedEventArgs`` *****
 
@@ -78543,6 +81171,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a control that allows a user to pick a date.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.DatePickerFlyout``
 
 
                 **Statics:**
@@ -78637,6 +81269,10 @@ class Microsoft:
                     Provides event data for the DragItemsStarting event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.DragItemsStartingEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.IDragItemsStartingEventArgs`` *****
 
@@ -78661,6 +81297,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides data for the CommandBar.DynamicOverflowItemsChanging event.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.DynamicOverflowItemsChangingEventArgs``
 
 
                 **Interfaces:**
@@ -79038,6 +81678,10 @@ class Microsoft:
                     Provides data for the Hub.SectionHeaderClick event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.HubSectionHeaderClickEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.IHubSectionHeaderClickEventArgs`` *****
 
@@ -79119,6 +81763,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a control that displays an image. The image source is specified by referring to an image file, using several supported formats. The image source can also be set with a stream. See Remarks for the list of supported image source formats.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.Image``
 
 
                 **Statics:**
@@ -79279,6 +81927,10 @@ class Microsoft:
                     Provides event data for the ItemClick event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ItemClickEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.IItemClickEventArgs`` *****
 
@@ -79374,6 +82026,10 @@ class Microsoft:
                     Specifies the panel that the ItemsPresenter creates for the layout of the items of an ItemsControl.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ItemsPanelTemplate``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.IItemsPanelTemplate`` *****
 
@@ -79387,6 +82043,10 @@ class Microsoft:
                     Provides data for the ItemsPicked event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ItemsPickedEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.IItemsPickedEventArgs`` *****
 
@@ -79398,6 +82058,10 @@ class Microsoft:
                 """
                 **Description:**
                     Specifies where items are placed in a control, usually an ItemsControl.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ItemsPresenter``
 
 
                 **Statics:**
@@ -79480,6 +82144,10 @@ class Microsoft:
                 Use the ItemsRepeaterScrollHost if your app will run on versions of Windows prior Windows 10 1809 (Build 17763).  If your app will only run on versions of Windows 1809 or higher, there is no need to use this control.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ItemsRepeaterScrollHost``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.IItemsRepeaterScrollHost`` *****
 
@@ -79506,6 +82174,10 @@ class Microsoft:
                 """
                 **Description:**
                     Arranges child elements of an ItemsControl into a single line that can be oriented horizontally or vertically. Supports pixel-based UI virtualization and grouped layouts.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ItemsStackPanel``
 
 
                 **Statics:**
@@ -79542,6 +82214,10 @@ class Microsoft:
                 """
                 **Description:**
                     Positions child elements sequentially from left to right or top to bottom in an ItemsControl that shows multiple items. When elements extend beyond the container edge, elements are positioned in the next row or column. Supports pixel-based UI virtualization and grouped layouts.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ItemsWrapGrid``
 
 
                 **Statics:**
@@ -79644,6 +82320,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a control that allows a user to pick one or more items from a list. See Remarks.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ListPickerFlyout``
 
 
                 **Statics:**
@@ -79956,6 +82636,10 @@ class Microsoft:
                     Represents a menu item that displays a sub-menu in a MenuFlyout control.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Controls.IMenuFlyoutSubItemStatics``
 
@@ -80101,6 +82785,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides event data for the NavigationView.ItemInvoked event.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs``
 
 
                 **Interfaces:**
@@ -80293,6 +82981,10 @@ class Microsoft:
                     Represents a control for entering passwords.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.PasswordBox``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Controls.IPasswordBoxStatics``
 
@@ -80387,6 +83079,10 @@ class Microsoft:
                     Provides data for the PickerConfirmed event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.PickerConfirmedEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.IPickerConfirmedEventArgs`` *****
 
@@ -80398,6 +83094,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a custom picker control. (Not recommended for Universal Windows Platform (UWP) app. See Flyout.)
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.PickerFlyout``
 
 
                 **Statics:**
@@ -80505,6 +83205,10 @@ class Microsoft:
                 """
                 **Description:**
                     Event arguments for dynamically interacting with the PivotItem before use, allowing for delay load scenarios.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.PivotItemEventArgs``
 
 
                 **Interfaces:**
@@ -80843,6 +83547,10 @@ class Microsoft:
                     Represents a rich text display container that supports formatted text, hyperlinks, inline images, and other rich content. RichTextBlock supports a built-in overflow model.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.RichTextBlock``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Controls.IRichTextBlockStatics``
 
@@ -80860,6 +83568,10 @@ class Microsoft:
                     Represents a rich text display overflow container. This element cannot have direct content. The only purpose of RichTextBlockOverflow is to display text content that does not fit in the bounds of a RichTextBlock or another RichTextBlockOverflow element.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.RichTextBlockOverflow``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Controls.IRichTextBlockOverflowStatics``
 
@@ -80875,6 +83587,10 @@ class Microsoft:
                 """
                 **Description:**
                     Defines row-specific properties that apply to Grid elements.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.RowDefinition``
 
 
                 **Statics:**
@@ -80909,6 +83625,10 @@ class Microsoft:
                     Displays the content of a ScrollViewer control.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ScrollContentPresenter``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Controls.IScrollContentPresenterStatics``
 
@@ -80933,6 +83653,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a scrollable area that can contain other visible elements.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ScrollViewer``
 
 
                 **Statics:**
@@ -80965,6 +83689,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides event data for the ViewChanged event and similar control-specific events.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ScrollViewerViewChangedEventArgs``
 
 
                 **Interfaces:**
@@ -81059,6 +83787,10 @@ class Microsoft:
                     Represents a scrollable control that incorporates two views that have a semantic relationship. For example, the ZoomedOutView might be an index of titles, and the ZoomedInView might include details and summaries for each of the title entries. Views can be changed using zoom or other interactions.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.SemanticZoom``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Controls.ISemanticZoomStatics``
 
@@ -81076,6 +83808,10 @@ class Microsoft:
                     Communicates information for items and view state in a SemanticZoom, such that hosts for scrolling and virtualization (such as ListViewBase) can get correct item and bounds information.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.SemanticZoomLocation``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.ISemanticZoomLocation`` *****
 
@@ -81087,6 +83823,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides event data for the ViewChangeStarted and ViewChangeCompleted events.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.SemanticZoomViewChangedEventArgs``
 
 
                 **Interfaces:**
@@ -81541,6 +84281,10 @@ class Microsoft:
                     Provides a lightweight control for displaying small amounts of text.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.TextBlock``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Controls.ITextBlockStatics``
 
@@ -81718,6 +84462,10 @@ class Microsoft:
                     Provides data for the TimePicked event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.TimePickedEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Controls.ITimePickedEventArgs`` *****
 
@@ -81746,6 +84494,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a control that allows a user to pick a time value.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.TimePickerFlyout``
 
 
                 **Statics:**
@@ -81853,6 +84605,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a switch that can be toggled between two states.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.ToggleSwitch``
 
 
                 **Statics:**
@@ -82143,6 +84899,10 @@ class Microsoft:
                     Provides a grid-style layout panel where each tile/cell can be variable size based on content.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.VariableSizedWrapGrid``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Controls.IVariableSizedWrapGridStatics``
 
@@ -82158,6 +84918,10 @@ class Microsoft:
                 """
                 **Description:**
                     Defines a content decorator that can stretch and scale a single child to fill the available space.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.Viewbox``
 
 
                 **Statics:**
@@ -82228,6 +84992,10 @@ class Microsoft:
                     Arranges and virtualizes content on a single line that is oriented either horizontally or vertically. Can only be used to display items in an ItemsControl.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.VirtualizingStackPanel``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Controls.IVirtualizingStackPanelStatics``
 
@@ -82264,6 +85032,10 @@ class Microsoft:
                     Positions child elements sequentially from left to right or top to bottom. When elements extend beyond the container edge, elements are positioned in the next row or column. Can only be used to display items in an ItemsControl. See Remarks.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.WrapGrid``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Controls.IWrapGridStatics``
 
@@ -82279,6 +85051,10 @@ class Microsoft:
                 """
                 **Description:**
                     Default styles for the controls in the WinUI library.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Controls.XamlControlsResources``
 
 
                 **Statics:**
@@ -82308,6 +85084,10 @@ class Microsoft:
                         Represents an animation for a check mark that can be used as an animated icon source.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedAcceptVisualSource``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Controls.IAnimatedVisualSource`` *****
 
@@ -82321,6 +85101,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents an animation for a back arrow that can be used as an animated icon source.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedBackVisualSource``
 
 
                     **Interfaces:**
@@ -82338,6 +85122,10 @@ class Microsoft:
                         Represents an animation for a downward facing chevron that can be used as an animated icon source.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedChevronDownSmallVisualSource``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Controls.IAnimatedVisualSource`` *****
 
@@ -82351,6 +85139,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents an animation for a chevron that rotates from right to down that can be used as an animated icon source.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedChevronRightDownSmallVisualSource``
 
 
                     **Interfaces:**
@@ -82368,6 +85160,10 @@ class Microsoft:
                         Represents an animation for a chevron that rotates from up to down that can be used as an animated icon source.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedChevronUpDownSmallVisualSource``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Controls.IAnimatedVisualSource`` *****
 
@@ -82381,6 +85177,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents an animation for a magnifying glass that can be used as an animated icon source.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedFindVisualSource``
 
 
                     **Interfaces:**
@@ -82398,6 +85198,10 @@ class Microsoft:
                         Represents an animation for a navigation menu that can be used as an animated icon source.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedGlobalNavigationButtonVisualSource``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Controls.IAnimatedVisualSource`` *****
 
@@ -82411,6 +85215,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents an animation for a settings icon that can be used as an animated icon source.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedSettingsVisualSource``
 
 
                     **Interfaces:**
@@ -82509,6 +85317,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents a panel that contains a calendar.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.Primitives.CalendarPanel``
 
 
                     **Interfaces:**
@@ -82691,6 +85503,10 @@ class Microsoft:
                         Converts an existing CornerRadius struct to a new CornerRadius struct, with filters applied to extract only the specified fields, leaving the others set to 0.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.Primitives.CornerRadiusFilterConverter``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Controls.Primitives.ICornerRadiusFilterConverterStatics``
 
@@ -82708,6 +85524,10 @@ class Microsoft:
                     """
                     **Description:**
                         Converts a CornerRadius to Thickness and also applies filters to extract only the specified fields, leaving the others set to 0.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.Primitives.CornerRadiusToThicknessConverter``
 
 
                     **Statics:**
@@ -82894,6 +85714,10 @@ class Microsoft:
                         Provides the appropriate background Brush for elements in the item template of a jump list to bind to. The Brush reflects the current theme and accent color, and it's also used to shade empty-group jump list items. By default, the Brush matches built-in apps, but you can override that to suit your design needs using the Enabled and Disabled properties.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.Primitives.JumpListItemBackgroundConverter``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Controls.Primitives.IJumpListItemBackgroundConverterStatics``
 
@@ -82911,6 +85735,10 @@ class Microsoft:
                     """
                     **Description:**
                         Provides the appropriate foreground Brush for elements in the item template of a jump list to bind to. The Brush reflects the current theme and accent color, and it's also used to shade empty-group jump list items. By default, the Brush matches built-in apps, but you can override that to suit your design needs using the Enabled and Disabled properties.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.Primitives.JumpListItemForegroundConverter``
 
 
                     **Statics:**
@@ -83154,6 +85982,10 @@ class Microsoft:
                         Displays the header text of the items in a Pivot control.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.Primitives.PivotHeaderPanel``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Controls.Primitives.IPivotHeaderPanel`` *****
 
@@ -83165,6 +85997,10 @@ class Microsoft:
                     """
                     **Description:**
                         Displays the items in a Pivot control.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.Primitives.PivotPanel``
 
 
                     **Interfaces:**
@@ -83180,6 +86016,10 @@ class Microsoft:
                     """
                     **Description:**
                         Displays content on top of existing content, within the bounds of the application window.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.Primitives.Popup``
 
 
                     **Statics:**
@@ -83239,6 +86079,10 @@ class Microsoft:
                         Represents a control that raises its Click event repeatedly when it is pressed and held.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.Primitives.RepeatButton``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Controls.Primitives.IRepeatButtonStatics``
 
@@ -83264,6 +86108,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents a control that provides a scroll bar that has a sliding Thumb whose position corresponds to a value.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.Primitives.ScrollBar``
 
 
                     **Statics:**
@@ -83317,6 +86165,10 @@ class Microsoft:
                     """
                     **Description:**
                         Provides data for the Scroll event.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.Primitives.ScrollEventArgs``
 
 
                     **Interfaces:**
@@ -83418,6 +86270,10 @@ class Microsoft:
                         Represents a control that can be dragged by the user.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.Primitives.Thumb``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Controls.Primitives.IThumbStatics``
 
@@ -83433,6 +86289,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents a tick mark on a Slider control. Not intended for general use.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Controls.Primitives.TickBar``
 
 
                     **Statics:**
@@ -83586,6 +86446,10 @@ class Microsoft:
                     Provides a data source that adds grouping and current-item support to collection classes.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Data.CollectionViewSource``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Data.ICollectionViewSourceStatics``
 
@@ -83714,6 +86578,10 @@ class Microsoft:
                     Provides an inline-level content element that causes content to render with a bold font weight.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Documents.Bold``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Documents.IBold`` *****
 
@@ -83725,6 +86593,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides a visual representation of letters, characters, or symbols, in a specific font and style.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Documents.Glyphs``
 
 
                 **Statics:**
@@ -83742,6 +86614,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides an inline-level content element that provides facilities for hosting hyperlinks.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Documents.Hyperlink``
 
 
                 **Statics:**
@@ -83802,6 +86678,10 @@ class Microsoft:
                     Provides an inline content element that enables UIElement types to be embedded in the content of a RichTextBlock.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Documents.InlineUIContainer``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Documents.IInlineUIContainer`` *****
 
@@ -83813,6 +86693,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides an inline-level flow content element that causes content to render with an italic font style.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Documents.Italic``
 
 
                 **Interfaces:**
@@ -83828,6 +86712,10 @@ class Microsoft:
                     Represents an inline element that causes a new line to begin in content when rendered in a text container.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Documents.LineBreak``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Documents.ILineBreak`` *****
 
@@ -83839,6 +86727,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides a block-level content element that is used to group content into a paragraph.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Documents.Paragraph``
 
 
                 **Statics:**
@@ -83856,6 +86748,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a discrete section of formatted or unformatted text.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Documents.Run``
 
 
                 **Statics:**
@@ -83967,6 +86863,10 @@ class Microsoft:
                     Provides an inline-level content element that causes content to render with an underlined text decoration.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Documents.Underline``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Documents.IUnderline`` *****
 
@@ -84063,6 +86963,10 @@ class Microsoft:
                     Provides event data for the AccessKeyDisplayDismissed event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.AccessKeyDisplayDismissedEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Input.IAccessKeyDisplayDismissedEventArgs`` *****
 
@@ -84076,6 +86980,10 @@ class Microsoft:
                     Provides event data for the AccessKeyDisplayRequested event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.AccessKeyDisplayRequestedEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Input.IAccessKeyDisplayRequestedEventArgs`` *****
 
@@ -84087,6 +86995,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides event data for the AccessKeyInvoked event.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.AccessKeyInvokedEventArgs``
 
 
                 **Interfaces:**
@@ -84147,6 +87059,10 @@ class Microsoft:
                     Provides event data for the ContextRequested event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.ContextRequestedEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Input.IContextRequestedEventArgs`` *****
 
@@ -84158,6 +87074,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides event data for the DoubleTapped event.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs``
 
 
                 **Interfaces:**
@@ -84184,6 +87104,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides options to help identify the next element that can programmatically receive navigation focus.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.FindNextElementOptions``
 
 
                 **Interfaces:**
@@ -84268,6 +87192,10 @@ class Microsoft:
                     Provides event data for the Holding event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.HoldingRoutedEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Input.IHoldingRoutedEventArgs`` *****
 
@@ -84318,6 +87246,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents information related to the data provided by an input method.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.InputScope``
 
 
                 **Interfaces:**
@@ -84408,6 +87340,10 @@ class Microsoft:
                     Provides data for the ManipulationCompleted event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Input.IManipulationCompletedRoutedEventArgs`` *****
 
@@ -84421,6 +87357,10 @@ class Microsoft:
                     Provides data for the ManipulationDelta event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Input.IManipulationDeltaRoutedEventArgs`` *****
 
@@ -84432,6 +87372,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides data for the ManipulationInertiaStarting event.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.ManipulationInertiaStartingRoutedEventArgs``
 
 
                 **Interfaces:**
@@ -84475,6 +87419,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides data for the ManipulationStarting, event.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.ManipulationStartingRoutedEventArgs``
 
 
                 **Interfaces:**
@@ -84542,6 +87490,10 @@ class Microsoft:
                     Provides event data for the RightTapped event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Input.IRightTappedRoutedEventArgs`` *****
 
@@ -84570,6 +87522,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides event data for the Tapped event.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Input.TappedRoutedEventArgs``
 
 
                 **Interfaces:**
@@ -84650,6 +87606,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides information about the target property of a markup extension.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Markup.ProvideValueTargetProperty``
 
 
                 **Interfaces:**
@@ -84764,6 +87724,10 @@ class Microsoft:
                     Represents an elliptical arc between two points.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.ArcSegment``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Media.IArcSegmentStatics``
 
@@ -84781,6 +87745,10 @@ class Microsoft:
                     Represents a cubic Bezier curve drawn between two points.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.BezierSegment``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Media.IBezierSegmentStatics``
 
@@ -84796,6 +87764,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents the behavior of caching a visual element or tree of elements as bitmap surfaces.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.BitmapCache``
 
 
                 **Interfaces:**
@@ -84832,6 +87804,10 @@ class Microsoft:
                     Represents an ordered collection of Brush values.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.BrushCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Microsoft.UI.Xaml.Media.Brush*>`` *****
 
@@ -84858,6 +87834,10 @@ class Microsoft:
                 """
                 **Description:**
                     Applies multiple transform operations to an object.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.CompositeTransform``
 
 
                 **Statics:**
@@ -84907,6 +87887,10 @@ class Microsoft:
                     Represents an ordered collection of Double values.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.DoubleCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<DOUBLE>`` *****
 
@@ -84920,6 +87904,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents the geometry of a circle or ellipse.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.EllipseGeometry``
 
 
                 **Statics:**
@@ -84988,6 +87976,10 @@ class Microsoft:
                     Represents a collection of Geometry objects.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.GeometryCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Microsoft.UI.Xaml.Media.Geometry*>`` *****
 
@@ -85001,6 +87993,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a composite geometry, composed of other Geometry objects.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.GeometryGroup``
 
 
                 **Statics:**
@@ -85037,6 +88033,10 @@ class Microsoft:
                     Describes the location and color of a transition point in a gradient.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.GradientStop``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Media.IGradientStopStatics``
 
@@ -85054,6 +88054,10 @@ class Microsoft:
                     Represents a collection of GradientStop objects that can be individually accessed by index.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.GradientStopCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Microsoft.UI.Xaml.Media.GradientStop*>`` *****
 
@@ -85067,6 +88071,10 @@ class Microsoft:
                 """
                 **Description:**
                     Paints an area with an image. The image source is typically obtained from file formats such as Joint Photographic Experts Group (JPEG).
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.ImageBrush``
 
 
                 **Statics:**
@@ -85099,6 +88107,10 @@ class Microsoft:
                     Represents the geometry of a line.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.LineGeometry``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Media.ILineGeometryStatics``
 
@@ -85114,6 +88126,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a line drawn between two points, which can be part of a PathFigure within Path data.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.LineSegment``
 
 
                 **Statics:**
@@ -85188,6 +88204,10 @@ class Microsoft:
                     Applies a Matrix3D projection to an object.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.Matrix3DProjection``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Media.IMatrix3DProjectionStatics``
 
@@ -85220,6 +88240,10 @@ class Microsoft:
                 """
                 **Description:**
                     Creates an arbitrary affine matrix transformation that is used to manipulate objects or coordinate systems in a two-dimensional plane.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.MatrixTransform``
 
 
                 **Statics:**
@@ -85271,6 +88295,10 @@ class Microsoft:
                     Represents a subsection of a geometry, a single connected series of two-dimensional geometric segments.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.PathFigure``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Media.IPathFigureStatics``
 
@@ -85288,6 +88316,10 @@ class Microsoft:
                     Represents a collection of PathFigure objects that collectively make up the geometry of a PathGeometry.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.PathFigureCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Microsoft.UI.Xaml.Media.PathFigure*>`` *****
 
@@ -85301,6 +88333,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a complex vector-based shape that may be composed of arcs, curves, ellipses, lines, and rectangles.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.PathGeometry``
 
 
                 **Statics:**
@@ -85333,6 +88369,10 @@ class Microsoft:
                     Represents a collection of PathSegment objects that can be individually accessed by index.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.PathSegmentCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Microsoft.UI.Xaml.Media.PathSegment*>`` *****
 
@@ -85346,6 +88386,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a perspective transform (a 3-D-like effect) on an object.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.PlaneProjection``
 
 
                 **Statics:**
@@ -85365,6 +88409,10 @@ class Microsoft:
                     Represents a collection of Point values that can be individually accessed by index.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.PointCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Windows.Foundation.Point>`` *****
 
@@ -85378,6 +88426,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents one or more cubic Bezier curves.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.PolyBezierSegment``
 
 
                 **Statics:**
@@ -85397,6 +88449,10 @@ class Microsoft:
                     Represents a set of line segments defined by a Point collection with each Point specifying the end point of a line segment.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.PolyLineSegment``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Media.IPolyLineSegmentStatics``
 
@@ -85412,6 +88468,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a set of quadratic Bezier segments.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.PolyQuadraticBezierSegment``
 
 
                 **Statics:**
@@ -85442,6 +88502,10 @@ class Microsoft:
                 """
                 **Description:**
                     Creates a quadratic Bezier curve between two points in a PathFigure.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.QuadraticBezierSegment``
 
 
                 **Statics:**
@@ -85476,6 +88540,10 @@ class Microsoft:
                 """
                 **Description:**
                     Describes a two-dimensional rectangular geometry.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.RectangleGeometry``
 
 
                 **Statics:**
@@ -85521,6 +88589,10 @@ class Microsoft:
                     Rotates an object around a specified point in a two-dimensional x-y coordinate system.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.RotateTransform``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Media.IRotateTransformStatics``
 
@@ -85536,6 +88608,10 @@ class Microsoft:
                 """
                 **Description:**
                     Scales an object in the two-dimensional x-y coordinate system.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.ScaleTransform``
 
 
                 **Statics:**
@@ -85566,6 +88642,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a two-dimensional skew.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.SkewTransform``
 
 
                 **Statics:**
@@ -85666,6 +88746,10 @@ class Microsoft:
                     Represents a collection of Transform objects that can be individually accessed by index.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.TransformCollection``
+
+
                 **Interfaces:**
                     ``Windows.Foundation.Collections.IVector<Microsoft.UI.Xaml.Media.Transform*>`` *****
 
@@ -85679,6 +88763,10 @@ class Microsoft:
                 """
                 **Description:**
                     Represents a composite Transform composed of other Transform objects.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.TransformGroup``
 
 
                 **Statics:**
@@ -85696,6 +88784,10 @@ class Microsoft:
                 """
                 **Description:**
                     Translates (moves) an object in the two-dimensional x-y coordinate system.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Media.TranslateTransform``
 
 
                 **Statics:**
@@ -85784,6 +88876,10 @@ class Microsoft:
                         Provides the animated transition behavior for when controls add or delete children of a panel. For example, if you have a collection of photos displayed in a Grid, you can associate this animation to the Grid so that when photos are added or deleted, the photos will animate in and out of view.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.AddDeleteThemeTransition``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Media.Animation.IAddDeleteThemeTransition`` *****
 
@@ -85795,6 +88891,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents an easing function that changes a value in the opposite direction of the main function during part of a duration, then reverses and finishes the function-over-time behavior in a conventional way.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.BackEase``
 
 
                     **Statics:**
@@ -85827,6 +88927,10 @@ class Microsoft:
                         A trigger action that begins a Storyboard. Not commonly used. See Remarks.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.BeginStoryboard``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IBeginStoryboardStatics``
 
@@ -85842,6 +88946,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents an easing function that creates an animated bouncing effect.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.BounceEase``
 
 
                     **Statics:**
@@ -85861,6 +88969,10 @@ class Microsoft:
                         Represents an easing function that creates an animation that accelerates and/or decelerates using a circular function.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.CircleEase``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Media.Animation.ICircleEase`` *****
 
@@ -85872,6 +88984,10 @@ class Microsoft:
                     """
                     **Description:**
                         Animates the value of a Color property between two target values using linear interpolation over a specified Duration.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.ColorAnimation``
 
 
                     **Statics:**
@@ -85889,6 +89005,10 @@ class Microsoft:
                     """
                     **Description:**
                         Animates the value of a Color property along a set of key frames.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.ColorAnimationUsingKeyFrames``
 
 
                     **Statics:**
@@ -85925,6 +89045,10 @@ class Microsoft:
                         Represents a collection of ColorKeyFrame objects that can be individually accessed by index. ColorKeyFrameCollection is the value of the ColorAnimationUsingKeyFrames.KeyFrames property.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.ColorKeyFrameCollection``
+
+
                     **Interfaces:**
                         ``Windows.Foundation.Collections.IVector<Microsoft.UI.Xaml.Media.Animation.ColorKeyFrame*>`` *****
 
@@ -85938,6 +89062,10 @@ class Microsoft:
                     """
                     **Description:**
                         Provides common parameters for navigation transition animations.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.CommonNavigationTransitionInfo``
 
 
                     **Statics:**
@@ -86000,6 +89128,10 @@ class Microsoft:
                         Provides the animated transition behavior for when the content of a control is changing. This might be applied in addition to AddDeleteThemeTransition.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.ContentThemeTransition``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IContentThemeTransitionStatics``
 
@@ -86017,6 +89149,10 @@ class Microsoft:
                         Specifies the object that will fly between pages to provide context during a continuum transition.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.ContinuumNavigationTransitionInfo``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IContinuumNavigationTransitionInfoStatics``
 
@@ -86032,6 +89168,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents an easing function that creates an animation that accelerates and/or decelerates using the formula f (t) = t3.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.CubicEase``
 
 
                     **Interfaces:**
@@ -86060,6 +89200,10 @@ class Microsoft:
                         Animates from the Color value of the previous key frame to its own Value using discrete values.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.DiscreteColorKeyFrame``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Media.Animation.IDiscreteColorKeyFrame`` *****
 
@@ -86071,6 +89215,10 @@ class Microsoft:
                     """
                     **Description:**
                         Animates from the Double value of the previous key frame to its own Value using discrete values.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.DiscreteDoubleKeyFrame``
 
 
                     **Interfaces:**
@@ -86086,6 +89234,10 @@ class Microsoft:
                         Animates from the Object value of the previous key frame to its own Value using discrete values.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.DiscreteObjectKeyFrame``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Media.Animation.IDiscreteObjectKeyFrame`` *****
 
@@ -86099,6 +89251,10 @@ class Microsoft:
                         Animates from the Point value of the previous key frame to its own Value using discrete frames.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.DiscretePointKeyFrame``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Media.Animation.IDiscretePointKeyFrame`` *****
 
@@ -86110,6 +89266,10 @@ class Microsoft:
                     """
                     **Description:**
                         Animates the value of a Double property between two target values using linear interpolation over a specified Duration.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.DoubleAnimation``
 
 
                     **Statics:**
@@ -86127,6 +89287,10 @@ class Microsoft:
                     """
                     **Description:**
                         Animates the value of a Double property along a set of key frames.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.DoubleAnimationUsingKeyFrames``
 
 
                     **Statics:**
@@ -86163,6 +89327,10 @@ class Microsoft:
                         Represents a collection of DoubleKeyFrame objects that can be individually accessed by index. DoubleKeyFrameCollection is the value of the DoubleAnimationUsingKeyFrames.KeyFrames property.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.DoubleKeyFrameCollection``
+
+
                     **Interfaces:**
                         ``Windows.Foundation.Collections.IVector<Microsoft.UI.Xaml.Media.Animation.DoubleKeyFrame*>`` *****
 
@@ -86176,6 +89344,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents the preconfigured animation that applies to item elements being dragged.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.DragItemThemeAnimation``
 
 
                     **Statics:**
@@ -86195,6 +89367,10 @@ class Microsoft:
                         Represents the preconfigured animation that applies to the elements underneath an element being dragged.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.DragOverThemeAnimation``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IDragOverThemeAnimationStatics``
 
@@ -86212,6 +89388,10 @@ class Microsoft:
                         Specifies the animation to run when a user navigates forward in a logical hierarchy, like from a master list to a detail page.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.DrillInNavigationTransitionInfo``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Media.Animation.IDrillInNavigationTransitionInfo`` *****
 
@@ -86223,6 +89403,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents a preconfigured animation that runs when a user navigates forward in a logical hierarchy, like from a master page to a detail page.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.DrillInThemeAnimation``
 
 
                     **Statics:**
@@ -86242,6 +89426,10 @@ class Microsoft:
                         Represents a preconfigured animation that runs when a user navigates backward in a logical hierarchy, like from a detail page to a master page.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.DrillOutThemeAnimation``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IDrillOutThemeAnimationStatics``
 
@@ -86257,6 +89445,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents the preconfigured animation that applies to potential drop target elements.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.DropTargetItemThemeAnimation``
 
 
                     **Statics:**
@@ -86276,6 +89468,10 @@ class Microsoft:
                         Associates easing functions with a ColorAnimationUsingKeyFrames key-frame animation.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.EasingColorKeyFrame``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IEasingColorKeyFrameStatics``
 
@@ -86291,6 +89487,10 @@ class Microsoft:
                     """
                     **Description:**
                         Associates an easing function with a DoubleAnimationUsingKeyFrames key-frame animation.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.EasingDoubleKeyFrame``
 
 
                     **Statics:**
@@ -86327,6 +89527,10 @@ class Microsoft:
                         Associates an easing function with a PointAnimationUsingKeyFrames key-frame animation.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.EasingPointKeyFrame``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IEasingPointKeyFrameStatics``
 
@@ -86342,6 +89546,10 @@ class Microsoft:
                     """
                     **Description:**
                         Provides the animated transition behavior for an edge UI transition. 
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.EdgeUIThemeTransition``
 
 
                     **Statics:**
@@ -86361,6 +89569,10 @@ class Microsoft:
                         Represents an easing function that creates an animation that resembles a spring oscillating back and forth until it comes to rest.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.ElasticEase``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IElasticEaseStatics``
 
@@ -86376,6 +89588,10 @@ class Microsoft:
                     """
                     **Description:**
                         Specifies the animation to run when content appears on a Page.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo``
 
 
                     **Statics:**
@@ -86395,6 +89611,10 @@ class Microsoft:
                         Provides the animated transition behavior on controls when they first appear. You can use this on individual objects or on containers of objects. In the latter case, child elements will animate into view in sequence rather than all at the same time.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.EntranceThemeTransition``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IEntranceThemeTransitionStatics``
 
@@ -86410,6 +89630,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents an easing function that creates an animation that accelerates and/or decelerates using an exponential formula.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.ExponentialEase``
 
 
                     **Statics:**
@@ -86429,6 +89653,10 @@ class Microsoft:
                         Represents the preconfigured opacity animation that applies to controls when they are first shown.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.FadeInThemeAnimation``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IFadeInThemeAnimationStatics``
 
@@ -86444,6 +89672,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents the preconfigured opacity animation that applies to controls when they are removed from the UI or hidden.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.FadeOutThemeAnimation``
 
 
                     **Statics:**
@@ -86476,6 +89708,10 @@ class Microsoft:
                         Represents a spline key frame to define animation progress.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.KeySpline``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Media.Animation.IKeySpline`` *****
 
@@ -86506,6 +89742,10 @@ class Microsoft:
                         Animates from the Color value of the previous key frame to its own Value using linear interpolation.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.LinearColorKeyFrame``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Media.Animation.ILinearColorKeyFrame`` *****
 
@@ -86517,6 +89757,10 @@ class Microsoft:
                     """
                     **Description:**
                         Animates from the Double value of the previous key frame to its own Value using linear interpolation.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.LinearDoubleKeyFrame``
 
 
                     **Interfaces:**
@@ -86532,6 +89776,10 @@ class Microsoft:
                         Animates from the Point value of the previous key frame to its own Value, using linear interpolation.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.LinearPointKeyFrame``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Media.Animation.ILinearPointKeyFrame`` *****
 
@@ -86543,6 +89791,10 @@ class Microsoft:
                     """
                     **Description:**
                         Provides page navigation animations.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.NavigationThemeTransition``
 
 
                     **Statics:**
@@ -86575,6 +89827,10 @@ class Microsoft:
                     """
                     **Description:**
                         Animates the value of an Object property along a set of KeyFrames over a specified Duration.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.ObjectAnimationUsingKeyFrames``
 
 
                     **Statics:**
@@ -86611,6 +89867,10 @@ class Microsoft:
                         Represents a collection of ObjectKeyFrame objects that can be individually accessed by index. ObjectKeyFrameCollection is the value of the ObjectAnimationUsingKeyFrames.KeyFrames property.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.ObjectKeyFrameCollection``
+
+
                     **Interfaces:**
                         ``Windows.Foundation.Collections.IVector<Microsoft.UI.Xaml.Media.Animation.ObjectKeyFrame*>`` *****
 
@@ -86624,6 +89884,10 @@ class Microsoft:
                     """
                     **Description:**
                         Provides the animated transition behavior for a panel UI transition.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.PaneThemeTransition``
 
 
                     **Statics:**
@@ -86643,6 +89907,10 @@ class Microsoft:
                         Animates the value of a Point property between two target values using linear interpolation over a specified Duration.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.PointAnimation``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IPointAnimationStatics``
 
@@ -86658,6 +89926,10 @@ class Microsoft:
                     """
                     **Description:**
                         Animates the value of a Point property along a set of KeyFrames.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.PointAnimationUsingKeyFrames``
 
 
                     **Statics:**
@@ -86694,6 +89966,10 @@ class Microsoft:
                         Represents a collection of PointKeyFrame objects that can be individually accessed by index. PointKeyFrameCollection is the value of the PointAnimation.KeyFrames property.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.PointKeyFrameCollection``
+
+
                     **Interfaces:**
                         ``Windows.Foundation.Collections.IVector<Microsoft.UI.Xaml.Media.Animation.PointKeyFrame*>`` *****
 
@@ -86707,6 +89983,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents a preconfigured animation that runs when a pointer down is detected on an item or element.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.PointerDownThemeAnimation``
 
 
                     **Statics:**
@@ -86726,6 +90006,10 @@ class Microsoft:
                         Represents a preconfigured animation that runs after a pointer down is detected on an item or element and the tap action is released.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.PointerUpThemeAnimation``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IPointerUpThemeAnimationStatics``
 
@@ -86741,6 +90025,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents the preconfigured animation that applies to pop-in components of controls (for example, tooltip-like UI on an object) as they appear. This animation combines opacity and translation.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.PopInThemeAnimation``
 
 
                     **Statics:**
@@ -86760,6 +90048,10 @@ class Microsoft:
                         Represents the preconfigured animation that applies to pop-in components of controls (for example, tooltip-like UI on an object) as they are closed/removed. This animation combines opacity and translation.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.PopOutThemeAnimation``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IPopOutThemeAnimationStatics``
 
@@ -86775,6 +90067,10 @@ class Microsoft:
                     """
                     **Description:**
                         Provides the animated transition behavior that applies to pop-in components of controls (for example, tooltip-like UI on an object) as they appear.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.PopupThemeTransition``
 
 
                     **Statics:**
@@ -86794,6 +90090,10 @@ class Microsoft:
                         Represents an easing function that creates an animation that accelerates and/or decelerates using the formula f (t) = tp where p is equal to the Power property.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.PowerEase``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IPowerEaseStatics``
 
@@ -86811,6 +90111,10 @@ class Microsoft:
                         Represents an easing function that creates an animation that accelerates and/or decelerates using the formula f (t) = t2
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.QuadraticEase``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Media.Animation.IQuadraticEase`` *****
 
@@ -86822,6 +90126,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents an easing function that creates an animation that accelerates and/or decelerates using the formula f (t) = t4.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.QuarticEase``
 
 
                     **Interfaces:**
@@ -86837,6 +90145,10 @@ class Microsoft:
                         Represents an easing function that creates an animation that accelerates and/or decelerates using the formula f (t) = t5.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.QuinticEase``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Media.Animation.IQuinticEase`` *****
 
@@ -86848,6 +90160,10 @@ class Microsoft:
                     """
                     **Description:**
                         Provides the animated transition behavior for when list-view controls items change order. Typically this is due to a drag-drop operation. Different controls and themes potentially have varying characteristics for the animations involved.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.ReorderThemeTransition``
 
 
                     **Interfaces:**
@@ -86880,6 +90196,10 @@ class Microsoft:
                         Use to animate an object that is being repositioned.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.RepositionThemeAnimation``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.IRepositionThemeAnimationStatics``
 
@@ -86895,6 +90215,10 @@ class Microsoft:
                     """
                     **Description:**
                         Reacts to layout moves when no context is set and a trigger of move is passed.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.RepositionThemeTransition``
 
 
                     **Statics:**
@@ -86914,6 +90238,10 @@ class Microsoft:
                         Represents an easing function that creates an animation that accelerates and/or decelerates using a sine formula.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.SineEase``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Media.Animation.ISineEase`` *****
 
@@ -86925,6 +90253,10 @@ class Microsoft:
                     """
                     **Description:**
                         Provides the parameters for a slide navigation transition.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo``
 
 
                     **Statics:**
@@ -86944,6 +90276,10 @@ class Microsoft:
                         Animates from the Color value of the previous key frame to its own Value using splined interpolation.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.SplineColorKeyFrame``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.ISplineColorKeyFrameStatics``
 
@@ -86959,6 +90295,10 @@ class Microsoft:
                     """
                     **Description:**
                         Animates from the Double value of the previous key frame to its own Value using splined interpolation.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.SplineDoubleKeyFrame``
 
 
                     **Statics:**
@@ -86978,6 +90318,10 @@ class Microsoft:
                         Animates from the Point value of the previous key frame to its own Value using splined interpolation.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.SplinePointKeyFrame``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.ISplinePointKeyFrameStatics``
 
@@ -86993,6 +90337,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents the preconfigured animation that conceals a target UI using a split animation.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.SplitCloseThemeAnimation``
 
 
                     **Statics:**
@@ -87012,6 +90360,10 @@ class Microsoft:
                         Represents the preconfigured animation that reveals a target UI using a split animation.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.SplitOpenThemeAnimation``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Animation.ISplitOpenThemeAnimationStatics``
 
@@ -87027,6 +90379,10 @@ class Microsoft:
                     """
                     **Description:**
                         Controls animations with a timeline, and provides object and property targeting information for its child animations.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.Storyboard``
 
 
                     **Statics:**
@@ -87046,6 +90402,10 @@ class Microsoft:
                         Specifies that animations are suppressed during navigation.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.SuppressNavigationTransitionInfo``
+
+
                     **Interfaces:**
                         ``Microsoft.UI.Xaml.Media.Animation.ISuppressNavigationTransitionInfo`` *****
 
@@ -87057,6 +90417,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents the preconfigured animation that applies to controls when an element slides back into its layout slot after a Swipe interaction.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.SwipeBackThemeAnimation``
 
 
                     **Statics:**
@@ -87074,6 +90438,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents the preconfigured animation that indicates that a Swipe gesture is now possible.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.SwipeHintThemeAnimation``
 
 
                     **Statics:**
@@ -87110,6 +90478,10 @@ class Microsoft:
                         Represents a collection of Timeline objects (specific type animations). A TimelineCollection is the value of the Storyboard.Children property.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.TimelineCollection``
+
+
                     **Interfaces:**
                         ``Windows.Foundation.Collections.IVector<Microsoft.UI.Xaml.Media.Animation.Timeline*>`` *****
 
@@ -87136,6 +90508,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents a collection of Transition objects. Each Transition object represents a different theme transition, part of the Windows Runtime animation library.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Animation.TransitionCollection``
 
 
                     **Interfaces:**
@@ -87214,6 +90590,10 @@ class Microsoft:
                         Represents an image source that can be populated with the combined contents of a XAML visual tree. See  for some notable limitations on which XAML visuals can be captured in a RenderTargetBitmap.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Imaging.RenderTargetBitmap``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Imaging.IRenderTargetBitmapStatics``
 
@@ -87229,6 +90609,10 @@ class Microsoft:
                     """
                     **Description:**
                         Provides a source object, backed by a SoftwareBitmap, for properties that use a bitmap-format image source.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Imaging.SoftwareBitmapSource``
 
 
                     **Interfaces:**
@@ -87361,6 +90745,10 @@ class Microsoft:
                         Represents 3-D scale, rotation, and translate transforms to be applied to an element.
 
 
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Media3D.CompositeTransform3D``
+
+
                     **Statics:**
                         ``Microsoft.UI.Xaml.Media.Media3D.ICompositeTransform3DStatics``
 
@@ -87393,6 +90781,10 @@ class Microsoft:
                     """
                     **Description:**
                         Represents a 3-D perspective effect.
+
+
+                    **Activatable:**
+                        ``Microsoft.UI.Xaml.Media.Media3D.PerspectiveTransform3D``
 
 
                     **Statics:**
@@ -87520,6 +90912,10 @@ class Microsoft:
                     Provides event data for the AddPages event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Printing.AddPagesEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Printing.IAddPagesEventArgs`` *****
 
@@ -87533,6 +90929,10 @@ class Microsoft:
                     Provides event data for the GetPreviewPage event.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Printing.GetPreviewPageEventArgs``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Printing.IGetPreviewPageEventArgs`` *****
 
@@ -87544,6 +90944,10 @@ class Microsoft:
                 """
                 **Description:**
                     Provides event data for the Paginate event.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Printing.PaginateEventArgs``
 
 
                 **Interfaces:**
@@ -87615,6 +91019,10 @@ class Microsoft:
                     Draws an ellipse with a given Height and Width specified in device-independent pixel (DIP).
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Shapes.Ellipse``
+
+
                 **Interfaces:**
                     ``Microsoft.UI.Xaml.Shapes.IEllipse`` *****
 
@@ -87626,6 +91034,10 @@ class Microsoft:
                 """
                 **Description:**
                     Draws a straight line between two points.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Shapes.Line``
 
 
                 **Statics:**
@@ -87662,6 +91074,10 @@ class Microsoft:
                     Draws a polygon, which is a connected series of lines that form a closed shape.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Shapes.Polygon``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Shapes.IPolygonStatics``
 
@@ -87679,6 +91095,10 @@ class Microsoft:
                     Draws a series of connected straight lines.
 
 
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Shapes.Polyline``
+
+
                 **Statics:**
                     ``Microsoft.UI.Xaml.Shapes.IPolylineStatics``
 
@@ -87694,6 +91114,10 @@ class Microsoft:
                 """
                 **Description:**
                     Draws a rectangle with a given Height and Width specified in device-independent pixel (DIP).
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.Shapes.Rectangle``
 
 
                 **Statics:**
@@ -87738,6 +91162,10 @@ class Microsoft:
                 """
                 **Description:**
                     Implements XAML schema context concepts that support XAML parsing.
+
+
+                **Activatable:**
+                    ``Microsoft.UI.Xaml.XamlTypeInfo.XamlControlsXamlMetaDataProvider``
 
 
                 **Interfaces:**
@@ -87964,6 +91392,10 @@ class Microsoft:
                 """
                 CoreWebView2EnvironmentOptions = 'Microsoft.Web.WebView2.Core.CoreWebView2EnvironmentOptions'
                 """
+                **Activatable:**
+                    ``Microsoft.Web.WebView2.Core.CoreWebView2EnvironmentOptions``
+
+
                 **Interfaces:**
                     ``Microsoft.Web.WebView2.Core.ICoreWebView2EnvironmentOptions2``
 
@@ -88348,6 +91780,10 @@ class Microsoft:
                     Provides APIs for creating the XML string that defines the UI for app notifications.
 
 
+                **Activatable:**
+                    ``Microsoft.Windows.AppNotifications.Builder.AppNotificationBuilder``
+
+
                 **Statics:**
                     ``Microsoft.Windows.AppNotifications.Builder.IAppNotificationBuilderStatics``
 
@@ -88403,6 +91839,10 @@ class Microsoft:
                     Represents a progress bar that is displayed on an app notification.
 
 
+                **Activatable:**
+                    ``Microsoft.Windows.AppNotifications.Builder.AppNotificationProgressBar``
+
+
                 **Interfaces:**
                     ``Microsoft.Windows.AppNotifications.Builder.IAppNotificationProgressBar`` *****
 
@@ -88414,6 +91854,10 @@ class Microsoft:
                 """
                 **Description:**
                     Specifies display and localization properties for text displayed on an app notification.
+
+
+                **Activatable:**
+                    ``Microsoft.Windows.AppNotifications.Builder.AppNotificationTextProperties``
 
 
                 **Interfaces:**
@@ -88440,6 +91884,10 @@ class Microsoft:
                     Defines options that can be applied when adding a run-time reference to a framework package by using the PackageDependency.Add method.
 
 
+                **Activatable:**
+                    ``Microsoft.Windows.ApplicationModel.DynamicDependency.AddPackageDependencyOptions``
+
+
                 **Interfaces:**
                     ``Microsoft.Windows.ApplicationModel.DynamicDependency.IAddPackageDependencyOptions`` *****
 
@@ -88451,6 +91899,10 @@ class Microsoft:
                 """
                 **Description:**
                     Defines criteria that can be applied when creating an install-time reference to a framework package by using the PackageDependency.Create method. This informs the OS that your unpackaged app has a dependency upon a framework package that meets the specified criteria.
+
+
+                **Activatable:**
+                    ``Microsoft.Windows.ApplicationModel.DynamicDependency.CreatePackageDependencyOptions``
 
 
                 **Interfaces:**
@@ -88646,6 +92098,10 @@ class Microsoft:
                 """
                 **Description:**
                     A class that represents deployment options. Passed as a parameter to DeploymentManager.Initialize(DeploymentInitializeOptions).
+
+
+                **Activatable:**
+                    ``Microsoft.Windows.ApplicationModel.WindowsAppRuntime.DeploymentInitializeOptions``
 
 
                 **Interfaces:**
