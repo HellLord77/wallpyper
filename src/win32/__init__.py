@@ -355,16 +355,16 @@ def open_file_with(path: str) -> bool:
 
 
 def open_file_with_ex(path: str) -> bool:
-    p_options = ctyped.interface.WinRT[Windows_System.ILauncherOptions](
+    i_options = ctyped.interface.WinRT[Windows_System.ILauncherOptions](
         runtimeclass.Windows.System.LauncherOptions)
-    with p_options as options:
+    with i_options as options:
         if options and ctyped.macro.SUCCEEDED(options.put_DisplayApplicationPicker(True)) and (
-                p_launcher := ctyped.interface.WinRT[Windows_System.ILauncherStatics](
-                    runtimeclass.Windows.System.Launcher)) and (p_file := _utils.open_file(path)):
-            p_operation = ctyped.winrt.AsyncOperation(ctyped.type.boolean)
-            with p_launcher as launcher, p_file as file:
-                if ctyped.macro.SUCCEEDED(launcher.LaunchFileWithOptionsAsync(file, options, ~p_operation)):
-                    return bool(p_operation.get())
+                i_launcher := ctyped.interface.WinRT[Windows_System.ILauncherStatics](
+                    runtimeclass.Windows.System.Launcher)) and (i_file := _utils.open_file(path)):
+            i_operation = ctyped.winrt.AsyncOperation(ctyped.type.boolean)
+            with i_launcher as launcher, i_file as file:
+                if ctyped.macro.SUCCEEDED(launcher.LaunchFileWithOptionsAsync(file, options, ~i_operation)):
+                    return bool(i_operation.get())
     return False
 
 

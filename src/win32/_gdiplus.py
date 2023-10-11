@@ -1505,8 +1505,8 @@ def bitmap_from_string(string: str = _string.printable.replace(_string.whitespac
 
 def bitmap_from_svg(path: str, width: int = 512, height: int = 512) -> Optional[Bitmap]:
     with _utils.get_d2d1_dc_render_target() as target:
-        if target and (p_stream := _utils.open_file_stream(path)):
-            with p_stream as stream, ctyped.interface.COM[d2d1_3.ID2D1DeviceContext5](target) as context:
+        if target and (i_stream := _utils.open_file_stream(path)):
+            with i_stream as stream, ctyped.interface.COM[d2d1_3.ID2D1DeviceContext5](target) as context:
                 if context:
                     with ctyped.interface.COM[d2d1svg.ID2D1SvgDocument]() as svg:
                         if ctyped.macro.SUCCEEDED(context.CreateSvgDocument(

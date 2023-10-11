@@ -568,20 +568,20 @@ def _test_toast():
     with ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotificationManagerStatics](
             runtimeclass.Windows.UI.Notifications.ToastNotificationManager) as manager:
         print(manager, bool(manager))
-        p_xml = ctyped.interface.WinRT[Windows_Data_Xml_Dom.IXmlDocument]()
+        i_xml = ctyped.interface.WinRT[Windows_Data_Xml_Dom.IXmlDocument]()
         manager.GetTemplateContent(
-            ctyped.enum.Windows.UI.Notifications.ToastTemplateType.ToastText01, ~p_xml)
-        print(p_xml, bool(p_xml))
-        print(_utils.dumps_xml(p_xml))
-        p_toast = ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotification]()
+            ctyped.enum.Windows.UI.Notifications.ToastTemplateType.ToastText01, ~i_xml)
+        print(i_xml, bool(i_xml))
+        print(_utils.dumps_xml(i_xml))
+        i_toast = ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotification]()
         with ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotificationFactory](
                 runtimeclass.Windows.UI.Notifications.ToastNotification) as factory:
-            factory.CreateToastNotification(p_xml._obj, ~p_toast)
-        print(p_toast, bool(p_toast))
-        p_notifier = ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotifier]()
-        manager.CreateToastNotifierWithId(_handle.HSTRING.from_string(uid), ~p_notifier)
-        print(p_notifier, bool(p_notifier))
-        with p_notifier as notifier, p_toast as toast:
+            factory.CreateToastNotification(i_xml._obj, ~i_toast)
+        print(i_toast, bool(i_toast))
+        i_notifier = ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotifier]()
+        manager.CreateToastNotifierWithId(_handle.HSTRING.from_string(uid), ~i_notifier)
+        print(i_notifier, bool(i_notifier))
+        with i_notifier as notifier, i_toast as toast:
             print(notifier.Show(toast))
 
 
@@ -596,10 +596,10 @@ def _test():
                 ctyped.union.PACKAGE_VERSION_U(ctyped.const.Runtime.Version.UInt64)),
             ctyped.enum.MddBootstrapInitializeOptions.OnNoMatch_ShowUI)):
         status = ctyped.enum.Microsoft.Windows.System.Power.DisplayStatus()
-        p_manager = ctyped.interface.WinRT[Microsoft_Windows_System_Power.IPowerManagerStatics](
+        i_manager = ctyped.interface.WinRT[Microsoft_Windows_System_Power.IPowerManagerStatics](
             runtimeclass.Microsoft.Windows.System.Power.PowerManager)
-        if p_manager:
-            with p_manager as manager:
+        if i_manager:
+            with i_manager as manager:
                 if ctyped.macro.SUCCEEDED(manager.get_DisplayStatus(ctyped.byref(status))):
                     print(status)
         Microsoft_WindowsAppRuntime_Bootstrap.Shutdown()
@@ -617,7 +617,12 @@ def _test_winmd():
             with ctyped.interface.COM[RoMetadataApi.IMetaDataImport2]() as reader:
                 if ctyped.macro.SUCCEEDED(dispenser.OpenScope(
                         path, ctyped.enum.CorOpenFlags.ofRead, *ctyped.macro.IID_PPV_ARGS(reader))):
-                    print(reader)
+                    handle_ref = ctyped.byref(ctyped.type.HCORENUM())
+                    type_def = ctyped.type.mdTypeDef()
+                    type_def_ref = ctyped.byref(type_def)
+                    while reader.EnumTypeDefs(handle_ref, type_def_ref, 1,
+                                              ctyped.Pointer.NULL) == ctyped.const.S_OK:
+                        print(type_def)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

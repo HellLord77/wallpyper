@@ -82,10 +82,10 @@ class Browser:
         html = None
         stream = shlwapi.SHCreateMemStream(ctyped.Pointer.NULL, 0)
         if stream:
-            p_dispatch = ctyped.interface.COM[oaidl.IDispatch]()
+            i_dispatch = ctyped.interface.COM[oaidl.IDispatch]()
             # noinspection PyProtectedMember
-            if ctyped.macro.SUCCEEDED(self._browser._obj.get_Document(~p_dispatch)):
-                with p_dispatch[ocidl.IPersistStreamInit] as persist_stream:
+            if ctyped.macro.SUCCEEDED(self._browser._obj.get_Document(~i_dispatch)):
+                with i_dispatch[ocidl.IPersistStreamInit] as persist_stream:
                     persist_stream.Save(stream, ctyped.const.TRUE)
                 stream.Seek(ctyped.union.LARGE_INTEGER(QuadPart=0), ctyped.enum.STREAM_SEEK.SET, ctyped.Pointer.NULL)
                 stat = ctyped.struct.STATSTG()

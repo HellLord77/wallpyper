@@ -711,13 +711,13 @@ def set_wallpapers_ex(*wallpapers: Wallpaper):
 
 
 def set_lock_background(path: str) -> bool:
-    if (p_file := _utils.open_file(path)) and (
-            p_statics := ctyped.interface.WinRT[Windows_System_UserProfile.ILockScreenStatics](
+    if (i_file := _utils.open_file(path)) and (
+            i_statics := ctyped.interface.WinRT[Windows_System_UserProfile.ILockScreenStatics](
                 runtimeclass.Windows.System.UserProfile.LockScreen)):
-        p_action = winrt.AsyncAction()
-        with p_file as file, p_statics as statics:
-            if ctyped.macro.SUCCEEDED(statics.SetImageFileAsync(file, ~p_action)):
-                return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == p_action.wait()
+        i_action = winrt.AsyncAction()
+        with i_file as file, i_statics as statics:
+            if ctyped.macro.SUCCEEDED(statics.SetImageFileAsync(file, ~i_action)):
+                return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == i_action.wait()
     return False
 
 
@@ -733,14 +733,14 @@ def set_slideshow(*paths: str) -> bool:
 
 
 def save_lock_background(path: str) -> bool:
-    if p_input_stream := _utils.get_lock_background_input_stream():
+    if i_input_stream := _utils.get_lock_background_input_stream():
         os.makedirs(ntpath.dirname(path), exist_ok=True)
         open(path, 'w').close()
-        if p_file := _utils.open_file(path):
-            with p_file as file:
-                if p_o_stream := _utils.get_output_stream(file):
-                    with p_input_stream as i_stream, p_o_stream as o_stream:
-                        return _utils.copy_stream(i_stream, o_stream)
+        if i_file := _utils.open_file(path):
+            with i_file as file:
+                if o_output_stream := _utils.get_output_stream(file):
+                    with i_input_stream as input_stream, o_output_stream as output_stream:
+                        return _utils.copy_stream(input_stream, output_stream)
     return False
 
 

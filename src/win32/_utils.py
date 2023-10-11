@@ -130,66 +130,66 @@ def sanitize_filename(name: str, dir: Optional[str] = None) -> Optional[str]:
 
 
 def open_file(path: str) -> Optional[ctyped.interface.WinRT[Windows_Storage.IStorageFile]]:
-    p_operation = winrt.AsyncOperation(Windows_Storage.IStorageFile)
+    i_operation = winrt.AsyncOperation(Windows_Storage.IStorageFile)
     with ctyped.interface.WinRT[Windows_Storage.IStorageFileStatics](
             runtimeclass.Windows.Storage.StorageFile) as statics:
         if ctyped.macro.SUCCEEDED(statics.GetFileFromPathAsync(
-                _handle.HSTRING.from_string(path), ~p_operation)) and (file := p_operation.get()):
+                _handle.HSTRING.from_string(path), ~i_operation)) and (file := i_operation.get()):
             return ctyped.interface.WinRT[Windows_Storage.IStorageFile](file.value)
 
 
 def open_file_stream(path: str, mode: int = ctyped.const.STGM_READ) -> Optional[ctyped.interface.COM[objidlbase.IStream]]:
-    p_stream = ctyped.interface.COM[objidlbase.IStream]()
-    if ctyped.macro.SUCCEEDED(shlwapi.SHCreateStreamOnFileW(path, mode, ~p_stream)):
-        return p_stream
+    i_stream = ctyped.interface.COM[objidlbase.IStream]()
+    if ctyped.macro.SUCCEEDED(shlwapi.SHCreateStreamOnFileW(path, mode, ~i_stream)):
+        return i_stream
 
 
 def get_input_stream(file: Windows_Storage.IStorageFile) -> \
         Optional[ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]]:
-    p_operation = winrt.AsyncOperation(Windows_Storage_Streams.IRandomAccessStream)
+    i_operation = winrt.AsyncOperation(Windows_Storage_Streams.IRandomAccessStream)
     if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.Windows.Storage.FileAccessMode.Read,
-                                             ~p_operation)) and (stream := p_operation.get()):
-        p_input_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]()
-        hr = stream.GetInputStreamAt(0, ~p_input_stream)
+                                             ~i_operation)) and (stream := i_operation.get()):
+        i_input_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]()
+        hr = stream.GetInputStreamAt(0, ~i_input_stream)
         stream.Release()
         if ctyped.macro.SUCCEEDED(hr):
-            return p_input_stream
+            return i_input_stream
 
 
 def get_output_stream(file: Windows_Storage.IStorageFile) -> \
         Optional[ctyped.interface.WinRT[Windows_Storage_Streams.IOutputStream]]:
-    p_operation = winrt.AsyncOperation(Windows_Storage_Streams.IRandomAccessStream)
+    i_operation = winrt.AsyncOperation(Windows_Storage_Streams.IRandomAccessStream)
     if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.Windows.Storage.FileAccessMode.ReadWrite,
-                                             ~p_operation)) and (stream := p_operation.get()):
-        p_output_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IOutputStream]()
-        hr = stream.GetOutputStreamAt(0, ~p_output_stream)
+                                             ~i_operation)) and (stream := i_operation.get()):
+        i_output_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IOutputStream]()
+        hr = stream.GetOutputStreamAt(0, ~i_output_stream)
         stream.Release()
         if ctyped.macro.SUCCEEDED(hr):
-            return p_output_stream
+            return i_output_stream
 
 
 def get_lock_background_input_stream() -> \
         Optional[ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]]:
-    if p_statics := ctyped.interface.WinRT[Windows_System_UserProfile.ILockScreenStatics](
+    if i_statics := ctyped.interface.WinRT[Windows_System_UserProfile.ILockScreenStatics](
             runtimeclass.Windows.System.UserProfile.LockScreen):
-        p_random = ctyped.interface.WinRT[Windows_Storage_Streams.IRandomAccessStream]()
-        with p_statics as statics:
-            if ctyped.macro.SUCCEEDED(statics.GetImageStream(~p_random)):
-                p_input_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]()
-                with p_random as random:
-                    if ctyped.macro.SUCCEEDED(random.GetInputStreamAt(0, ~p_input_stream)):
-                        return p_input_stream
+        i_random = ctyped.interface.WinRT[Windows_Storage_Streams.IRandomAccessStream]()
+        with i_statics as statics:
+            if ctyped.macro.SUCCEEDED(statics.GetImageStream(~i_random)):
+                i_input_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]()
+                with i_random as random:
+                    if ctyped.macro.SUCCEEDED(random.GetInputStreamAt(0, ~i_input_stream)):
+                        return i_input_stream
 
 
 def copy_stream(input_stream: Windows_Storage_Streams.IInputStream,
                 output_stream: Windows_Storage_Streams.IOutputStream,
                 progress_callback: Optional[Callable[[int], Any]] = None) -> bool:
-    p_statics = ctyped.interface.WinRT[Windows_Storage_Streams.IRandomAccessStreamStatics](
+    i_statics = ctyped.interface.WinRT[Windows_Storage_Streams.IRandomAccessStreamStatics](
         runtimeclass.Windows.Storage.Streams.RandomAccessStream)
-    if p_statics:
-        p_operation = winrt.AsyncOperationWithProgress(ctyped.type.UINT64, ctyped.type.UINT64)
-        with p_statics as statics:
-            if ctyped.macro.SUCCEEDED(statics.CopyAndCloseAsync(input_stream, output_stream, ~p_operation)):
+    if i_statics:
+        i_operation = winrt.AsyncOperationWithProgress(ctyped.type.UINT64, ctyped.type.UINT64)
+        with i_statics as statics:
+            if ctyped.macro.SUCCEEDED(statics.CopyAndCloseAsync(input_stream, output_stream, ~i_operation)):
                 if progress_callback is not None:
                     def handler(_, __, progress: int):
                         try:
@@ -197,18 +197,18 @@ def copy_stream(input_stream: Windows_Storage_Streams.IInputStream,
                         finally:
                             return ctyped.const.NOERROR
 
-                    p_operation.on_progress(handler)
-                return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == p_operation.wait()
+                    i_operation.on_progress(handler)
+                return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == i_operation.wait()
     return False
 
 
 def copy_file(src: str, dst: str, progress_callback: Optional[Callable[[int], Any]]) -> bool:
-    p_src = open_file(src)
-    if p_src:
+    i_src = open_file(src)
+    if i_src:
         os.makedirs(ntpath.dirname(dst), exist_ok=True)
         open(dst, 'w').close()
-        if p_dst := open_file(dst):
-            with p_src as f_src, p_dst as f_dst, get_input_stream(
+        if i_dst := open_file(dst):
+            with i_src as f_src, i_dst as f_dst, get_input_stream(
                     f_src) as i_stream, get_output_stream(f_dst) as o_stream:
                 return copy_stream(i_stream, o_stream, progress_callback)
     return False
@@ -218,10 +218,10 @@ def copy_file(src: str, dst: str, progress_callback: Optional[Callable[[int], An
 def get_d2d1_dc_render_target() -> ContextManager[Optional[d2d1.ID2D1DCRenderTarget]]:
     with (ctyped.interface.COM[d2d1.ID2D1Factory]() as factory,
           ctyped.interface.COM[d2d1.ID2D1DCRenderTarget]() as target):
-        p_iid, p_factory = ctyped.macro.IID_PPV_ARGS(factory)
+        iid_ref, factory_ref = ctyped.macro.IID_PPV_ARGS(factory)
         if ctyped.macro.SUCCEEDED(d2d1_.D2D1CreateFactory(
-                ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid,
-                ctyped.Pointer.NULL, p_factory)) and ctyped.macro.SUCCEEDED(
+                ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, iid_ref,
+                ctyped.Pointer.NULL, factory_ref)) and ctyped.macro.SUCCEEDED(
             factory.CreateDCRenderTarget(ctyped.byref(
                 ctyped.struct.D2D1_RENDER_TARGET_PROPERTIES(
                     pixelFormat=ctyped.struct.D2D1_PIXEL_FORMAT(
@@ -325,15 +325,15 @@ def get_funcs(dispatch: oaidl.IDispatch) -> dict[int, str]:
     funcs = {}
     with ctyped.interface.COM[oaidl.ITypeInfo]() as type_info:
         if ctyped.macro.SUCCEEDED(dispatch.GetTypeInfo(0, ctyped.const.LOCALE_SYSTEM_DEFAULT, ctyped.byref(type_info))):
-            p_type_attr = ctyped.pointer(ctyped.struct.TYPEATTR)()
-            if ctyped.macro.SUCCEEDED(type_info.GetTypeAttr(ctyped.byref(p_type_attr))):
-                p_func_desc = ctyped.pointer(ctyped.struct.FUNCDESC)()
-                for index in range(p_type_attr.contents.cFuncs):
-                    if ctyped.macro.SUCCEEDED(type_info.GetFuncDesc(index, ctyped.byref(p_func_desc))):
+            type_attr_ptr = ctyped.pointer(ctyped.struct.TYPEATTR)()
+            if ctyped.macro.SUCCEEDED(type_info.GetTypeAttr(ctyped.byref(type_attr_ptr))):
+                func_desc_ptr = ctyped.pointer(ctyped.struct.FUNCDESC)()
+                for index in range(type_attr_ptr.contents.cFuncs):
+                    if ctyped.macro.SUCCEEDED(type_info.GetFuncDesc(index, ctyped.byref(func_desc_ptr))):
                         with get_bstr() as name:
-                            type_info.GetDocumentation(p_func_desc.contents.memid, ctyped.byref(
+                            type_info.GetDocumentation(func_desc_ptr.contents.memid, ctyped.byref(
                                 name), ctyped.Pointer.NULL, ctyped.Pointer.NULL, ctyped.Pointer.NULL)
-                            funcs[p_func_desc.contents.memid] = ctyped.type.c_wchar_p.from_buffer(name).value
-                        type_info.ReleaseFuncDesc(p_func_desc)
-                type_info.ReleaseTypeAttr(p_type_attr)
+                            funcs[func_desc_ptr.contents.memid] = ctyped.type.c_wchar_p.from_buffer(name).value
+                        type_info.ReleaseFuncDesc(func_desc_ptr)
+                type_info.ReleaseTypeAttr(type_attr_ptr)
     return funcs
