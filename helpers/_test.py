@@ -605,10 +605,26 @@ def _test():
         Microsoft_WindowsAppRuntime_Bootstrap.Shutdown()
 
 
+def _test_winmd():
+    from libs.ctyped.lib import rometadata
+    from libs.ctyped.interface.winrt import RoMetadataApi
+
+    path = r'C:\Windows\System32\WinMetadata\Windows.AI.winmd'
+
+    with ctyped.interface.COM[RoMetadataApi.IMetaDataDispenserEx]() as dispenser:
+        if ctyped.macro.SUCCEEDED(rometadata.MetaDataGetDispenser(ctyped.byref(ctyped.get_guid(
+                ctyped.const.CLSID_CorMetaDataDispenser)), *ctyped.macro.IID_PPV_ARGS(dispenser))):
+            with ctyped.interface.COM[RoMetadataApi.IMetaDataImport2]() as reader:
+                if ctyped.macro.SUCCEEDED(dispenser.OpenScope(
+                        path, ctyped.enum.CorOpenFlags.ofRead, *ctyped.macro.IID_PPV_ARGS(reader))):
+                    print(reader)
+
+
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_cfg()
     # _test_cfg_json()
     # _test_winrt()
     # _test_hook()
-    _test()
+    # _test()
+    _test_winmd()
     sys.exit()

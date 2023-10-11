@@ -94,10 +94,7 @@ def winerror():
             group = match.groups()
             print(f'{group[0].strip()} = {group[1]}')
 
-
-def mscoree():
-    print('# mscoree')
-    path = os.path.join(NET_PATH, 'mscoree.h')
+def _cor(path: str):
     with open(path) as file:
         for line in file.readlines():
             if line.startswith('EXTERN_GUID('):
@@ -105,6 +102,14 @@ def mscoree():
                 guid = line.split(',')[1:]
                 guid[-1] = guid[-1][:-3]
                 print(f"{line[12:line.find(',')]} = '{_str(guid)}'")
+
+def cor():
+    print('# cor')
+    _cor(os.path.join(NET_PATH, 'cor.h'))
+
+def mscoree():
+    print('# mscoree')
+    _cor(os.path.join(NET_PATH, 'mscoree.h'))
 
 
 def _clsid_iid(path: str):
@@ -118,6 +123,11 @@ def _clsid_iid(path: str):
             name = match.groups()[1]
         elif match := re_iid.match(line):
             print(f"{name} = '{{{match.groups()[1].upper()}}}'")
+
+
+def ro_metadata_api():
+    print('# RoMetadataApi')
+    _clsid_iid(os.path.join(SDK_PATH, 'winrt', 'rometadataapi.h'))
 
 
 def wincodec():
@@ -346,6 +356,7 @@ class GdiPlus:
 
 def main():
     # cl /d1 reportAllClassLayout testVS.cpp
+    cor()
     sys.exit()
 
 

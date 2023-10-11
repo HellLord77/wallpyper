@@ -3266,6 +3266,35 @@ class MetafileHeader:
     LogicalDpiY: _type.INT
 
 
+# RoMetadataApi
+# noinspection PyPep8Naming
+@_struct
+class COR_FIELD_OFFSET:
+    ridOfField: _type.mdFieldDef
+    ulOffset: _type.ULONG32
+
+
+@_struct
+class OSINFO:
+    dwOSPlatformId: _type.DWORD
+    dwOSMajorVersion: _type.DWORD
+    dwOSMinorVersion: _type.DWORD
+
+
+@_struct
+class ASSEMBLYMETADATA:
+    usMajorVersion: _type.USHORT
+    usMinorVersion: _type.USHORT
+    usBuildNumber: _type.USHORT
+    usRevisionNumber: _type.USHORT
+    szLocale: _type.LPWSTR
+    cbLocale: _type.ULONG
+    rProcessor: _Pointer[_type.ULONG]
+    ulProcessor: _type.ULONG
+    rOS: _Pointer[OSINFO]
+    ulOS: _type.ULONG
+
+
 POINTL = POINT
 RECTL = RECT
 SIZEL = SIZE

@@ -33,5 +33,10 @@ CorBindToRuntimeEx: _Callable[[_Optional[_type.LPCWSTR],
                                _Pointer[_struct.IID],
                                _type.LPVOID],
                               _type.HRESULT]
+# rometadata
+MetaDataGetDispenser: _Callable[[_Pointer[_struct.IID],  # rclsid
+                                 _Pointer[_struct.IID],  # riid
+                                 _type.LPVOID],  # ppv
+                                _type.HRESULT]
 
 _WinLib(__name__)

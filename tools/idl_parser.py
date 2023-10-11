@@ -2,6 +2,7 @@ import contextlib
 import functools
 import glob
 import io
+import json
 import ntpath
 import os
 import pprint
@@ -643,7 +644,7 @@ def print_interface(interfaces: dict, runtimeclasses: dict, folder: str, depth: 
                 print('):')
             for func, (args, res) in value.items():
                 q_final = f'    {func}: _Callable[[' + f',\n        '.join(
-                    resolve_type(val, "interface", __interfaces, runtimeclasses) for val in args.values()) + '],'
+                    resolve_type(val, 'interface', __interfaces, runtimeclasses) for val in args.values()) + '],'
                 s_final = ''
                 if args:
                     for line, kwarg in zip(q_final.splitlines(), args):
@@ -778,7 +779,7 @@ def print_runtimeclass(runtimeclasses: dict, __namespaces: Optional[list[str]] =
 
 
 def dump(*, p_enum: bool = False, p_struct: bool = False, p_iid: bool = False,
-         p_interface: bool = False, p_runtimeclass: bool = False, o_interface: str = ''):
+         p_interface: bool = False, p_runtimeclass: bool = False, o_interface: str = 'output'):
     data = ''
     for file in glob.glob(ntpath.join(SDK_PATH, 'winrt', '*.idl')):  # TODO include form import
         if '.' in ntpath.splitext(ntpath.basename(file))[0]:
@@ -931,8 +932,10 @@ def dump(*, p_enum: bool = False, p_struct: bool = False, p_iid: bool = False,
         patch_imports(o_interface)
     if p_runtimeclass:
         print_runtimeclass(runtimeclasses)
-    # with open('runtimeclass.json', 'w') as file, contextlib.redirect_stdout(file):
-    #     print(json.dumps(runtimeclasses, indent=4))
+    # with open('interfaces.py', 'w') as file:
+    #     pprint.pprint(interfaces, file, sort_dicts=False)
+    # with open('runtimeclass.json', 'w') as file:
+    #     print(json.dumps(runtimeclasses, indent=4), file=file)
 
 
 def dump_idl(pattern: str):
@@ -949,13 +952,13 @@ def dump_idl(pattern: str):
 
 def main():
     # dump_idl(r'D:\Projects\wallpyper\helpers\microsoft.windowsappsdk.1.4.230913002\**\*.winmd')
-    with open('idl.py', 'w', encoding='utf-8') as file, contextlib.redirect_stdout(file):
-        pass
-        # dump(p_enum=True)
-        # dump(p_struct=True)
-        # dump(p_iid=True)
-        dump(p_runtimeclass=True)
-    # dump(p_interface=True, o_interface='output')
+    # with open('idl.py', 'w', encoding='utf-8') as file, contextlib.redirect_stdout(file):
+    #     dump(p_enum=True)
+    #     dump(p_struct=True)
+    #     dump(p_iid=True)
+    #     dump(p_runtimeclass=True)
+    # dump(p_interface=True)
+    dump()
 
 
 if __name__ == '__main__':

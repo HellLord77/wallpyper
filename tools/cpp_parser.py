@@ -16,7 +16,7 @@ from libs import ctyped
 from libs.ctyped.enum import libclang as enum_libclang
 from libs.ctyped.lib import libclang
 
-SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\d2d1_3.h'
+SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt\RoMetadataApi.h'
 INCLUDES = ('<Windows.h>',)
 INCLUDE_DIRS = ()
 CLANG_DIR = r'C:\msys64\mingw64\bin'
@@ -50,8 +50,8 @@ VCPKG_INCLUDE_DIRS = r'D:\Projects\vcpkg\installed\x64-windows\include',
 
 ENUM = False
 FUNCTION = False
-INTERFACE = True
-GUID = False
+INTERFACE = False
+GUID = True
 AST = False
 
 CLANG = False

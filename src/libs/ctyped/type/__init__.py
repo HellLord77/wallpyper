@@ -60,6 +60,49 @@ c_void = c_void_p
 c_uchar = c_ubyte
 c_wchar_t = c_wchar
 
+# basetsd
+INT8 = c_char
+INT16 = c_short
+INT32 = c_int
+INT64 = c_int64
+UINT8 = c_uchar
+UINT16 = c_ushort
+UINT32 = c_uint
+UINT64 = c_uint64
+LONG32 = c_int
+ULONG32 = c_uint
+DWORD32 = c_uint
+LONG64 = c_int64
+ULONG64 = c_uint64
+DWORD64 = c_uint64
+# noinspection PyProtectedMember
+INT_PTR = c_int64 if _const._WIN64 else c_int
+# noinspection PyProtectedMember
+UINT_PTR = c_uint64 if _const._WIN64 else c_uint
+# noinspection PyProtectedMember
+LONG_PTR = c_int64 if _const._WIN64 else c_long
+# noinspection PyProtectedMember
+ULONG_PTR = c_uint64 if _const._WIN64 else c_ulong
+# noinspection PyProtectedMember
+c_int3264 = c_int64 if _const._WIN64 else c_int
+# noinspection PyProtectedMember
+HALF_PTR = c_int if _const._WIN64 else c_short
+# noinspection PyProtectedMember
+UHALF_PTR = c_uint if _const._WIN64 else c_ushort
+# noinspection PyProtectedMember
+HANDLE_PTR = c_uint64 if _const._WIN64 else c_ulong
+# noinspection PyProtectedMember
+SHANDLE_PTR = c_int64 if _const._WIN64 else c_long
+
+# minwindef
+DWORD = c_ulong
+BOOL = c_int
+BYTE = c_uchar
+WORD = c_ushort
+FLOAT = c_float
+INT = c_int
+UINT = c_uint
+
 # stdint
 int8_t = c_char
 int16_t = c_short
@@ -146,7 +189,6 @@ __time32_t = c_long
 __time64_t = c_int64
 rsize_t = c_size_t
 VOID = c_void
-BOOL = c_int
 REFTIME = c_double
 NMCII_FLAGS = c_int
 NMCSAEI_FLAGS = c_int
@@ -161,43 +203,25 @@ CONTROLTYPEID = c_int
 LANDMARKTYPEID = c_int
 METADATAID = c_int
 HEADINGLEVELID = c_int
-BYTE = c_uchar
 CCHAR = c_char
 CHAR = c_char
 DATE = c_double
 DOUBLE = c_double
-DWORD = c_ulong
-DWORD64 = c_uint64
-FLOAT = c_float
 GPFIDL_FLAGS = c_int
-INT = c_int
-INT16 = c_short
-INT32 = c_int
-INT64 = c_int32
-INT8 = c_char
 LONG = c_long
 LONGLONG = c_int64
 REAL = c_float
 RPC_STATUS = c_long
-SHANDLE_PTR = c_int64
-HANDLE_PTR = c_uint64
 UHALF_PTR = c_uint
 HALF_PTR = c_int
 SHORT = c_short
 UCHAR = c_uchar
-UINT = c_uint
-UINT16 = c_ushort
-UINT32 = c_uint
-UINT64 = c_uint64
-UINT8 = c_uchar
 ULONG = c_ulong
-ULONG64 = c_uint64
 ULONGLONG = c_uint64
 USHORT = c_ushort
 VARIANT_BOOL = c_short
 VARTYPE = c_ushort
 WCHAR = c_wchar_t
-WORD = c_ushort
 boolean = c_uchar
 byte = c_uchar
 cs_byte = byte
@@ -280,19 +304,6 @@ IActivationFactory = __interface
 
 # circular import
 TYPEDESC_U = DWORD
-
-# noinspection PyProtectedMember
-HALF_PTR = c_int if _const._WIN64 else c_short
-# noinspection PyProtectedMember
-INT_PTR = c_int64 if _const._WIN64 else c_int
-# noinspection PyProtectedMember
-LONG_PTR = c_int64 if _const._WIN64 else c_long
-# noinspection PyProtectedMember
-UHALF_PTR = c_uint if _const._WIN64 else c_ushort
-# noinspection PyProtectedMember
-UINT_PTR = c_uint64 if _const._WIN64 else c_uint
-# noinspection PyProtectedMember
-ULONG_PTR = c_uint64 if _const._WIN64 else c_ulong
 
 # noinspection PyProtectedMember
 time_t = __time32_t if _const._USE_32BIT_TIME_T else __time64_t
@@ -500,6 +511,35 @@ GLvoid = c_void
 # hstring
 HSTRING_BUFFER = HANDLE
 
+# RoMetadataApi
+HCORENUM = c_int3264
+COR_SIGNATURE = c_uchar
+mdToken = ULONG32
+mdModule = mdToken
+mdTypeRef = mdToken
+mdTypeDef = mdToken
+mdFieldDef = mdToken
+mdMethodDef = mdToken
+mdParamDef = mdToken
+mdInterfaceImpl = mdToken
+mdMemberRef = mdToken
+mdCustomAttribute = mdToken
+mdPermission = mdToken
+mdSignature = mdToken
+mdEvent = mdToken
+mdProperty = mdToken
+mdModuleRef = mdToken
+mdAssembly = mdToken
+mdAssemblyRef = mdToken
+mdFile = mdToken
+mdExportedType = mdToken
+mdManifestResource = mdToken
+mdTypeSpec = mdToken
+mdGenericParam = mdToken
+mdMethodSpec = mdToken
+mdGenericParamConstraint = mdToken
+mdString = mdToken
+
 # wincontypes
 HPCON = HANDLE
 
@@ -681,8 +721,8 @@ def _subclasscheck(self: _PyCSimpleType, subclass, *,
 del _ctypes.HRESULT._check_retval_
 _setattr(_PyCSimpleType, '__instancecheck__', _instancecheck)
 _setattr(_PyCSimpleType, '__subclasscheck__', _subclasscheck)
-_setattr(__ctypes.Array, '__str__', lambda self: f'<Array: {self._type_.__name__}<{self._length_}>'
-                                                 f'<{", ".join(str(obj) for obj in self)}>>')
+_setattr(__ctypes.Array, '__str__', lambda self: (f'<Array: {self._type_.__name__}<{self._length_}>'
+                                                  f'<{", ".join(str(obj) for obj in self)}>>'))
 
 
 class _TypeMixin:

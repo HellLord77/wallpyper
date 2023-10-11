@@ -1078,6 +1078,25 @@ class LI_METRIC(_Enum):
     ARGE = 1
 
 
+# CorHdr
+class CorOpenFlags(_Enum):
+    ofRead = 0x00000000
+    ofWrite = 0x00000001
+    ofReadWriteMask = 0x00000001
+    ofCopyMemory = 0x00000002
+    ofReadOnly = 0x00000010
+    ofTakeOwnership = 0x00000020
+    ofCacheImage = 0x00000004
+    ofManifestMetadata = 0x00000008
+    ofNoTypeLib = 0x00000080
+    ofNoTransform = 0x00001000
+    ofCheckIntegrity = 0x00000800
+    ofReserved1 = 0x00000100
+    ofReserved2 = 0x00000200
+    ofReserved3 = 0x00000400
+    ofReserved = 0xffffe740
+
+
 # computedefs
 # noinspection PyPep8Naming
 class HCS_OPERATION_TYPE(_Enum):
