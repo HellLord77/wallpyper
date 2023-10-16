@@ -1064,6 +1064,7 @@ UBUNTU_CONTEST_impish = 'Impish Indri\t21.10'
 UBUNTU_CONTEST_jammy = 'Jammy Jellyfish\t22.04'
 UBUNTU_CONTEST_kinetic = 'Kinetic Kudu\t22.10'
 UBUNTU_CONTEST_lunar = 'Lunar Lemur\t23.04'
+UBUNTU_CONTEST_mantic = 'Mantic Minotaur\t23.10'
 
 UBUNTU_SORT_oldest = 'Oldest'
 UBUNTU_SORT_newest = 'Newest'

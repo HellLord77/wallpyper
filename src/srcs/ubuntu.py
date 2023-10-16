@@ -22,10 +22,10 @@ CONFIG_CONTEST = 'contest'
 CONFIG_SORT = 'sort'
 
 CONTESTS = (
-    'karmic', 'lucid', 'maverick', 'natty', 'oneiric', 'precise',
-    'quantal', 'raring', 'saucy', 'trusty', 'utopic', 'vivid', 'wily',
-    'xenial', 'yakkety', 'zesty', 'artful', 'bionic', 'cosmic', 'disco',
-    'eoan', 'focal', 'groovy', 'hirsute', 'impish', 'jammy', 'kinetic', 'lunar')
+    'karmic', 'lucid', 'maverick', 'natty', 'oneiric', 'precise', 'quantal',
+    'raring', 'saucy', 'trusty', 'utopic', 'vivid', 'wily', 'xenial', 'yakkety',
+    'zesty', 'artful', 'bionic', 'cosmic', 'disco', 'eoan', 'focal', 'groovy',
+    'hirsute', 'impish', 'jammy', 'kinetic', 'lunar', 'mantic')
 SORTS = {
     'oldest': lambda x: x,
     'newest': reversed,
@@ -34,7 +34,7 @@ SORTS = {
 
 class UbuntuWallpapers(Source):
     NAME = 'ubuntu-wallpapers'
-    VERSION = '0.0.4'
+    VERSION = '0.0.5'
     ICON = 'png'
     URL = 'https://launchpad.net/ubuntu-wallpapers'
     TCONFIG = TypedDict('TCONFIG', {
