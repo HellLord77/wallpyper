@@ -20985,7 +20985,7 @@ class Windows:
             **Description:**
                 This namespace defines Windows Runtime classes that a UWP app can use to communicate with WinUSB devices.  These devices are handled by the inbox winusb.sys driver and are identified by a specific Microsoft OS Descriptor.
 
-                A valid WinUSB device will have a compatible id of USB\MS_COMP_WINUSB
+                A valid WinUSB device will have a compatible id of USB\\MS_COMP_WINUSB
 
 
 

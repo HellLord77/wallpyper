@@ -1,4 +1,4 @@
-$Version = "0.3.10"
+$Version = "0.3.11"
 ################################################################################
 $PythonOptimize = 2  # FIXME https://github.com/pyinstaller/pyinstaller/issues/3379
 $PythonHashSeed = 0
@@ -26,6 +26,7 @@ $EntryPoint = "src/init.py"
 $Icon = "src/res/icon.ico"
 $Manifest = ""  # FIXME https://stackoverflow.com/questions/13964909/setting-uac-to-requireadministrator-using-pyinstaller-onefile-option-and-manifes
 $MainManifest = "manifest.xml"
+$Contents = "."
 $ExtraArgs = @()
 
 $CythonSourceGlobs = @(
@@ -62,7 +63,7 @@ $CodeRunBefore = @(
 	"from sys import argv"
 	"from PyInstaller.utils.cliutils.makespec import run"
 	"from PyInstaller import __main__"
-	"argv.extend(('--noupx', '--icon=NONE', 'src/pipe.py'))"
+	"argv.extend(('--contents-directory=.', '--icon=NONE', 'src/pipe.py'))"
 	"run()"
 	"lines = open('pipe.spec').readlines()"
 	"open('pipe.spec', 'w').writelines(lines[:lines.index('coll = COLLECT(\n')])"
@@ -335,6 +336,7 @@ function Get-PyInstallerArgs {
 	if ($ElevatedProc) { $ArgList += "--uac-admin" }
 	if ($RemoteProc) { $ArgList += "--uac-uiaccess" }
 	if ($Icon) { $ArgList += "--icon=$Icon" }
+	if ($Contents) { $ArgList += "--contents-directory=$Contents" }
 	foreach ($Import in $Imports) { $ArgList += "--hidden-import=$Import" }
 	foreach ($Exclude in $Excludes) { $ArgList += "--exclude-module=$Exclude" }
 	foreach ($HooksDir in $HooksDirs) { $ArgList += "--additional-hooks-dir=$HooksDir" }
@@ -466,7 +468,7 @@ function Install-Requirements {
 	New-Item $TempDir -ItemType Directory
 	try {
 		Push-Location $TempDir
-		python -m pip download pyinstaller<6 --no-deps --no-binary pyinstaller  # FIXME https://github.com/pyinstaller/pyinstaller/pull/7713
+		python -m pip download pyinstaller --no-deps --no-binary pyinstaller
 		$Source = (Get-ChildItem -Attributes Archive).FullName
 		tar -xf $Source
 		Set-Location (Join-Path $Source.Substring(0, $Source.Length - ".tar.gz".Length) "bootloader")
