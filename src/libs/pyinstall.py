@@ -27,7 +27,7 @@ def get_launch_args() -> tuple[str, ...]:
 def clean_temp() -> bool:
     cleaned = True
     base = os.path.dirname(TEMP_DIR) or tempfile.gettempdir()
-    logger.info(f'Cleaning temporary directory: {base}')
+    logger.info('Cleaning temporary directory: %s', base)
     for dir_ in glob.iglob(os.path.join(base, f'_MEI{"[0-9]" * 6}')):
         path = os.path.join(base, dir_)
         if os.path.isdir(path) and path != TEMP_DIR:
@@ -37,7 +37,7 @@ def clean_temp() -> bool:
                     os.remove(pydll[0])
                 except PermissionError:
                     continue
-            logger.warning(f'Removing temporary directory: {path}')
+            logger.warning('Removing temporary directory: %s', path)
             shutil.rmtree(path, True)
             cleaned = cleaned and not os.path.exists(path)
     if not any(os.scandir(base)):

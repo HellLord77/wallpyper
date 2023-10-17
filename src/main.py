@@ -359,7 +359,20 @@ def load_config(path: str = CONFIG_PATH):
         try:
             loader.load(path)
         except BaseException as exc:
+            logger.error('Failed loading config: file<%s>', path, exc_info=exc)
             try_alert_error(exc, True)
+    if __flag__.CONFIG_DIR:
+        dir_, ext = os.path.splitext(path)
+        if os.path.isdir(dir_):
+            for file_ in os.listdir(dir_):
+                if file_.endswith(ext) and os.path.isfile(path_ := os.path.join(dir_, file_)):
+                    loader_ = config.JSONConfig()
+                    try:
+                        loader_.load(path_)
+                    except BaseException as exc:
+                        logger.warning('Failed loading config: dir<%s>', path_, exc_info=exc)
+                    else:
+                        loader[file_.removesuffix(ext)] = dict(loader_)
     for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
         if name not in RESET:
             current_config = loader.get(name)
@@ -518,6 +531,7 @@ def change_wallpaper(image: Optional[srcs.File] = None) -> bool:
             try:
                 image = get_image()
             except BaseException as exc:
+                logging.error('Failed getting image', exc_info=exc)
                 try_alert_error(exc, True)
     if image is not None:
         try:
@@ -620,6 +634,7 @@ def on_image(callback: callables.SingletonCallable[[str], bool],
         try:
             success = callback(path)
         except BaseException as exc:
+            logger.error('Unhandled exception in function: %s<%s>', callback.__name__, path, exc_info=exc)
             try_alert_error(exc, True)
     if not success:
         try_show_notification(title, text)
@@ -913,6 +928,7 @@ def on_source(name: str):
             source.create_menu()
         except BaseException as exc:
             submenu.clear_items()
+            logger.error('Unhandled exception in source.create_menu: %s<%s>', name, source.VERSION, exc_info=exc)
             try_alert_error(exc, True)
     item.enable(bool(submenu))
 
@@ -979,6 +995,7 @@ def main() -> NoReturn:
         start()
         stop()
     except BaseException as exc:
+        logger.critical('Unhandled exception in process: %s', multiprocessing.current_process().name, exc_info=exc)
         try_alert_error(exc)
         raise
     sys.exit()
