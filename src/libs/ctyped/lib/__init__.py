@@ -3,6 +3,7 @@ from __future__ import annotations as _
 import ctypes as _ctypes
 import ctypes.util as _ctypes_util
 import functools as _functools
+import logging as _logging
 import os as _os
 import sys as _sys
 from typing import Optional as _Optional
@@ -11,6 +12,8 @@ from .. import const as _const
 from .._utils import _fmt_annot
 from .._utils import _func_doc
 from .._utils import _resolve_type
+
+_logger = _logging.getLogger(__name__)
 
 
 class _CLib:
@@ -22,7 +25,7 @@ class _CLib:
         self._annots = module.__annotations__
         self._dict = module.__dict__
         self._name = (name.removeprefix(f'{__name__}.') if name_fmt is None else
-                      name_fmt.format(arg_32 if _const.is_32bits else arg_64))
+                      name_fmt.format(arg_64 if _const.is_64bits else arg_32))
         self._prefix = prefix
         self._ord = {}
         for name, val in tuple(self._dict.items()):
@@ -55,7 +58,13 @@ class _CLib:
 
     @_functools.cached_property
     def _lib(self) -> _ctypes.CDLL:
-        return self._loader(self.__file__)
+        for name in dict.fromkeys((self._name, self.__file__)):
+            try:
+                return self._loader(name)
+            except OSError as exc:
+                _logger.debug('Failed loading library: %r', name, exc_info=exc)
+        _logger.error('Could not find library: %r', self._name)
+        raise ModuleNotFoundError(f'no lib named {self._name!r}')
 
 
 class _OleLib(_CLib):

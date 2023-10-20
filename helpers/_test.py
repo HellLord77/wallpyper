@@ -587,6 +587,7 @@ def _test_toast():
 
 def _test_chroma():
     from win32.chroma import animation as chroma_animation
+
     with chroma_animation.Animation25:
         time.sleep(5)
 
@@ -636,7 +637,7 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_cfg_json()
     # _test_winrt()
     # _test_hook()
-    _test_chroma()
+    # _test_chroma()
     # _test()
-    # _test_winmd()
+    _test_winmd()
     sys.exit()
