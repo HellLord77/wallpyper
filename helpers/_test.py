@@ -585,6 +585,12 @@ def _test_toast():
             print(notifier.Show(toast))
 
 
+def _test_chroma():
+    from win32.chroma import animation as chroma_animation
+    with chroma_animation.Animation25:
+        time.sleep(5)
+
+
 def _test():
     ctyped.lib.add_path(r'D:\Projects\wallpyper\helpers\microsoft.windowsappsdk.1.4.230913002\runtimes\win10-x64\native')
 
@@ -630,6 +636,7 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_cfg_json()
     # _test_winrt()
     # _test_hook()
+    _test_chroma()
     # _test()
-    _test_winmd()
+    # _test_winmd()
     sys.exit()
