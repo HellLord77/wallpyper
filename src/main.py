@@ -995,8 +995,10 @@ def main() -> NoReturn:
         start()
         stop()
     except BaseException as exc:
-        logger.critical('Unhandled exception in process: %s', multiprocessing.current_process().name, exc_info=exc)
-        try_alert_error(exc)
+        if not isinstance(exc, SystemExit):
+            logger.critical('Unhandled exception in process: %s',
+                            multiprocessing.current_process().name, exc_info=exc)
+            try_alert_error(exc)
         raise
     sys.exit()
 

@@ -356,9 +356,11 @@ def get_display_size() -> tuple[int, int]:
 
 def _get_monitor_rect(dev_path: str) -> Optional[ctyped.struct.RECT]:
     rect = ctyped.struct.RECT()
-    with ctyped.interface.COM[ShObjIdl_core.IDesktopWallpaper](ctyped.const.CLSID_DesktopWallpaper) as wallpaper:
+    with ctyped.interface.COM[ShObjIdl_core.IDesktopWallpaper](
+            ctyped.const.CLSID_DesktopWallpaper) as wallpaper:
         if wallpaper:
-            if ctyped.macro.SUCCEEDED(wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))):
+            if ctyped.macro.SUCCEEDED(wallpaper.GetMonitorRECT(
+                    dev_path, ctyped.byref(rect))):
                 return rect
 
 
