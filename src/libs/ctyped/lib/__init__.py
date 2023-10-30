@@ -31,7 +31,7 @@ class _CLib:
         for name, val in tuple(self._dict.items()):
             if name in self._annots:
                 self._ord[name] = val
-                delattr(module, name)
+                del self._dict[name]
         module.__getattr__ = self.__getattr__
         module.__dir__ = self.__dir__
         module.__file__ = self.__file__

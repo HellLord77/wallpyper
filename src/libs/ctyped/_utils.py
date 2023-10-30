@@ -4,6 +4,7 @@ import importlib.abc as _importlib_abc
 import importlib.machinery as _importlib_machinery
 import importlib.util as _importlib_util
 import sys as _sys
+import threading as _threading
 import typing as _typing
 from types import ModuleType as _ModuleType
 from typing import Any as _Any
@@ -30,16 +31,50 @@ class _Pointer(_Generic[_CT], _Sequence[_CT]):
     NULL: _Final = None
 
 
+_getattribute_lock = _functools.lru_cache(lambda _: _threading.Lock())
+
+
+# noinspection PyUnresolvedReferences,PyProtectedMember
+class _LazyModule(_importlib_util._LazyModule):
+    def __getattribute__(self, name):  # FIXME cannot handle threaded loading
+        spec = object.__getattribute__(self, '__spec__')
+        if spec.loader_state['ident'] == _threading.get_ident():
+            return super(_importlib_util._LazyModule, self).__getattribute__(name)
+        else:
+            with _getattribute_lock(self):
+                if type(self) is _LazyModule:
+                    spec.loader_state['ident'] = _threading.get_ident()
+                    dict_ = spec.loader_state['__dict__']
+                    dict__ = object.__getattribute__(self, '__dict__')
+                    updated = {}
+                    for key, val in dict__.items():
+                        if key not in dict_:
+                            updated[key] = val
+                        elif dict__[key] is dict_[key]:
+                            updated[key] = val
+                    spec.loader.exec_module(self)
+                    dict__.update(updated)
+                    self.__class__ = spec.loader_state['__class__']
+                return getattr(self, name)
+
+
+class _LazyLoader(_importlib_util.LazyLoader):
+    def exec_module(self, module: _ModuleType):
+        super().exec_module(module)
+        object.__getattribute__(module, '__spec__').loader_state['ident'] = 0
+        module.__class__ = _LazyModule
+
+
 class _LazyFinder(_importlib_abc.MetaPathFinder):
-    _fullnames = set()
+    _found = set()
 
     @classmethod
     def find_spec(cls, fullname: str, path: _Optional[_Sequence[str]] = None,
                   target: _Optional[_ModuleType] = None) -> _Optional[_importlib_machinery.ModuleSpec]:
-        if fullname.startswith(__package__) and fullname not in cls._fullnames:
-            cls._fullnames.add(fullname)
+        if fullname.startswith(__package__) and fullname not in cls._found:
+            cls._found.add(fullname)
             spec = _importlib_util.find_spec(fullname)
-            spec.loader = _importlib_util.LazyLoader(spec.loader)
+            spec.loader = _LazyLoader(spec.loader)
             return spec
 
 
