@@ -595,9 +595,9 @@ $ErrorActionPreference = "Stop"
 if ($Args) {
 	switch ($Args[0]) {
 		"install" { Install-Requirements; Break }
-		"remove" { Remove-All; Break }
+		"clean" { Remove-All; Break }
 		"build" { Write-Build; Break }
-		"upload" { Write-MEGA; Break }
+		"push" { Write-MEGA; Break }
 		Default { throw }
 	}
 }
