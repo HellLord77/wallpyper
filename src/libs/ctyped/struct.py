@@ -5057,8 +5057,8 @@ class _Struct(_ctypes.Structure):
     def __contains__(self, item):
         return item in self.__iter__()
 
-    def __getitem__(self, item):
-        return getattr(self, item)
+    def __getitem__(self, key):
+        return getattr(self, key)
 
     def keys(self):
         return self.__iter__()

@@ -117,49 +117,49 @@ class Element:
         return iter(self.children)
 
     @typing.overload
-    def __getitem__(self, item: str) -> str:
+    def __getitem__(self, key: str) -> str:
         pass
 
     @typing.overload
-    def __getitem__(self, item: int) -> Element:
+    def __getitem__(self, key: int) -> Element:
         pass
 
     @typing.overload
-    def __getitem__(self, item: slice) -> list[Element]:
+    def __getitem__(self, key: slice) -> list[Element]:
         pass
 
-    def __getitem__(self, item):
-        return (self.attributes if isinstance(item, str) else self.children)[item]
+    def __getitem__(self, key):
+        return (self.attributes if isinstance(key, str) else self.children)[key]
 
     @typing.overload
-    def __setitem__(self, item: str, value: str):
-        pass
-
-    @typing.overload
-    def __setitem__(self, item: int, value: Element):
+    def __setitem__(self, key: str, value: str):
         pass
 
     @typing.overload
-    def __setitem__(self, item: slice, value: Iterable[Element]):
-        pass
-
-    def __setitem__(self, item, value):
-        (self.attributes if isinstance(item, str) else self.children)[item] = value
-
-    @typing.overload
-    def __delitem__(self, item: str):
+    def __setitem__(self, key: int, value: Element):
         pass
 
     @typing.overload
-    def __delitem__(self, item: int):
+    def __setitem__(self, key: slice, value: Iterable[Element]):
+        pass
+
+    def __setitem__(self, key, value):
+        (self.attributes if isinstance(key, str) else self.children)[key] = value
+
+    @typing.overload
+    def __delitem__(self, key: str):
         pass
 
     @typing.overload
-    def __delitem__(self, item: slice):
+    def __delitem__(self, key: int):
         pass
 
-    def __delitem__(self, item):
-        del (self.attributes if isinstance(item, str) else self.children)[item]
+    @typing.overload
+    def __delitem__(self, key: slice):
+        pass
+
+    def __delitem__(self, key):
+        del (self.attributes if isinstance(key, str) else self.children)[key]
 
     @typing.overload
     def get_class(self) -> list[str]:

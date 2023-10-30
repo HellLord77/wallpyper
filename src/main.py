@@ -60,7 +60,7 @@ PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(
 
 CHANGE_INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
 TRANSITION_DURATIONS = 0.5, 1.0, 2.5, 5.0, 10.0
-MAXIMIZED_ACTIONS = 'ignore', 'postpone', 'skip'
+MAXIMIZED_ACTIONS = 'IGNORE', 'POSTPONE', 'SKIP'
 BLOCKERS: dict[str | re.Pattern, str] = {
     'lwservice.exe':                        'Live2DViewerEX',
     'Lively.PlayerCefSharp.exe':            'Lively Wallpaper',

@@ -47,7 +47,7 @@ class _CLib:
         try:
             return self._dict[name]
         except KeyError:
-            raise AttributeError(f'lib {self._name!r} has no function {name!r}')
+            raise AttributeError(f'Library {self._name!r} has no function {name!r}')
 
     def __dir__(self):
         return self._annots

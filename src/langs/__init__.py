@@ -3,6 +3,7 @@ __version__ = '0.0.5'
 import builtins
 import functools
 import keyword
+import logging
 import re
 from types import ModuleType
 from typing import Optional
@@ -10,6 +11,8 @@ from typing import Optional
 from libs import isocodes
 from . import ben
 from . import eng
+
+logger = logging.getLogger(__name__)
 
 _SPLIT_DIGIT = re.compile(r'(\d+)').split
 _SUB_INVALID = re.compile(r'[^a-zA-Z0-9_]').sub
@@ -26,6 +29,7 @@ def _getattr(module: ModuleType, name: str) -> str:
     try:
         return super(ModuleType, module).__getattribute__(name)
     except AttributeError:
+        logger.warning(f'Language {module.__name__!r} has no text {name!r}')
         return f'<{name}>'
 
 

@@ -88,19 +88,19 @@ class _Globals(dict):
         super().__init__(self.globals)
         self.globals['__getattr__'] = self.__getitem__
 
-    def __getitem__(self, item: str):
+    def __getitem__(self, key: str):
         try:
-            return super().__getitem__(item)
+            return super().__getitem__(key)
         except KeyError:
             try:
-                val = self.globals[item]
+                val = self.globals[key]
             except KeyError:
-                if item not in self.vars:
-                    raise AttributeError(f"Module '{self.globals['__name__']}' has no attribute '{item}'")
-                val = self.globals['_init'](item)
+                if key not in self.vars:
+                    raise AttributeError(f"Module {self.globals['__name__']!r} has no attribute {key!r}")
+                val = self.globals['_init'](key)
             else:
-                self.vars[item] = val
-            self[item] = val
+                self.vars[key] = val
+            self[key] = val
             return val
 
     def __setitem__(self, key, value):
