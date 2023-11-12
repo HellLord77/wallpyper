@@ -1,8 +1,12 @@
 import ctypes as _ctypes
 import functools as _functools
+import gc as _gc
+import importlib as _importlib
 import importlib.abc as _importlib_abc
 import importlib.machinery as _importlib_machinery
 import importlib.util as _importlib_util
+import os as _os
+import pkgutil as _pkgutil
 import sys as _sys
 import threading as _threading
 import typing as _typing
@@ -17,10 +21,12 @@ from typing import Sequence as _Sequence
 import _ctypes as __ctypes
 
 _CT = _typing.TypeVar('_CT')
-# noinspection PyProtectedMember
+# noinspection PyProtectedMember,PyUnresolvedReferences
 _SimpleCData = __ctypes._SimpleCData
 _PyCSimpleType = type(_SimpleCData)
 _CArgObject = type(_ctypes.byref(_ctypes.c_void_p()))
+
+_LEGACY_LAZY_MODULE = False
 
 
 class _Pointer(_Generic[_CT], _Sequence[_CT]):
@@ -31,51 +37,87 @@ class _Pointer(_Generic[_CT], _Sequence[_CT]):
     NULL: _Final = None
 
 
-_getattribute_lock = _functools.lru_cache(lambda _: _threading.Lock())
+if _LEGACY_LAZY_MODULE:
+    def _replace_object(old, new):
+        _gc.collect()
+        for referrer in _gc.get_referrers(old):
+            if isinstance(referrer, dict):
+                for key, val in referrer.items():
+                    if val is old:
+                        referrer[key] = new
 
 
-# noinspection PyUnresolvedReferences,PyProtectedMember
-class _LazyModule(_importlib_util._LazyModule):
-    def __getattribute__(self, name):  # FIXME cannot handle threaded loading
-        spec = object.__getattribute__(self, '__spec__')
-        if spec.loader_state['ident'] == _threading.get_ident():
-            return super(_importlib_util._LazyModule, self).__getattribute__(name)
-        else:
-            with _getattribute_lock(self):
-                if type(self) is _LazyModule:
-                    spec.loader_state['ident'] = _threading.get_ident()
-                    dict_ = spec.loader_state['__dict__']
-                    dict__ = object.__getattribute__(self, '__dict__')
-                    updated = {}
-                    for key, val in dict__.items():
-                        if key not in dict_:
-                            updated[key] = val
-                        elif dict__[key] is dict_[key]:
-                            updated[key] = val
-                    spec.loader.exec_module(self)
-                    dict__.update(updated)
-                    self.__class__ = spec.loader_state['__class__']
-                return getattr(self, name)
+    class _LazyModule(_ModuleType):
+        _module = None
+
+        def __getattr__(self, name: str):
+            if self._module is None:
+                del _sys.modules[self.__name__]
+                try:
+                    self._module = _importlib.import_module(self.__name__)
+                except KeyError as exc:  # FIXME https://github.com/cython/cython/issues/3867
+                    if self.__name__ == exc.args[0]:
+                        self._module = _importlib.import_module(self.__name__)
+                    else:
+                        raise
+            _replace_object(self, self._module)
+            return getattr(self._module, name)
 
 
-class _LazyLoader(_importlib_util.LazyLoader):
-    def exec_module(self, module: _ModuleType):
-        super().exec_module(module)
-        object.__getattribute__(module, '__spec__').loader_state['ident'] = 0
-        module.__class__ = _LazyModule
+    def _iter_modules(path: str = _os.path.dirname(__file__), prefix: str = __package__,
+                      recursive: bool = False) -> _Iterator[_pkgutil.ModuleInfo]:
+        prefix += '.'
+        for module in _pkgutil.iter_modules((path,), prefix):
+            yield module
+            if recursive and module.ispkg:
+                yield from _iter_modules(_os.path.join(
+                    path, module.name.removeprefix(prefix)), module.name, recursive)
+else:
+    _getattribute_lock = _functools.lru_cache(lambda _: _threading.Lock())
+
+    # noinspection PyUnresolvedReferences,PyProtectedMember
+    class _LazyModule(_importlib_util._LazyModule):
+        def __getattribute__(self, name):  # FIXME cannot handle threaded loading
+            spec = object.__getattribute__(self, '__spec__')
+            if spec.loader_state['ident'] == _threading.get_ident():
+                return super(_importlib_util._LazyModule, self).__getattribute__(name)
+            else:
+                # noinspection PyTypeChecker
+                with _getattribute_lock(self):
+                    if type(self) is _LazyModule:
+                        spec.loader_state['ident'] = _threading.get_ident()
+                        dict_ = spec.loader_state['__dict__']
+                        dict__ = object.__getattribute__(self, '__dict__')
+                        updated = {}
+                        for key, val in dict__.items():
+                            if key not in dict_:
+                                updated[key] = val
+                            elif dict__[key] is dict_[key]:
+                                updated[key] = val
+                        spec.loader.exec_module(self)
+                        dict__.update(updated)
+                        self.__class__ = spec.loader_state['__class__']
+                    return getattr(self, name)
 
 
-class _LazyFinder(_importlib_abc.MetaPathFinder):
-    _found = set()
+    class _LazyLoader(_importlib_util.LazyLoader):
+        def exec_module(self, module: _ModuleType):
+            super().exec_module(module)
+            object.__getattribute__(module, '__spec__').loader_state['ident'] = 0
+            module.__class__ = _LazyModule
 
-    @classmethod
-    def find_spec(cls, fullname: str, path: _Optional[_Sequence[str]] = None,
-                  target: _Optional[_ModuleType] = None) -> _Optional[_importlib_machinery.ModuleSpec]:
-        if fullname.startswith(__package__) and fullname not in cls._found:
-            cls._found.add(fullname)
-            spec = _importlib_util.find_spec(fullname)
-            spec.loader = _LazyLoader(spec.loader)
-            return spec
+
+    class _LazyFinder(_importlib_abc.MetaPathFinder):
+        _found = set()
+
+        @classmethod
+        def find_spec(cls, fullname: str, path: _Optional[_Sequence[str]] = None,
+                      target: _Optional[_ModuleType] = None) -> _Optional[_importlib_machinery.ModuleSpec]:
+            if fullname.startswith(__package__) and fullname not in cls._found:
+                cls._found.add(fullname)
+                spec = _importlib_util.find_spec(fullname)
+                spec.loader = _LazyLoader(spec.loader)
+                return spec
 
 
 class _Globals(dict):
@@ -237,7 +279,12 @@ def _init():
     globals_ = globals()
     for func in (_addressof, _sizeof, _byref):
         globals_[func.__name__] = getattr(_ctypes, func.__name__[1:])
-    _sys.meta_path.insert(0, _LazyFinder())
+    if _LEGACY_LAZY_MODULE:
+        for module in _iter_modules(recursive=True):
+            if module.name not in _sys.modules:
+                _sys.modules[module.name] = _LazyModule(module.name)
+    else:
+        _sys.meta_path.insert(0, _LazyFinder())
 
 
 _init()

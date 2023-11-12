@@ -73,6 +73,7 @@ BLOCKERS: dict[str | re.Pattern, str] = {
 win32.display.ANIMATION_POLL_INTERVAL = 0
 gui.ANIMATION_PATH = RES_FMT.format(consts.RES_BUSY)
 
+START: float = 0.0
 RESET: MutableSequence[str] = []
 PROGRESS = [-1, request.RETRIEVE_UNKNOWN_SIZE]
 DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
@@ -977,6 +978,8 @@ def start():
     gui.enable_animated_icon(CURRENT_CONFIG[consts.CONFIG_ANIMATE_ICON])
     apply_auto_start(CURRENT_CONFIG[consts.CONFIG_AUTO_START])
     gui.GUI.bind(gui.GuiEvent.NC_RENDERING_CHANGED, on_shown, True)
+    logger.info('Started process: %s<%.3fs>',
+                multiprocessing.current_process().name, time.monotonic() - START)
     gui.start_loop(RES_FMT.format(consts.RES_TRAY), consts.NAME,
                    functools.partial(on_change, *TIMER.target.args, auto=False))
 

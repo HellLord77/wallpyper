@@ -14,6 +14,7 @@ import logging
 import multiprocessing
 import multiprocessing.managers
 import sys
+import time
 
 import consts
 
@@ -22,7 +23,9 @@ import consts
 def target(reset: multiprocessing.managers.ListProxy,
            restart: multiprocessing.managers.ValueProxy):
     logging.basicConfig()
+    start = time.monotonic()
     import main
+    main.START = start
     main.RESET = reset
     try:
         main.main()

@@ -2,6 +2,7 @@ from __future__ import annotations as _
 
 import array
 import collections.abc
+import contextlib
 import dataclasses
 import datetime
 import decimal
@@ -17,6 +18,7 @@ import uuid
 from types import ModuleType
 from typing import AnyStr
 from typing import Callable
+from typing import ContextManager
 from typing import NamedTuple
 from typing import Optional
 from typing import TypeVar
@@ -27,16 +29,18 @@ import win32
 from libs import config
 from libs import ctyped
 # noinspection PyUnresolvedReferences
-from libs import sgml
+from libs import request
 from libs.ctyped.const import error
 from libs.ctyped.const import runtimeclass
 from libs.ctyped.interface.um import ShObjIdl_core
 from libs.ctyped.interface.um import d2d1
 from libs.ctyped.interface.um import dwrite
+from libs.ctyped.interface.winrt import RoMetadataApi
 from libs.ctyped.interface.winrt.Windows.Data.Xml import Dom as Windows_Data_Xml_Dom
 from libs.ctyped.lib import DWrite
 from libs.ctyped.lib import kernel32
 from libs.ctyped.lib import python
+from libs.ctyped.lib import rometadata
 from libs.ctyped.lib import user32
 from win32 import _gdiplus
 from win32 import _handle
@@ -330,6 +334,27 @@ def _test_winrt():
             pass
 
 
+def _test_winapp():
+    ctyped.lib.add_path(
+        r'D:\Projects\wallpyper\helpers\microsoft.windowsappsdk.1.4.230913002\runtimes\win10-x64\native')
+
+    from libs.ctyped.lib import Microsoft_WindowsAppRuntime_Bootstrap
+    from libs.ctyped.interface.winrt.Microsoft.Windows.System import Power as Microsoft_Windows_System_Power
+
+    if ctyped.macro.SUCCEEDED(Microsoft_WindowsAppRuntime_Bootstrap.Initialize2(
+            ctyped.const.Release.MajorMinor, ctyped.const.Release.VersionTag, ctyped.struct.PACKAGE_VERSION(
+                ctyped.union.PACKAGE_VERSION_U(ctyped.const.Runtime.Version.UInt64)),
+            ctyped.enum.MddBootstrapInitializeOptions.OnNoMatch_ShowUI)):
+        status = ctyped.enum.Microsoft.Windows.System.Power.DisplayStatus()
+        i_manager = ctyped.interface.WinRT[Microsoft_Windows_System_Power.IPowerManagerStatics](
+            runtimeclass.Microsoft.Windows.System.Power.PowerManager)
+        if i_manager:
+            with i_manager as manager:
+                if ctyped.macro.SUCCEEDED(manager.get_DisplayStatus(ctyped.byref(status))):
+                    print(status)
+        Microsoft_WindowsAppRuntime_Bootstrap.Shutdown()
+
+
 PageAddress = TypeVar('PageAddress', bound=int)
 FunctionAddress = TypeVar('FunctionAddress', bound=int)
 
@@ -497,7 +522,8 @@ class PyRemoteProcessEx(PyRemoteProcess):
         return bool(self.call_func(ctyped.addressof_func(kernel32.FreeConsole)).get_exit_code())
 
     def reopen_console(self) -> bool:
-        return self.run_simple_string("import sys; sys.stdin = open('CONIN$', 'r'); sys.stdout = sys.stderr = open('CONOUT$', 'w')")
+        return self.run_simple_string(
+            "import sys; sys.stdin = open('CONIN$', 'r'); sys.stdout = sys.stderr = open('CONOUT$', 'w')")
 
     def exec_file(self, path: str) -> bool:
         print(path)
@@ -593,29 +619,23 @@ def _test_chroma():
 
 
 def _test():
-    ctyped.lib.add_path(r'D:\Projects\wallpyper\helpers\microsoft.windowsappsdk.1.4.230913002\runtimes\win10-x64\native')
+    pass
 
-    from libs.ctyped.lib import Microsoft_WindowsAppRuntime_Bootstrap
-    from libs.ctyped.interface.winrt.Microsoft.Windows.System import Power as Microsoft_Windows_System_Power
 
-    if ctyped.macro.SUCCEEDED(Microsoft_WindowsAppRuntime_Bootstrap.Initialize2(
-            ctyped.const.Release.MajorMinor, ctyped.const.Release.VersionTag, ctyped.struct.PACKAGE_VERSION(
-                ctyped.union.PACKAGE_VERSION_U(ctyped.const.Runtime.Version.UInt64)),
-            ctyped.enum.MddBootstrapInitializeOptions.OnNoMatch_ShowUI)):
-        status = ctyped.enum.Microsoft.Windows.System.Power.DisplayStatus()
-        i_manager = ctyped.interface.WinRT[Microsoft_Windows_System_Power.IPowerManagerStatics](
-            runtimeclass.Microsoft.Windows.System.Power.PowerManager)
-        if i_manager:
-            with i_manager as manager:
-                if ctyped.macro.SUCCEEDED(manager.get_DisplayStatus(ctyped.byref(status))):
-                    print(status)
-        Microsoft_WindowsAppRuntime_Bootstrap.Shutdown()
+@contextlib.contextmanager
+def _enum_handle_ref(reader: RoMetadataApi.IMetaDataImport) -> ContextManager[Optional[ctyped.Pointer[ctyped.type.HCORENUM]]]:
+    enum_handle = ctyped.type.HCORENUM()
+    if reader:
+        try:
+            yield ctyped.byref(enum_handle)
+        finally:
+            if enum_handle:
+                reader.CloseEnum(enum_handle)
+    else:
+        yield
 
 
 def _test_winmd():
-    from libs.ctyped.lib import rometadata
-    from libs.ctyped.interface.winrt import RoMetadataApi
-
     path = r'C:\Windows\System32\WinMetadata\Windows.AI.winmd'
 
     with ctyped.interface.COM[RoMetadataApi.IMetaDataDispenserEx]() as dispenser:
@@ -624,12 +644,20 @@ def _test_winmd():
             with ctyped.interface.COM[RoMetadataApi.IMetaDataImport2]() as reader:
                 if ctyped.macro.SUCCEEDED(dispenser.OpenScope(
                         path, ctyped.enum.CorOpenFlags.ofRead, *ctyped.macro.IID_PPV_ARGS(reader))):
-                    handle_ref = ctyped.byref(ctyped.type.HCORENUM())
+
                     type_def = ctyped.type.mdTypeDef()
                     type_def_ref = ctyped.byref(type_def)
-                    while reader.EnumTypeDefs(handle_ref, type_def_ref, 1,
-                                              ctyped.Pointer.NULL) == ctyped.const.S_OK:
-                        print(type_def)
+                    with _enum_handle_ref(reader) as handle_ref:
+                        while reader.EnumTypeDefs(handle_ref, type_def_ref, 1,
+                                                  ctyped.Pointer.NULL) == ctyped.const.S_OK:
+                            print(type_def)
+
+                    with _enum_handle_ref(reader) as handle_ref:
+                        type_ref = ctyped.type.mdTypeRef()
+                        type_ref_ref = ctyped.byref(type_ref)
+                        while reader.EnumTypeRefs(handle_ref, type_ref_ref, 1,
+                                                  ctyped.Pointer.NULL) == ctyped.const.S_OK:
+                            print(type_ref)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
