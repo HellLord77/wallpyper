@@ -14,10 +14,8 @@ from typing import Literal
 from typing import Mapping
 from typing import MutableMapping
 from typing import MutableSequence
-# noinspection PyProtectedMember
 from typing import NotRequired
 from typing import Optional
-# noinspection PyProtectedMember
 from typing import Required
 from typing import Sequence
 from typing import Tuple

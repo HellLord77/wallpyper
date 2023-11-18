@@ -745,8 +745,8 @@ def on_easing_direction(enable_ease: Callable[[bool], bool], _: bool):
 
 def _get_blocker_name(blocker: str) -> str:
     for pattern, name in BLOCKERS.items():
-        if (pattern.search if isinstance(
-                pattern, re.Pattern) else pattern.__eq__)(blocker):
+        if (pattern.search(blocker) if isinstance(
+                pattern, re.Pattern) else pattern == blocker):
             return name
     return blocker
 

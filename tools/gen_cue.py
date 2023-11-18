@@ -4,8 +4,9 @@ import os
 import re
 
 PATH = r'C:\ProgramData\Corsair\CUE5\GameSdkEffects'
-GAMES: dict[str, dict[str, int]] = {}
-RE_NAME = re.compile('[^_0-9a-zA-Z]+')
+
+_GAMES: dict[str, dict[str, int]] = {}
+_RE_NAME = re.compile('[^_0-9a-zA-Z]+')
 
 
 def get_priority(path: str) -> dict[str, int]:
@@ -17,7 +18,7 @@ def get_priority(path: str) -> dict[str, int]:
 
 
 def str_game(game: str, data: dict[str, int]) -> str:
-    name = RE_NAME.sub('', game)
+    name = _RE_NAME.sub('', game)
     string = f'class {name}(_Game):\n'
     if game != name:
         string += f'    _name = {game!r}\n'
@@ -31,10 +32,9 @@ def str_game(game: str, data: dict[str, int]) -> str:
 def main():
     for path in glob.glob(os.path.join(PATH, '*', 'priorities.cfg')):
         name = os.path.basename(os.path.dirname(path))
-        GAMES[name] = get_priority(path)
-    # pprint.pprint(GAMES, sort_dicts=False)
+        _GAMES[name] = get_priority(path)
     string = ''
-    for game in GAMES.items():
+    for game in _GAMES.items():
         string += str_game(*game)
     print(string)
 

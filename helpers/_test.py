@@ -30,6 +30,8 @@ from libs import config
 from libs import ctyped
 # noinspection PyUnresolvedReferences
 from libs import request
+# noinspection PyUnresolvedReferences
+from libs import sgml
 from libs.ctyped.const import error
 from libs.ctyped.const import runtimeclass
 from libs.ctyped.interface.um import ShObjIdl_core

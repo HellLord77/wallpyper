@@ -590,7 +590,7 @@ def _is_rect_not_blocked(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: 
 
 
 def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
-                     src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str,
+                     src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str,  # TODO investigate random skip
                      color: _gdiplus.Color, transition: Transition, duration: float, easing: Callable[[float], float]):
     if (hwnd := _get_workerw_hwnd()) and _is_rect_not_blocked(hwnd, dst_x, dst_y, dst_w, dst_h):
         dst = _handle.HDC.from_hwnd(hwnd)
