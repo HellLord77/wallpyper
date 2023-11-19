@@ -94,6 +94,7 @@ def winerror():
             group = match.groups()
             print(f'{group[0].strip()} = {group[1]}')
 
+
 def _cor(path: str):
     with open(path) as file:
         for line in file.readlines():
@@ -103,9 +104,11 @@ def _cor(path: str):
                 guid[-1] = guid[-1][:-3]
                 print(f"{line[12:line.find(',')]} = '{_str(guid)}'")
 
+
 def cor():
     print('# cor')
     _cor(os.path.join(NET_PATH, 'cor.h'))
+
 
 def mscoree():
     print('# mscoree')

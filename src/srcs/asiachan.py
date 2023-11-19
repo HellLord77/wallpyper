@@ -37,14 +37,14 @@ class AsiaChan(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_FILTER:       list[str],
-        CONFIG_SORT:         str,
-        CONFIG_TIME:         int})
+        CONFIG_FILTER: list[str],
+        CONFIG_SORT: str,
+        CONFIG_TIME: int})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_FILTER:       [],
-        CONFIG_SORT:         SORTS[1],
-        CONFIG_TIME:         TIMES[2]}
+        CONFIG_FILTER: [],
+        CONFIG_SORT: SORTS[1],
+        CONFIG_TIME: TIMES[2]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

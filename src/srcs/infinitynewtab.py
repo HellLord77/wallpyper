@@ -47,16 +47,16 @@ class InfinityNewTab(Source):
     VERSION = '0.0.1'
     URL = 'https://www.infinitytab.com'
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_MODE:   str,
-        CONFIG_ORDER:  str,
-        CONFIG_COLOR:  str,
-        CONFIG_LABEL:  str,
+        CONFIG_MODE: str,
+        CONFIG_ORDER: str,
+        CONFIG_COLOR: str,
+        CONFIG_LABEL: str,
         CONFIG_SOURCE: str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_MODE:   MODES[0],
-        CONFIG_ORDER:  ORDERS[2],
-        CONFIG_COLOR:  COLORS[0],
-        CONFIG_LABEL:  LABELS[0],
+        CONFIG_MODE: MODES[0],
+        CONFIG_ORDER: ORDERS[2],
+        CONFIG_COLOR: COLORS[0],
+        CONFIG_LABEL: LABELS[0],
         CONFIG_SOURCE: SOURCES[0]}
 
     @classmethod

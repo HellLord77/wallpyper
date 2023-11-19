@@ -29,12 +29,12 @@ class Bing(Source):  # https://github.com/timothymctim/Bing-wallpapers
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_RESOLUTION: str,
-        CONFIG_DAY:        int,
-        CONFIG_MARKET:     str})
+        CONFIG_DAY: int,
+        CONFIG_MARKET: str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_RESOLUTION: RESOLUTIONS[5],
-        CONFIG_DAY:        next(iter(DAYS)),
-        CONFIG_MARKET:     MARKETS[0]}
+        CONFIG_DAY: next(iter(DAYS)),
+        CONFIG_MARKET: MARKETS[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

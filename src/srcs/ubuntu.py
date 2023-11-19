@@ -39,10 +39,10 @@ class UbuntuWallpapers(Source):
     URL = 'https://launchpad.net/ubuntu-wallpapers'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_CONTEST: list[str],
-        CONFIG_SORT:    str})
+        CONFIG_SORT: str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_CONTEST: list(CONTESTS),
-        CONFIG_SORT:    tuple(SORTS)[1]}
+        CONFIG_SORT: tuple(SORTS)[1]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

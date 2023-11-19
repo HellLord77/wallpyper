@@ -28,12 +28,12 @@ class Color(Source):
     ICON = 'png'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_LUMINANCES: list[bool, bool],
-        CONFIG_WIDTH:      int,
-        CONFIG_HEIGHT:     int})
+        CONFIG_WIDTH: int,
+        CONFIG_HEIGHT: int})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_LUMINANCES: [True, True],
-        CONFIG_WIDTH:      WIDTHS[10],
-        CONFIG_HEIGHT:     HEIGHTS[10]}
+        CONFIG_WIDTH: WIDTHS[10],
+        CONFIG_HEIGHT: HEIGHTS[10]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

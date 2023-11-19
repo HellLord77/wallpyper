@@ -39,16 +39,16 @@ class FiveHundredPx(Source):  # https://github.com/500px/legacy-api-documentatio
     ICON = 'png'
     URL = 'https://500px.com'
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_FEATURE:        str,
-        CONFIG_ONLY:           str,
-        CONFIG_EXCLUDE:        str,
-        CONFIG_SORT:           str,
+        CONFIG_FEATURE: str,
+        CONFIG_ONLY: str,
+        CONFIG_EXCLUDE: str,
+        CONFIG_SORT: str,
         CONFIG_SORT_DIRECTION: str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_FEATURE:        FEATURES[4],
-        CONFIG_ONLY:           '',
-        CONFIG_EXCLUDE:        '',
-        CONFIG_SORT:           SORTS[0],
+        CONFIG_FEATURE: FEATURES[4],
+        CONFIG_ONLY: '',
+        CONFIG_EXCLUDE: '',
+        CONFIG_SORT: SORTS[0],
         CONFIG_SORT_DIRECTION: SORT_DIRECTIONS[0]}
 
     _last_feature: str

@@ -50,23 +50,23 @@ class WallHere(Source):
     VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_RANDOM:      bool,
-        CONFIG_SEARCH:      str,
-        CONFIG_ORDER:       str,
+        CONFIG_RANDOM: bool,
+        CONFIG_SEARCH: str,
+        CONFIG_ORDER: str,
         CONFIG_ORIENTATION: str,
-        CONFIG_WIDTH:       str,
-        CONFIG_HEIGHT:      str,
-        CONFIG_COLOR:       str,
-        CONFIG_NSFW:        bool})
+        CONFIG_WIDTH: str,
+        CONFIG_HEIGHT: str,
+        CONFIG_COLOR: str,
+        CONFIG_NSFW: bool})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_RANDOM:      False,
-        CONFIG_SEARCH:      '',
-        CONFIG_ORDER:       ORDERS[1],
+        CONFIG_RANDOM: False,
+        CONFIG_SEARCH: '',
+        CONFIG_ORDER: ORDERS[1],
         CONFIG_ORIENTATION: ORIENTATIONS[0],
-        CONFIG_WIDTH:       '',
-        CONFIG_HEIGHT:      '',
-        CONFIG_COLOR:       COLORS[0],
-        CONFIG_NSFW:        True}
+        CONFIG_WIDTH: '',
+        CONFIG_HEIGHT: '',
+        CONFIG_COLOR: COLORS[0],
+        CONFIG_NSFW: True}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

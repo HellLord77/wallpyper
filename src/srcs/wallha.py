@@ -26,10 +26,10 @@ class Wallha(Source):
     VERSION = '0.0.1'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_LIST:   str,
+        CONFIG_LIST: str,
         CONFIG_SEARCH: str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_LIST:   LISTS[0],
+        CONFIG_LIST: LISTS[0],
         CONFIG_SEARCH: ''}
 
     @classmethod

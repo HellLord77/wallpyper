@@ -26,12 +26,12 @@ class KekaiKotaki(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[int],
-        CONFIG_RANDOM:       bool,
-        CONFIG_GALLERY:      str})
+        CONFIG_RANDOM: bool,
+        CONFIG_GALLERY: str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_RANDOM:       False,
-        CONFIG_GALLERY:      GALLERIES[0]}
+        CONFIG_RANDOM: False,
+        CONFIG_GALLERY: GALLERIES[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

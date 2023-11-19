@@ -35,12 +35,12 @@ class StockSnap(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_SORT:         str,
-        CONFIG_ORDER:        str})
+        CONFIG_SORT: str,
+        CONFIG_ORDER: str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_SORT:         SORTS[0],
-        CONFIG_ORDER:        ORDERS[0]}
+        CONFIG_SORT: SORTS[0],
+        CONFIG_ORDER: ORDERS[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

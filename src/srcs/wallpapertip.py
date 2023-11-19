@@ -39,17 +39,17 @@ class WallpaperTip(Source):
     VERSION = '0.0.1'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_MODE:       str,
-        CONFIG_SEARCH:     str,
+        CONFIG_MODE: str,
+        CONFIG_SEARCH: str,
         CONFIG_RESOLUTION: str,
-        CONFIG_DEVICE:     str,
-        CONFIG_COLOR:      str})
+        CONFIG_DEVICE: str,
+        CONFIG_COLOR: str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_MODE:       MODES[0],
-        CONFIG_SEARCH:     '',
+        CONFIG_MODE: MODES[0],
+        CONFIG_SEARCH: '',
         CONFIG_RESOLUTION: RESOLUTIONS[15],
-        CONFIG_DEVICE:     DEVICES[3],
-        CONFIG_COLOR:      COLORS[12]}
+        CONFIG_DEVICE: DEVICES[3],
+        CONFIG_COLOR: COLORS[12]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

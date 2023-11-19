@@ -30,16 +30,16 @@ class DeviantArt(Source):
     URL = 'https://www.deviantart.com'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_RATINGS:      list[bool],
-        CONFIG_STATIC:       bool,
-        CONFIG_SEARCH:       str,
-        CONFIG_ORDER:        str})
+        CONFIG_RATINGS: list[bool],
+        CONFIG_STATIC: bool,
+        CONFIG_SEARCH: str,
+        CONFIG_ORDER: str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_RATINGS:      [True, True],
-        CONFIG_STATIC:       True,
-        CONFIG_SEARCH:       '',
-        CONFIG_ORDER:        ORDERS[3]}
+        CONFIG_RATINGS: [True, True],
+        CONFIG_STATIC: True,
+        CONFIG_SEARCH: '',
+        CONFIG_ORDER: ORDERS[3]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

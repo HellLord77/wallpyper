@@ -54,16 +54,16 @@ class BestHDWallpaper(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_SEARCH:       str,
-        CONFIG_SORT:         str,
-        CONFIG_CATEGORY:     str,
-        CONFIG_RESOLUTION:   str})
+        CONFIG_SEARCH: str,
+        CONFIG_SORT: str,
+        CONFIG_CATEGORY: str,
+        CONFIG_RESOLUTION: str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_SEARCH:       '',
-        CONFIG_SORT:         SORTS[1],
-        CONFIG_CATEGORY:     CATEGORIES[0],
-        CONFIG_RESOLUTION:   RESOLUTIONS[0]}
+        CONFIG_SEARCH: '',
+        CONFIG_SORT: SORTS[1],
+        CONFIG_CATEGORY: CATEGORIES[0],
+        CONFIG_RESOLUTION: RESOLUTIONS[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

@@ -172,8 +172,7 @@ class THAR(TypedDict):
 
 
 def default_har(name: str = _name, version: str = _version) -> THAR:
-    # noinspection PyTypeChecker
-    return {'log': {'version':                        '1.2', 'creator': {
+    return {'log': {'version': '1.2', 'creator': {
         'name': name, 'version': version}, 'entries': []}}
 
 
@@ -181,13 +180,14 @@ def encode_cookies(cookies: Iterable[http.cookiejar.Cookie],
                    request: Optional[MutableMapping] = None) -> list[TCookie]:
     encoded = []
     for cookie in cookies:
-        encoded_cookie = {'name': cookie.name, 'value': cookie.value}
+        encoded_cookie = {'name': cookie.name, 'value': cookie.value or ''}
         if cookie.path != '/':
             encoded_cookie['path'] = cookie.path
         if cookie.domain:
             encoded_cookie['domain'] = cookie.domain
         if cookie.expires is not None:
-            encoded_cookie['expires'] = datetime.datetime.utcfromtimestamp(cookie.expires).isoformat()
+            encoded_cookie['expires'] = datetime.datetime.fromtimestamp(
+                cookie.expires, datetime.UTC).isoformat()
         # noinspection PyUnresolvedReferences,PyProtectedMember
         encoded_cookie['httpOnly'] = 'HttpOnly' in cookie._rest
         encoded_cookie['secure'] = cookie.secure
@@ -203,7 +203,6 @@ def encode_headers(headers: Iterable[tuple[str, str]],
     encoded = [{'name': name, 'value': value} for name, value in headers], -1
     if request is not None:
         request['headers'], request['headersSize'] = encoded
-    # noinspection PyTypeChecker
     return encoded
 
 
@@ -218,7 +217,6 @@ def encode_params(params: Mapping[AnyStr, Iterable[AnyStr]],
             encoded.append(encode_param)
     if request is not None:
         request['queryString'] = encoded
-    # noinspection PyTypeChecker
     return encoded
 
 
@@ -227,7 +225,6 @@ def encode_body(mime: str, body: bytes | str,
     encoded = {'mimeType': mime, 'text': _str(body)}, len(body)
     if request is not None:
         request['postData'], request['bodySize'] = encoded
-    # noinspection PyTypeChecker
     return encoded
 
 
@@ -236,8 +233,8 @@ def encode_request(request: urllib.request.Request | _Request,
     if isinstance(request, _Request):
         request = request.prepare()
     encoded = {
-        'method':      request.method,
-        'url':         _strip_url(request.full_url, fragment=False),
+        'method': request.method,
+        'url': _strip_url(request.full_url, fragment=False),
         'httpVersion': 'HTTP/1.1'}
     cookies = getattr(request, '_cookies', None)
     encode_cookies([] if cookies is None else _extract_cookies(cookies), encoded)
@@ -252,17 +249,19 @@ def encode_request(request: urllib.request.Request | _Request,
 
 
 def encode(*requests: urllib.request.Request | _Request | tuple[
-    urllib.request.Request | _Request, float | datetime.datetime]) -> THAR:
+        urllib.request.Request | _Request, float | datetime.datetime]) -> THAR:
     encoded = default_har()
     for request_started in requests:
         if isinstance(request_started, tuple):
             request, started = request_started
         else:
             request = request_started
-            started = datetime.datetime.utcnow()
+            started = datetime.datetime.now(datetime.UTC)
         if not isinstance(started, datetime.datetime):
-            started = datetime.datetime.utcfromtimestamp(started)
+            started = datetime.datetime.fromtimestamp(
+                started, datetime.UTC)
         entry = {'startedDateTime': started.isoformat()}
         encode_request(request, entry)
+        # noinspection PyTypeChecker
         encoded['log']['entries'].append(entry)
     return encoded

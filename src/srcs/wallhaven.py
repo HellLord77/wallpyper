@@ -59,31 +59,31 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
     VERSION = '0.0.8'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_KEY:        str,
-        'q':               str,
+        CONFIG_KEY: str,
+        'q': str,
         CONFIG_CATEGORIES: list[bool],
-        CONFIG_PURITY:     str,
-        CONFIG_SORTING:    str,
-        CONFIG_ORDER:      str,
-        CONFIG_RANGE:      str,
-        'atleast':         str,
-        'resolutions':     str,
-        CONFIG_RATIO:      list[str],
-        CONFIG_COLORS:     str,
-        CONFIG_AI:         bool})
+        CONFIG_PURITY: str,
+        CONFIG_SORTING: str,
+        CONFIG_ORDER: str,
+        CONFIG_RANGE: str,
+        'atleast': str,
+        'resolutions': str,
+        CONFIG_RATIO: list[str],
+        CONFIG_COLORS: str,
+        CONFIG_AI: bool})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_KEY:        '',
-        'q':               '',
+        CONFIG_KEY: '',
+        'q': '',
         CONFIG_CATEGORIES: [True, True, True],
-        CONFIG_PURITY:     '100',
-        CONFIG_SORTING:    SORTINGS[0],
-        CONFIG_ORDER:      ORDERS[0],
-        CONFIG_RANGE:      RANGES[3],
-        'atleast':         '',
-        'resolutions':     '',
-        CONFIG_RATIO:      [RATIOS[0], RATIOS[6]],
-        CONFIG_COLORS:     COLORS[0],
-        CONFIG_AI:         True}
+        CONFIG_PURITY: '100',
+        CONFIG_SORTING: SORTINGS[0],
+        CONFIG_ORDER: ORDERS[0],
+        CONFIG_RANGE: RANGES[3],
+        'atleast': '',
+        'resolutions': '',
+        CONFIG_RATIO: [RATIOS[0], RATIOS[6]],
+        CONFIG_COLORS: COLORS[0],
+        CONFIG_AI: True}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

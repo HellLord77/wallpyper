@@ -46,19 +46,19 @@ _MENU_ITEM_TOOLTIP_MAX_WIDTH = 32767
 
 _MIM_TO_FIELD = {
     ctyped.const.MIM_BACKGROUND: 'hbrBack',
-    ctyped.const.MIM_HELPID:     'dwContextHelpID',
-    ctyped.const.MIM_MAXHEIGHT:  'cyMax',
-    ctyped.const.MIM_STYLE:      'dwStyle'}
+    ctyped.const.MIM_HELPID: 'dwContextHelpID',
+    ctyped.const.MIM_MAXHEIGHT: 'cyMax',
+    ctyped.const.MIM_STYLE: 'dwStyle'}
 _MIIM_TO_FIELDS = {
-    ctyped.const.MIIM_STATE:      ('fState',),
-    ctyped.const.MIIM_ID:         ('wID',),
-    ctyped.const.MIIM_SUBMENU:    ('hSubMenu',),
+    ctyped.const.MIIM_STATE: ('fState',),
+    ctyped.const.MIIM_ID: ('wID',),
+    ctyped.const.MIIM_SUBMENU: ('hSubMenu',),
     ctyped.const.MIIM_CHECKMARKS: ('hbmpChecked', 'hbmpUnchecked'),
-    ctyped.const.MIIM_TYPE:       ('fType', 'dwTypeData'),
-    ctyped.const.MIIM_DATA:       ('dwItemData',),
-    ctyped.const.MIIM_STRING:     ('dwTypeData', 'cch'),
-    ctyped.const.MIIM_BITMAP:     ('hbmpItem',),
-    ctyped.const.MIIM_FTYPE:      ('fType',)}
+    ctyped.const.MIIM_TYPE: ('fType', 'dwTypeData'),
+    ctyped.const.MIIM_DATA: ('dwItemData',),
+    ctyped.const.MIIM_STRING: ('dwTypeData', 'cch'),
+    ctyped.const.MIIM_BITMAP: ('hbmpItem',),
+    ctyped.const.MIIM_FTYPE: ('fType',)}
 
 FLAG_BITMAP_PATH_CACHE = True
 FLAG_MENU_ITEM_RESHOW_TOOLTIP = False

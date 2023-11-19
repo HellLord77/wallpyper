@@ -50,20 +50,20 @@ class Fonstola(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_LIST:         str,
-        CONFIG_SORT:         str,
-        CONFIG_TAGS:         str,
-        CONFIG_COLOR:        str,
-        CONFIG_PERIOD:       str,
-        CONFIG_CATEGORY:     str})
+        CONFIG_LIST: str,
+        CONFIG_SORT: str,
+        CONFIG_TAGS: str,
+        CONFIG_COLOR: str,
+        CONFIG_PERIOD: str,
+        CONFIG_CATEGORY: str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_LIST:         LISTS[0],
-        CONFIG_SORT:         SORTS[0],
-        CONFIG_TAGS:         '',
-        CONFIG_COLOR:        COLORS[0],
-        CONFIG_PERIOD:       PERIODS[0],
-        CONFIG_CATEGORY:     CATEGORIES[0]}
+        CONFIG_LIST: LISTS[0],
+        CONFIG_SORT: SORTS[0],
+        CONFIG_TAGS: '',
+        CONFIG_COLOR: COLORS[0],
+        CONFIG_PERIOD: PERIODS[0],
+        CONFIG_CATEGORY: CATEGORIES[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

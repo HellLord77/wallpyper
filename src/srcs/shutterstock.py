@@ -45,31 +45,31 @@ def _authenticate(key: str, secret: str) -> bool:
 class ShutterStock(Source):  # https://api-reference.shutterstock.com
     NAME = '# shutterstock'
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_KEY:         str,
-        CONFIG_SECRET:      str,
-        'query':            str,
-        CONFIG_TYPE:        tuple[str, str, str],
+        CONFIG_KEY: str,
+        CONFIG_SECRET: str,
+        'query': str,
+        CONFIG_TYPE: tuple[str, str, str],
         CONFIG_ORIENTATION: str,
-        CONFIG_COLOR:       str,
-        CONFIG_PEOPLE:      str,
-        CONFIG_AGE:         str,
-        CONFIG_NUMBER:      str,
-        CONFIG_LICENSE:     tuple[str, str, str],
-        CONFIG_SAFE:        str,
-        CONFIG_SORT:        str})
+        CONFIG_COLOR: str,
+        CONFIG_PEOPLE: str,
+        CONFIG_AGE: str,
+        CONFIG_NUMBER: str,
+        CONFIG_LICENSE: tuple[str, str, str],
+        CONFIG_SAFE: str,
+        CONFIG_SORT: str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_KEY:         '',
-        CONFIG_SECRET:      '',
-        'query':            '',
-        CONFIG_TYPE:        TYPES,
+        CONFIG_KEY: '',
+        CONFIG_SECRET: '',
+        'query': '',
+        CONFIG_TYPE: TYPES,
         CONFIG_ORIENTATION: ORIENTATIONS[0],
-        CONFIG_COLOR:       COLORS[0],
-        CONFIG_PEOPLE:      PEOPLE[0],
-        CONFIG_AGE:         AGES[0],
-        CONFIG_NUMBER:      NUMBERS[0],
-        CONFIG_LICENSE:     LICENCES,
-        CONFIG_SAFE:        SAVES[0],
-        CONFIG_SORT:        SORTS[0]}
+        CONFIG_COLOR: COLORS[0],
+        CONFIG_PEOPLE: PEOPLE[0],
+        CONFIG_AGE: AGES[0],
+        CONFIG_NUMBER: NUMBERS[0],
+        CONFIG_LICENSE: LICENCES,
+        CONFIG_SAFE: SAVES[0],
+        CONFIG_SORT: SORTS[0]}
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:

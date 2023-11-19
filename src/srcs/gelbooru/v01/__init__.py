@@ -66,16 +66,16 @@ class GelbooruV01Hash(Hash):
 class GelbooruV01Source(GelbooruSource, source=False):
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_MODE:         str,
-        CONFIG_TAGS:         list[str],
-        CONFIG_RATING:       list[bool],
-        CONFIG_ID:           int})
+        CONFIG_MODE: str,
+        CONFIG_TAGS: list[str],
+        CONFIG_RATING: list[bool],
+        CONFIG_ID: int})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_MODE:         MODES[0],
-        CONFIG_TAGS:         [],
-        CONFIG_RATING:       [True, True, True],
-        CONFIG_ID:           0}
+        CONFIG_MODE: MODES[0],
+        CONFIG_TAGS: [],
+        CONFIG_RATING: [True, True, True],
+        CONFIG_ID: 0}
 
     def __init_subclass__(cls, *args, **kwargs):
         cls._text = GelbooruV01Source._text

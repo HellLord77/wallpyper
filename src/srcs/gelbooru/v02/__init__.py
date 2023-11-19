@@ -79,30 +79,30 @@ def _tag_sort(sort: str, order: str) -> Iterator[str]:
 class GelbooruV02Source(GelbooruSource, source=False):
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_STATIC:       bool,
-        CONFIG_MODE:         str,
-        CONFIG_TAGS:         list[str],
-        CONFIG_RATING:       list[bool],
-        CONFIG_SORT:         str,
-        CONFIG_ORDER:        str,
-        CONFIG_SIZE:         str,
-        CONFIG_WIDTH:        int,
-        CONFIG_HEIGHT:       int,
-        CONFIG_FAVORITE:     int,
-        CONFIG_POOL:         int})
+        CONFIG_STATIC: bool,
+        CONFIG_MODE: str,
+        CONFIG_TAGS: list[str],
+        CONFIG_RATING: list[bool],
+        CONFIG_SORT: str,
+        CONFIG_ORDER: str,
+        CONFIG_SIZE: str,
+        CONFIG_WIDTH: int,
+        CONFIG_HEIGHT: int,
+        CONFIG_FAVORITE: int,
+        CONFIG_POOL: int})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_STATIC:       False,
-        CONFIG_MODE:         MODES[0],
-        CONFIG_TAGS:         [],
-        CONFIG_RATING:       [True, True, True],
-        CONFIG_SORT:         SORTS[0],
-        CONFIG_ORDER:        ORDERS[1],
-        CONFIG_SIZE:         SIZES[0],
-        CONFIG_WIDTH:        WIDTHS[9],
-        CONFIG_HEIGHT:       HEIGHTS[10],
-        CONFIG_FAVORITE:     0,
-        CONFIG_POOL:         0}
+        CONFIG_STATIC: False,
+        CONFIG_MODE: MODES[0],
+        CONFIG_TAGS: [],
+        CONFIG_RATING: [True, True, True],
+        CONFIG_SORT: SORTS[0],
+        CONFIG_ORDER: ORDERS[1],
+        CONFIG_SIZE: SIZES[0],
+        CONFIG_WIDTH: WIDTHS[9],
+        CONFIG_HEIGHT: HEIGHTS[10],
+        CONFIG_FAVORITE: 0,
+        CONFIG_POOL: 0}
 
     def __init_subclass__(cls, *args, **kwargs):
         cls._text = GelbooruV02Source._text

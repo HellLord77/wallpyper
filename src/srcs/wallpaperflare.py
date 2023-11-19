@@ -48,9 +48,9 @@ _CONTENT_END = (
     b'Back to HomePage</a></main></body></html>')
 # noinspection HttpUrlsUsage
 _ATTRS_ITEM = {
-    'itemprop':  'associatedMedia',
+    'itemprop': 'associatedMedia',
     'itemscope': '',
-    'itemtype':  'http://schema.org/ImageObject'}
+    'itemtype': 'http://schema.org/ImageObject'}
 _ATTRS_URL = {'itemprop': 'url'}
 _ATTRS_SRC = {'itemprop': 'contentUrl'}
 
@@ -60,15 +60,15 @@ class WallpaperFlare(Source):
     VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_SEARCH:    bool,
+        CONFIG_SEARCH: bool,
         CONFIG_WALLPAPER: str,
-        CONFIG_MOBILE:    bool,
-        CONFIG_SORT:      str})
+        CONFIG_MOBILE: bool,
+        CONFIG_SORT: str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_SEARCH:    False,
+        CONFIG_SEARCH: False,
         CONFIG_WALLPAPER: '',
-        CONFIG_MOBILE:    False,
-        CONFIG_SORT:      SORTS[0]}
+        CONFIG_MOBILE: False,
+        CONFIG_SORT: SORTS[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

@@ -31,12 +31,12 @@ class WallpapersMug(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_SEARCH: str,
-        CONFIG_TAG:    str,
-        CONFIG_SORT:   str})
+        CONFIG_TAG: str,
+        CONFIG_SORT: str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_SEARCH: '',
-        CONFIG_TAG:    TAGS[24],
-        CONFIG_SORT:   SORTS[0]}
+        CONFIG_TAG: TAGS[24],
+        CONFIG_SORT: SORTS[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

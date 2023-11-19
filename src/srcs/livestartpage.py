@@ -31,12 +31,12 @@ class LiveStartPage(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_CATEGORY: list[int],
-        CONFIG_RANDOM:   bool,
-        CONFIG_CURSOR:   int})
+        CONFIG_RANDOM: bool,
+        CONFIG_CURSOR: int})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_CATEGORY: list(CATEGORIES),
-        CONFIG_RANDOM:   True,
-        CONFIG_CURSOR:   0}
+        CONFIG_RANDOM: True,
+        CONFIG_CURSOR: 0}
 
     _set_tooltip: Callable[[str], bool]
 

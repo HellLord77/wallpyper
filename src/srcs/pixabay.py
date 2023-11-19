@@ -49,27 +49,27 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
     URL = 'https://pixabay.com'
     ICON = 'png'
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_KEY:         str,
-        'q':                str,
-        CONFIG_LANG:        str,
-        CONFIG_TYPE:        str,
+        CONFIG_KEY: str,
+        'q': str,
+        CONFIG_LANG: str,
+        CONFIG_TYPE: str,
         CONFIG_ORIENTATION: str,
-        CONFIG_CATEGORY:    str,
-        CONFIG_COLORS:      list[str],
-        CONFIG_EDITOR:      bool,
-        CONFIG_SAFE:        bool,
-        CONFIG_ORDER:       str})
+        CONFIG_CATEGORY: str,
+        CONFIG_COLORS: list[str],
+        CONFIG_EDITOR: bool,
+        CONFIG_SAFE: bool,
+        CONFIG_ORDER: str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_KEY:         '',
-        'q':                '',
-        CONFIG_LANG:        LANGS[3],
-        CONFIG_TYPE:        TYPES[0],
+        CONFIG_KEY: '',
+        'q': '',
+        CONFIG_LANG: LANGS[3],
+        CONFIG_TYPE: TYPES[0],
         CONFIG_ORIENTATION: ORIENTATIONS[0],
-        CONFIG_CATEGORY:    CATEGORIES[0],
-        CONFIG_COLORS:      [],
-        CONFIG_EDITOR:      False,
-        CONFIG_SAFE:        False,
-        CONFIG_ORDER:       ORDERS[0]}
+        CONFIG_CATEGORY: CATEGORIES[0],
+        CONFIG_COLORS: [],
+        CONFIG_EDITOR: False,
+        CONFIG_SAFE: False,
+        CONFIG_ORDER: ORDERS[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

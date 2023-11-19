@@ -2,10 +2,8 @@ import contextlib
 import functools
 import glob
 import io
-import json
 import ntpath
 import os
-import pprint
 import re
 import shutil
 import subprocess
@@ -29,8 +27,8 @@ DOC_LINK_PREFIX = 'https://learn.microsoft.com/en-us/uwp/api/'
 # DOC_LINK_PREFIX = 'https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/'
 WINMDIDL_DIR = r'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64'
 TYPE_MAP = {
-    'IUnknown':                                               '_Unknwnbase.IUnknown',
-    'IInspectable':                                           '_inspectable.IInspectable',
+    'IUnknown': '_Unknwnbase.IUnknown',
+    'IInspectable': '_inspectable.IInspectable',
     'Windows.Foundation.Collections.IVectorChangedEventArgs': '_Windows_Foundation_Collections.IVectorChangedEventArgs'}
 ABS_IMPORTS = [
     'from __future__ import annotations as _',
@@ -44,18 +42,18 @@ EX_IMPORTS: tuple[str, ...] = (
     '... import type as _type',
     '..._utils import _Pointer')
 EX_ENUMS = {
-    'Windows.Foundation.AsyncStatus':                  {
-        'Started':   '0',
+    'Windows.Foundation.AsyncStatus': {
+        'Started': '0',
         'Completed': '1',
-        'Canceled':  '2',
-        'Error':     '3'},
+        'Canceled': '2',
+        'Error': '3'},
     'Windows.Foundation.Collections.CollectionChange': {
-        'Reset':        '0',
+        'Reset': '0',
         'ItemInserted': '1',
-        'ItemRemoved':  '2',
-        'ItemChanged':  '3'}}
+        'ItemRemoved': '2',
+        'ItemChanged': '3'}}
 DATA_INTERFACE: dict[str, str] = {
-    'Windows.Foundation':             '''
+    'Windows.Foundation': '''
 class _IAsyncOperationProgressHandler(_Template):
     Invoke: _Callable[[IAsyncOperationWithProgress[_TResult, _TProgress],  # asyncInfo
                        _TProgress],  # progressInfo

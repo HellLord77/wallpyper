@@ -28,10 +28,10 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
     URL = 'https://en.wikipedia.org/wiki/Windows_Spotlight'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATION: str,
-        CONFIG_LOCALE:      str})
+        CONFIG_LOCALE: str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATION: ORIENTATIONS[0],
-        CONFIG_LOCALE:      LOCALES[0]}
+        CONFIG_LOCALE: LOCALES[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

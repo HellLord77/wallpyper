@@ -76,28 +76,28 @@ class Backiee(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATION: str,
-        CONFIG_LIST:        str,
+        CONFIG_LIST: str,
         CONFIG_RESOLUTIONS: list[bool],
-        CONFIG_SORT:        str,
-        CONFIG_CATEGORY:    str,
-        CONFIG_POPULAR:     str,
-        CONFIG_SELECTION:   str,
-        CONFIG_COUNTRY:     str,
-        CONFIG_RESOLUTION:  str,
-        CONFIG_PUBLISHER:   int,
-        CONFIG_SEARCH:      str})
+        CONFIG_SORT: str,
+        CONFIG_CATEGORY: str,
+        CONFIG_POPULAR: str,
+        CONFIG_SELECTION: str,
+        CONFIG_COUNTRY: str,
+        CONFIG_RESOLUTION: str,
+        CONFIG_PUBLISHER: int,
+        CONFIG_SEARCH: str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATION: ORIENTATIONS[0],
-        CONFIG_LIST:        LISTS[1],
+        CONFIG_LIST: LISTS[1],
         CONFIG_RESOLUTIONS: [False, False, False],
-        CONFIG_SORT:        SORTS[0],
-        CONFIG_CATEGORY:    CATEGORIES[0],
-        CONFIG_POPULAR:     POPULARS[4],
-        CONFIG_SELECTION:   SELECTIONS[0],
-        CONFIG_COUNTRY:     COUNTRY[0],
-        CONFIG_RESOLUTION:  RESOLUTIONS[0],
-        CONFIG_PUBLISHER:   0,
-        CONFIG_SEARCH:      ''}
+        CONFIG_SORT: SORTS[0],
+        CONFIG_CATEGORY: CATEGORIES[0],
+        CONFIG_POPULAR: POPULARS[4],
+        CONFIG_SELECTION: SELECTIONS[0],
+        CONFIG_COUNTRY: COUNTRY[0],
+        CONFIG_RESOLUTION: RESOLUTIONS[0],
+        CONFIG_PUBLISHER: 0,
+        CONFIG_SEARCH: ''}
 
     @classmethod
     def fix_config(cls, saving: bool = False):
