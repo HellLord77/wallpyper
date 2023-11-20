@@ -540,7 +540,7 @@ _TCookies = Iterable[_TCookie] | Mapping[
     str | http.cookies.Morsel, Optional[str]] | http.cookiejar.CookieJar
 _TFiles = Mapping[str, bytes | str | BinaryIO | tuple[
     bytes | str | BinaryIO] | tuple[bytes | str | BinaryIO, bytes | str] | tuple[
-                      bytes | str | BinaryIO, bytes | str, Mapping[str, Optional[str]]]]
+                           bytes | str | BinaryIO, bytes | str, Mapping[str, Optional[str]]]]
 _TAuth = bytes | str | tuple[bytes | str, bytes | str] | Auth | AuthManager
 _TAuths = Iterable[_TAuth] | Mapping[str | Iterable[str], _TAuth] | AuthManager
 _TJSON = bool | int | float | str | tuple | list | dict
@@ -802,6 +802,8 @@ class Request:
         return self._request
 
     def prepare_method(self, method: Optional[_TMethod] = None):
+        if method is None:
+            method = Method.GET
         encode_method(method, self._request)
 
     def prepare_url(self, url: Optional[_TURL] = None, params: Optional[_TParams] = None):

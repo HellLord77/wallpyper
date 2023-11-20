@@ -3,6 +3,7 @@ from __future__ import annotations as _
 __version__ = '0.0.2'
 
 import itertools
+import logging
 import os
 from typing import Optional
 
@@ -11,6 +12,8 @@ from libs.ctyped.const import brotli as const_brotli
 from libs.ctyped.enum import brotli as enum_brotli
 from libs.ctyped.lib import brotlidec
 from libs.ctyped.lib import brotlienc
+
+logger = logging.getLogger(__name__)
 
 _BLOCK_SIZES = tuple(size * 1024 for size in (
     32, 64, 256, 1 * 1024, 4 * 1024, 8 * 1024, *(16 * 1024,) * 2,
@@ -46,12 +49,16 @@ class _Brotli(type):
 
     def __bool__(self):
         try:
-            # noinspection PyUnresolvedReferences
             self.get_version()
-        except:  # NOQA E722
+        except BaseException as exc:
+            logger.warning(f'Failed loading brotli: %s',
+                           self.__name__, exc_info=exc)
             return False
         else:
             return True
+
+    def get_version(cls) -> tuple[int, int, int]:
+        raise NotImplementedError
 
 
 class Decompressor(metaclass=_Brotli):

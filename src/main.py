@@ -1,3 +1,4 @@
+import atexit
 import collections
 import datetime
 import functools
@@ -7,6 +8,7 @@ import multiprocessing
 import os
 import pickle
 import re
+import subprocess
 import sys
 import sysconfig
 import tempfile
@@ -226,8 +228,7 @@ def create_menu():
         gui.add_menu_item(_text('LABEL_ABOUT'), on_click=on_about).set_icon(RES_FMT.format(consts.RES_ABOUT))
         gui.add_menu_item(_text('LABEL_CLEAR_CACHE'), on_click=on_clear_cache).set_icon(
             RES_FMT.format(consts.RES_CLEAR_CACHE))
-        gui.add_menu_item(_text('LABEL_RESTART'), enable=__feature__.RESTART_APP,
-                          on_click=on_restart).set_icon(RES_FMT.format(consts.RES_RESTART))
+        gui.add_menu_item(_text('LABEL_RESTART'), on_click=on_restart).set_icon(RES_FMT.format(consts.RES_RESTART))
     with gui.set_menu(gui.add_submenu(_text('MENU_SETTINGS'), icon=RES_FMT.format(consts.RES_SETTINGS))):
         with gui.set_menu(gui.add_submenu(_text('MENU_AUTO'), icon=RES_FMT.format(consts.RES_AUTO))):
             gui.add_menu_item_check(_text('LABEL_CHANGE_START'), CURRENT_CONFIG,
@@ -310,7 +311,7 @@ def create_menu():
         gui.add_menu_item_check(_text('LABEL_START'), CURRENT_CONFIG, consts.CONFIG_AUTO_START)
         gui.add_menu_item_check(_text('LABEL_SETTINGS_AUTO_SAVE'), CURRENT_CONFIG, consts.CONFIG_SAVE_CONFIG)
         gui.add_separator()
-        with gui.set_menu(gui.add_submenu(_text('MENU_RESET'), __feature__.RESTART_APP,
+        with gui.set_menu(gui.add_submenu(_text('MENU_RESET'), __feature__.RESTART_SOFT,
                                           icon=RES_FMT.format(consts.RES_SETTINGS_RESET))):
             gui.add_menu_item(_text('LABEL_RESET_SOURCE'), on_click=functools.partial(
                 on_reset, False)).set_icon(RES_FMT.format(consts.RES_RESET_SOURCE))
@@ -532,7 +533,7 @@ def change_wallpaper(image: Optional[srcs.File] = None) -> bool:
             try:
                 image = get_image()
             except BaseException as exc:
-                logging.error('Failed getting image', exc_info=exc)
+                logger.error('Failed getting image', exc_info=exc)
                 try_alert_error(exc, True)
     if image is not None:
         try:
@@ -903,8 +904,17 @@ def on_reset(main_: bool = True, source: bool = True):
     on_restart()
 
 
-def on_restart():
-    RESTART.set(True)
+def on_restart(hard: bool = False):
+    if hard or __flag__.HARD_RESTART or not __feature__.RESTART_SOFT:
+        args = list(pyinstall.get_launch_args())
+        args.extend(sys.argv[1:])
+        if consts.ARG_WAIT not in args:
+            args.append(consts.ARG_WAIT)
+        # noinspection PyTypeChecker
+        atexit.register(subprocess.Popen, args,
+                        creationflags=subprocess.CREATE_NEW_CONSOLE)
+    else:
+        RESTART.set(True)
     on_quit()
 
 

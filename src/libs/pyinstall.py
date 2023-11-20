@@ -18,10 +18,10 @@ TEMP_DIR = getattr(sys, '_MEIPASS', '')
 
 
 def get_launch_args() -> tuple[str, ...]:
-    if FROZEN:
-        return sys.executable,
-    else:
-        return sys.executable, __main__.__file__
+    args = sys.executable,
+    if not FROZEN:
+        args += __main__.__file__,
+    return args
 
 
 def clean_temp() -> bool:

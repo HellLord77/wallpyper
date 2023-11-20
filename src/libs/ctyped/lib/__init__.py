@@ -6,6 +6,7 @@ import functools as _functools
 import logging as _logging
 import os as _os
 import sys as _sys
+from typing import Iterator as _Iterator
 from typing import Optional as _Optional
 
 from .. import const as _const
@@ -13,7 +14,7 @@ from .._utils import _fmt_annot
 from .._utils import _func_doc
 from .._utils import _resolve_type
 
-_logger = _logging.getLogger(__name__)
+logger = _logging.getLogger(__name__)
 
 
 class _CLib:
@@ -56,14 +57,19 @@ class _CLib:
     def __file__(self) -> str:
         return _ctypes_util.find_library(self._name) or self._name
 
+    def _names(self) -> _Iterator[str]:
+        yield self._name
+        if self._name != (file := self.__file__):
+            yield file
+
     @_functools.cached_property
     def _lib(self) -> _ctypes.CDLL:
-        for name in dict.fromkeys((self._name, self.__file__)):
+        for name in self._names():
             try:
                 return self._loader(name)
             except OSError as exc:
-                _logger.debug('Failed loading library: %r', name, exc_info=exc)
-        _logger.error('Could not find library: %r', self._name)
+                logger.debug('Failed loading library: %r', name, exc_info=exc)
+        logger.error('Could not find library: %r', self._name)
         raise ModuleNotFoundError(f'no lib named {self._name!r}')
 
 

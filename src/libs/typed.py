@@ -210,7 +210,7 @@ def _isinstance_iterable(obj, cls) -> bool:
 
 
 def _isinstance_callable(obj, cls) -> bool:
-    logging.debug(f'Incompletely implemented {_isinstance_callable.__name__!r} called')
+    logger.warning('Incompletely implemented %r called', _isinstance_callable.__name__)
     if isinstance(obj, typing.get_origin(cls)):
         args = typing.get_args(cls)
         if args:
