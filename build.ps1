@@ -1,4 +1,4 @@
-$Version = "0.3.11"
+$Version = "0.3.12"
 ################################################################################
 $PythonOptimize = 2  # FIXME https://github.com/pyinstaller/pyinstaller/issues/3379
 $PythonHashSeed = 0
@@ -136,6 +136,7 @@ $UPXLocal = $False
 $StripSymbols = $False
 $ModuleGraphSmart = $True
 $ModuleGraphReduce = $False  # TODO
+$CythonCPP = $False
 $CythonRemoveC = $False
 $NuitkaRemoveBuild = $True
 $RemoveOnThrow = $True
@@ -420,9 +421,12 @@ function Remove-Cython([bool]$Verbose = $False, [bool]$Throw = $True) {
 	Remove-pyd (Get-CythonSources) $Verbose $Throw
 	if ($CythonRemoveC) {
 		foreach ($Source in Get-CythonSources) {
-			$Path = "$(Source.Substring(0, $Source.LastIndexOf("."))).c"
-			if (Remove-Item $Path -Force -ErrorAction SilentlyContinue) {
-				if ($Verbose) { Write-Host "[Removed] $Path" }
+			$Base = Source.Substring(0, $Source.LastIndexOf("."))
+			foreach ($Ext in @("c", "cpp")) {
+				$Path = "$Base.$Ext"
+				if (Remove-Item $Path -Force -ErrorAction SilentlyContinue) {
+					if ($Verbose) { Write-Host "[Removed] $Path" }
+				}
 			}
 		}
 	}
@@ -432,6 +436,9 @@ function Get-CythonArgs {
 	$ArgsList = @("-3", "--inplace")
 	if ($CythonNoDocstrings) {
 		$ArgsList += "--no-docstrings"
+	}
+	if ($CythonCPP) {
+		$ArgsList += "--cplus"
 	}
 	foreach ($CythonExcludeGlob in $CythonExcludeGlobs) {
 		$ArgsList += "--exclude=$CythonExcludeGlob"
