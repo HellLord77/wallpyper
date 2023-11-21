@@ -1,10 +1,9 @@
 from __future__ import annotations as _
 
-__version__ = '0.2.10'
+__version__ = '0.2.11'
 
 import base64
 import bz2
-import calendar
 import dataclasses
 import datetime
 import functools
@@ -662,6 +661,7 @@ class _HTTPHandler(urllib.request.HTTPHandler):
 class _HTTPSHandler(urllib.request.HTTPSHandler):
     # noinspection PyShadowingNames
     def https_open(self, request: urllib.request.Request) -> http.client.HTTPResponse:
+        # noinspection PyTypeChecker
         return self.do_open(http.client.HTTPSConnection, request,
                             context=getattr(request, '_verify', None))
 
@@ -803,7 +803,7 @@ class Request:
 
     def prepare_method(self, method: Optional[_TMethod] = None):
         if method is None:
-            method = Method.GET
+            method = Method.POST if self.data else Method.GET
         encode_method(method, self._request)
 
     def prepare_url(self, url: Optional[_TURL] = None, params: Optional[_TParams] = None):
@@ -932,8 +932,8 @@ class Response:
     @property
     def links(self):
         links = {}
-        if Header.LINK in self.headers:
-            for url, params in get_links(self.headers[Header.LINK], self.url).items():
+        if (header := _caseinsensitive.get(self.headers, Header.LINK)) is not None:
+            for url, params in get_links(header, self.url).items():
                 links[params.get('rel', url)] = {'url': url, **params}
         return links
 
@@ -1324,7 +1324,7 @@ def join_url(base: str, *paths: str) -> str:
 
 
 def extract_params(url: AnyStr) -> dict[AnyStr, list[AnyStr]]:
-    return urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)
+    return urllib.parse.parse_qs(urllib.parse.urlsplit(url).query, True)
 
 
 # noinspection PyShadowingNames
@@ -1415,14 +1415,15 @@ def get_cookie(morsel_or_name, value=None, version=0, port=None, domain='',
         if morsel['max-age']:
             expires = int(time.time() + int(morsel['max-age']))
         elif morsel['expires']:
-            expires = calendar.timegm(time.strptime(morsel['expires'], '%a, %d-%b-%Y %H:%M:%S GMT'))
+            expires = datetime.datetime.strptime(
+                morsel['expires'], '%a, %d-%b-%Y %H:%M:%S GMT').timestamp()
         else:
             expires = None
         return get_cookie(morsel.key, morsel.value, morsel['version'], None, morsel['domain'], morsel['path'],
                           bool(morsel['secure']), expires, False, morsel['comment'], None, None, False)
     else:
         if rest is None:
-            rest = {'HttpOnly': None}
+            rest = {'HttpOnly': ''}
         port_specified = bool(port)
         domain_specified = bool(domain)
         domain_initial_dot = domain.startswith('.')
@@ -1595,6 +1596,7 @@ def encode_body(data: Optional[_TData] = None, files: Optional[_TFiles] = None, 
             if len(vals) > 1:
                 filename = vals[1]
                 if len(vals) > 2:
+                    # noinspection PyTypeChecker
                     headers.update(vals[2])
             val = vals[0]
             if filename is None:
@@ -1614,7 +1616,7 @@ def encode_body(data: Optional[_TData] = None, files: Optional[_TFiles] = None, 
         lines.append(f'--{boundary}--'.encode())
         lines.append(b'')
         mime = f'multipart/form-data; boundary={boundary}'
-        data = '\r\n'.encode().join(lines)
+        data = b'\r\n'.join(lines)
     elif data is not None:
         mime = 'application/x-www-form-urlencoded'
         data = _encode_params(data).encode()

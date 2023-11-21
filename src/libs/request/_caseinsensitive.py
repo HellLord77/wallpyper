@@ -2,6 +2,8 @@ from typing import Any
 from typing import Iterable
 from typing import Iterator
 from typing import Mapping
+from typing import MutableMapping
+from typing import Sequence
 
 
 def eq(string: str, other: str) -> bool:
@@ -22,17 +24,21 @@ def iter(iterable: Iterable[str]) -> Iterator[str]:
         yield key.lower()
 
 
-def index(iterable: Iterable[str], key: str) -> int:
+def match(iterable: Iterable[str], key: str) -> str:
     key = key.lower()
-    for index_, key_ in enumerate(iter(iterable)):
-        if key == key_:
-            return index_
+    for key_ in iterable:
+        if key == key_.lower():
+            return key_
     raise ValueError(f'{key!r} is not in iterable')
+
+
+def index(iterable: Sequence[str], key: str) -> int:
+    return iterable.index(match(iterable, key))
 
 
 def contains(iterable: Iterable[str], key: str) -> bool:
     try:
-        index(iterable, key)
+        match(iterable, key)
     except ValueError:
         return False
     else:
@@ -40,11 +46,20 @@ def contains(iterable: Iterable[str], key: str) -> bool:
 
 
 def getitem(mapping: Mapping[str, Any], key: str) -> Any:
-    key = key.lower()
-    for key_, val in zip(iter(mapping), mapping.values()):
-        if key == key_:
-            return val
-    raise KeyError(key)
+    try:
+        key = match(mapping, key)
+    except ValueError:
+        raise KeyError(key)
+    else:
+        return mapping[key]
+
+
+def setitem(mapping: MutableMapping[str, Any], key: str, value: Any):
+    try:
+        key = match(mapping, key)
+    except ValueError:
+        pass
+    mapping[key] = value
 
 
 def get(mapping: Mapping[str, Any], key: str, default: Any = None) -> Any:

@@ -1,5 +1,6 @@
 import datetime
 import http.cookiejar
+import logging
 import urllib.request
 from typing import AnyStr
 from typing import Iterable
@@ -11,13 +12,15 @@ from typing import TypedDict
 
 from . import Header as _Header
 from . import Request as _Request
+from . import Response as _Response
 from . import __name__ as _name
 from . import __version__ as _version
 from . import _caseinsensitive
-from . import _str
 from . import extract_cookies as _extract_cookies
 from . import extract_params as _extract_params
 from . import strip_url as _strip_url
+
+logger = logging.getLogger(__name__)
 
 
 class TTimings(TypedDict):
@@ -210,32 +213,32 @@ def encode_params(params: Mapping[AnyStr, Iterable[AnyStr]],
                   request: Optional[MutableMapping] = None) -> list[TQueryString]:
     encoded = []
     for key, vals in params.items():
-        for val in vals:
-            encode_param = {'name': key}
-            if val:
-                encode_param['value'] = val
-            encoded.append(encode_param)
+        encoded.extend({'name': key, 'value': val} for val in vals)
     if request is not None:
         request['queryString'] = encoded
     return encoded
 
 
-def encode_body(mime: str, body: bytes | str,
+def encode_body(mime: str, body: bytes,
                 request: Optional[MutableMapping] = None) -> tuple[TPostData, int]:
-    encoded = {'mimeType': mime, 'text': _str(body)}, len(body)
+    encoded = {'mimeType': mime, 'text': body.decode()}, -1
     if request is not None:
         request['postData'], request['bodySize'] = encoded
     return encoded
 
 
+# noinspection PyUnusedLocal
+def encode_auths(auths: Iterable,
+                 request: Optional[MutableMapping] = None):
+    logger.warning('Incompletely implemented %r called', encode_auths.__name__)
+
+
 def encode_request(request: urllib.request.Request | _Request,
-                   entry: Optional[MutableMapping] = None) -> dict:
+                   entry: Optional[MutableMapping] = None) -> TRequest:
     if isinstance(request, _Request):
         request = request.prepare()
-    encoded = {
-        'method': request.method,
-        'url': _strip_url(request.full_url, fragment=False),
-        'httpVersion': 'HTTP/1.1'}
+    encoded = {'method': request.method, 'url': _strip_url(
+        request.full_url, fragment=False), 'httpVersion': 'HTTP/1.1'}
     cookies = getattr(request, '_cookies', None)
     encode_cookies([] if cookies is None else _extract_cookies(cookies), encoded)
     encode_headers(request.header_items(), encoded)
@@ -243,13 +246,17 @@ def encode_request(request: urllib.request.Request | _Request,
     if request.data is not None:
         encode_body(_caseinsensitive.getitem(
             request.headers, _Header.CONTENT_TYPE), request.data, encoded)
+    if (auths := getattr(request, '_auths', None)) is not None:
+        encode_auths(auths, encoded)
     if entry is not None:
         entry['request'] = encoded
+    # noinspection PyTypeChecker
     return encoded
 
 
 def encode(*requests: urllib.request.Request | _Request | tuple[
         urllib.request.Request | _Request, float | datetime.datetime]) -> THAR:
+    logger.warning('Incompletely implemented %r called', encode.__name__)
     encoded = default_har()
     for request_started in requests:
         if isinstance(request_started, tuple):
@@ -265,3 +272,60 @@ def encode(*requests: urllib.request.Request | _Request | tuple[
         # noinspection PyTypeChecker
         encoded['log']['entries'].append(entry)
     return encoded
+
+
+def decode_cookies(cookies: list[TCookie],
+                   request: Optional[_Request] = None) -> list[http.cookiejar.Cookie]:
+    decoded = []
+    for cookie in cookies:
+        domain = cookie.get('domain', '')
+        path = cookie.get('path', '/')
+        expires = None
+        if 'expires' in cookie:
+            expires = datetime.datetime.fromisoformat(cookie['expires']).timestamp()
+        rest = {}
+        if cookie['httpOnly']:
+            rest['HttpOnly'] = ''
+        decoded_cookie = http.cookiejar.Cookie(
+            0, cookie['name'], cookie['value'], None, False, domain, bool(domain), domain.startswith(
+                '.'), path, bool(path), cookie['secure'], expires, True, None, None, rest)
+        decoded.append(decoded_cookie)
+    if request is not None:
+        request.cookies = decoded
+    return decoded
+
+
+def decode_headers(headers: tuple[list[THeader], int],  # TODO handle special merge headers
+                   request: Optional[_Request] = None) -> dict[str, str]:
+    decoded = {header['name']: header['value'] for header in headers[0]}
+    if request is not None:
+        request.headers = decoded
+    return decoded
+
+
+def decode_params(params: Iterable[TQueryString],
+                  request: Optional[_Request] = None) -> tuple[tuple[str, str], ...]:
+    decoded = tuple((param['name'], param['value']) for param in params)
+    if request is not None:
+        request.params = decoded
+    return decoded
+
+
+def decode_body(body: tuple[TPostData, int],
+                request: Optional[_Request] = None) -> tuple[str, Optional[bytes]]:
+    decoded = body[0]['mimeType'], body[0].get('text', '').encode()
+    if request is not None:
+        _caseinsensitive.setitem(request.headers, _Header.CONTENT_TYPE, decoded[0])
+        request.data = decoded[1]
+    return decoded
+
+
+def decode_request(request: TRequest,
+                   response: Optional[_Response] = None) -> _Request:
+    decoded = _Request(request['method'], request['url'], decode_headers((request['headers'], request[
+        'headersSize'])), params=decode_params(request['queryString']), cookies=decode_cookies(request['cookies']))
+    if 'postData' in request:
+        decode_body((request['postData'], request['bodySize']), decoded)
+    if response is not None:
+        response.request = decoded
+    return decoded
