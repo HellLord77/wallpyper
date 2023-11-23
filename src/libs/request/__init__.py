@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.2.11'
+__version__ = '0.2.12'
 
 import base64
 import bz2
@@ -40,7 +40,7 @@ from typing import NoReturn
 from typing import Optional
 from typing import Sequence
 
-from . import _caseinsensitive
+from . import _caseless
 
 CONTENT_CHUNK_SIZE = 10 * 1024
 RETRIEVE_UNKNOWN_SIZE = 0
@@ -420,11 +420,11 @@ class DigestAuth(Auth):
             return
         self.username = _str(self.username)
         self.password = _str(self.password)
-        realm = _caseinsensitive.get(params, 'realm')[0]
-        nonce = _caseinsensitive.get(params, 'nonce')[0]
-        qop = _caseinsensitive.get(params, 'qop')
-        algorithm = _caseinsensitive.get(params, 'algorithm', ('MD5',))
-        opaque = _caseinsensitive.get(params, 'opaque', (None,))[0]
+        realm = _caseless.get(params, 'realm')[0]
+        nonce = _caseless.get(params, 'nonce')[0]
+        qop = _caseless.get(params, 'qop')
+        algorithm = _caseless.get(params, 'algorithm', ('MD5',))
+        opaque = _caseless.get(params, 'opaque', (None,))[0]
         hash_, algorithm_ = self.get_algorithm(algorithm)
         if hash_ is None:
             return
@@ -438,17 +438,17 @@ class DigestAuth(Auth):
         else:
             self._nonce_count = 1
         cnonce = self.get_cnonce(nonce)
-        if _caseinsensitive.endswith(algorithm_, '-sess'):
+        if _caseless.endswith(algorithm_, '-sess'):
             ha1 = f'{ha1}:{nonce}:{cnonce}'
         nc = f'{self._nonce_count:08x}'
         if qop is None:
             qop_ = None
             response = hash_(f'{ha1}:{nonce}:{ha2}')
         else:
-            if _caseinsensitive.contains(qop, 'auth-int'):
+            if _caseless.contains(qop, 'auth-int'):
                 qop_ = 'auth-int'
                 ha2 = hash_(f'{a2}:{hash_(request.data or b"")}')
-            elif _caseinsensitive.contains(qop, 'auth'):
+            elif _caseless.contains(qop, 'auth'):
                 qop_ = 'auth'
             else:
                 return
@@ -471,9 +471,9 @@ class DigestAuth(Auth):
         for algorithm, algorithm_ in cls._algorithms:
             if algorithm in hashlib.algorithms_available and algorithm_ in algorithms_:
                 try:
-                    index = _caseinsensitive.index(algorithms, algorithm_ + '-SESS')
+                    index = _caseless.index(algorithms, algorithm_ + '-SESS')
                 except ValueError:
-                    index = _caseinsensitive.index(algorithms, algorithm_)
+                    index = _caseless.index(algorithms, algorithm_)
                 return lambda string: hashlib.new(
                     algorithm, _bytes(string)).hexdigest(), algorithms[index]
         return None, ''
@@ -711,7 +711,7 @@ class _HTTPAuthHandler(urllib.request.BaseHandler):
                    auths: Iterable[str]) -> Optional[http.client.HTTPResponse]:
         for auth in auths:
             # noinspection PyProtectedMember
-            if (params := _caseinsensitive.get(get_chals(
+            if (params := _caseless.get(get_chals(
                     auth), self._tauth_._scheme_)) is not None:
                 if self.encode(request, params):
                     return self.parent.open(request, timeout=request.timeout)
@@ -724,7 +724,7 @@ class _HTTPAuthHandler(urllib.request.BaseHandler):
             realm = None
             if params is not None:
                 params = params[0]
-                if (val := _caseinsensitive.get(params, 'realm')) is not None:
+                if (val := _caseless.get(params, 'realm')) is not None:
                     realm = val[0]
             auth = man.get_auth(request.full_url, realm)
             if isinstance(auth, self._tauth_) and auth.encode(
@@ -932,7 +932,7 @@ class Response:
     @property
     def links(self):
         links = {}
-        if (header := _caseinsensitive.get(self.headers, Header.LINK)) is not None:
+        if (header := _caseless.get(self.headers, Header.LINK)) is not None:
             for url, params in get_links(header, self.url).items():
                 links[params.get('rel', url)] = {'url': url, **params}
         return links

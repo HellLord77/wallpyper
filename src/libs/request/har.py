@@ -15,7 +15,7 @@ from . import Request as _Request
 from . import Response as _Response
 from . import __name__ as _name
 from . import __version__ as _version
-from . import _caseinsensitive
+from . import _caseless
 from . import extract_cookies as _extract_cookies
 from . import extract_params as _extract_params
 from . import strip_url as _strip_url
@@ -221,7 +221,7 @@ def encode_params(params: Mapping[AnyStr, Iterable[AnyStr]],
 
 def encode_body(mime: str, body: bytes,
                 request: Optional[MutableMapping] = None) -> tuple[TPostData, int]:
-    encoded = {'mimeType': mime, 'text': body.decode()}, -1
+    encoded = {'mimeType': mime, 'text': body.decode()}, len(body)
     if request is not None:
         request['postData'], request['bodySize'] = encoded
     return encoded
@@ -243,8 +243,10 @@ def encode_request(request: urllib.request.Request | _Request,
     encode_cookies([] if cookies is None else _extract_cookies(cookies), encoded)
     encode_headers(request.header_items(), encoded)
     encode_params(_extract_params(request.full_url), encoded)
-    if request.data is not None:
-        encode_body(_caseinsensitive.getitem(
+    if request.data is None:
+        encoded['bodySize'] = 0
+    else:
+        encode_body(_caseless.getitem(
             request.headers, _Header.CONTENT_TYPE), request.data, encoded)
     if (auths := getattr(request, '_auths', None)) is not None:
         encode_auths(auths, encoded)
@@ -315,7 +317,7 @@ def decode_body(body: tuple[TPostData, int],
                 request: Optional[_Request] = None) -> tuple[str, Optional[bytes]]:
     decoded = body[0]['mimeType'], body[0].get('text', '').encode()
     if request is not None:
-        _caseinsensitive.setitem(request.headers, _Header.CONTENT_TYPE, decoded[0])
+        _caseless.setitem(request.headers, _Header.CONTENT_TYPE, decoded[0])
         request.data = decoded[1]
     return decoded
 

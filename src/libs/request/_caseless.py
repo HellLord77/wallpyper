@@ -7,27 +7,27 @@ from typing import Sequence
 
 
 def eq(string: str, other: str) -> bool:
-    return string.lower() == other.lower()
+    return string.casefold() == other.casefold()
 
 
 def startswith(string: str, prefix: str) -> bool:
-    return string.lower().startswith(prefix.lower())
+    return string.casefold().startswith(prefix.casefold())
 
 
 def endswith(string: str, suffix: str) -> bool:
-    return string.lower().endswith(suffix.lower())
+    return string.casefold().endswith(suffix.casefold())
 
 
 # noinspection PyShadowingBuiltins
 def iter(iterable: Iterable[str]) -> Iterator[str]:
     for key in iterable:
-        yield key.lower()
+        yield key.casefold()
 
 
 def match(iterable: Iterable[str], key: str) -> str:
-    key = key.lower()
+    key = key.casefold()
     for key_ in iterable:
-        if key == key_.lower():
+        if key == key_.casefold():
             return key_
     raise ValueError(f'{key!r} is not in iterable')
 

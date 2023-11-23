@@ -46,6 +46,7 @@ $CythonSourceGlobs = @(
 $CythonExcludeGlobs = @(
 	"src/init.py"  # FIXME https://pyinstaller.org/en/stable/usage.html#cmdoption-arg-scriptname
 	"src/libs/ctyped/enum/__init__.py"  # FIXME https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1002
+	"src/libs/request/har.py"  # FIXME https://github.com/python/cpython/issues/97727
 	"src/srcs/{facets,lwalpapers}.py")  # FIXME https://github.com/cython/cython/issues/5542
 $CythonNoDocstrings = $True
 $CythonRemove = $True
@@ -289,7 +290,7 @@ function Get-ProjectName {
 		else { Split-Path -Path (Get-Location) -Leaf } ) -Leaf
 }
 
-function Get-IsPython64Bit {
+function Get-IsPython64Bit {  # TODO $Global is only cleared when the pwsh process exits
 	if ($null -eq $Global:IsPython64Bit) {
 		$Global:IsPython64Bit = [System.Convert]::ToBoolean((Start-PythonCode $CodePythonIs64Bit $False))
 	}
