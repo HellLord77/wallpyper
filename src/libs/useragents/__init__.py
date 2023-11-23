@@ -1,4 +1,4 @@
-__version__ = '0.1.0'  # https://github.com/intoli/user-agents
+__version__ = '0.1.1'  # https://github.com/intoli/user-agents
 
 import enum
 import functools
@@ -55,8 +55,8 @@ PLATFORM_WINDOWS = {Platform.WIN32}
 
 
 class Connection(NamedTuple):
-    downlink: Optional[int | float]
-    effective_type: Optional[EffectiveType]
+    downlink: int | float
+    effective_type: EffectiveType
     rtt: int
     downlink_max: Optional[int | float]
     type: Optional[Type]
@@ -74,8 +74,8 @@ class UserAgent(NamedTuple):
     user_agent: str
     vendor: Vendor
     device_category: DeviceCategory
-    viewport_height: Optional[int]
-    viewport_width: Optional[int]
+    viewport_height: int
+    viewport_width: int
 
 
 def _filter(platform: Optional[str | Platform | Container[Platform]], vendor: Optional[str | Vendor | Container[Vendor]],
@@ -113,11 +113,6 @@ def get_random(platform: Optional[str | Platform | Container[Platform]] = None,
     return random.choices(useragents, weights)[0]
 
 
-def _del(mapping: MutableMapping, key: str):
-    if key in mapping:
-        del mapping[key]
-
-
 def _set(mapping: MutableMapping, key: str, new_key: Optional[str] = None):
     mapping[key if new_key is None else new_key] = mapping.pop(key, None)
 
@@ -134,27 +129,24 @@ def load() -> list[tuple[float, UserAgent]]:
     useragents = []
     with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
         for useragent in json.load(file):
+            useragent: dict
             _set(useragent, 'appName', 'app_name')
-            if (connection := useragent.get('connection')) is None:
-                useragent['connection'] = None
-            else:
-                _set(connection, 'downlink')
-                _set_enum(connection, 'effectiveType', EffectiveType, 'effective_type')
-                _set(connection, 'rtt')
+            if (connection := useragent.setdefault('connection')) is not None:
+                connection['effective_type'] = EffectiveType(connection.pop('effectiveType'))
                 _set(connection, 'downlinkMax', 'downlink_max')
                 _set_enum(connection, 'type', Type)
                 useragent['connection'] = Connection(**connection)
             _set(useragent, 'language')
             _set(useragent, 'oscpu')
-            _set_enum(useragent, 'platform', Platform)
-            _set(useragent, 'pluginsLength', 'plugins_length')
-            _set(useragent, 'screenHeight', 'screen_height')
-            _set(useragent, 'screenWidth', 'screen_width')
-            _set(useragent, 'userAgent', 'user_agent')
-            _set_enum(useragent, 'vendor', Vendor)
-            _set_enum(useragent, 'deviceCategory', DeviceCategory, 'device_category')
-            _set(useragent, 'viewportHeight', 'viewport_height')
-            _set(useragent, 'viewportWidth', 'viewport_width')
+            useragent['platform'] = Platform(useragent['platform'])
+            useragent['plugins_length'] = useragent.pop('pluginsLength')
+            useragent['screen_height'] = useragent.pop('screenHeight')
+            useragent['screen_width'] = useragent.pop('screenWidth')
+            useragent['user_agent'] = useragent.pop('userAgent')
+            useragent['vendor'] = Vendor(useragent['vendor'])
+            useragent['device_category'] = DeviceCategory(useragent.pop('deviceCategory'))
+            useragent['viewport_height'] = useragent.pop('viewportHeight')
+            useragent['viewport_width'] = useragent.pop('viewportWidth')
             useragents.append((useragent.pop('weight'), UserAgent(**useragent)))
     return useragents
 

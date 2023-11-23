@@ -330,6 +330,7 @@ def _test_ua():
     from libs import typed, useragents
     ua = useragents.load()
     assert typed.isinstance_ex(ua, list[tuple[float, useragents.UserAgent]])
+    print(useragents.get_random())
 
 
 def _test_winrt():
