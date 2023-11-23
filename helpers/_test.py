@@ -46,7 +46,6 @@ from libs.ctyped.lib import kernel32
 from libs.ctyped.lib import python
 from libs.ctyped.lib import rometadata
 from libs.ctyped.lib import user32
-from libs.request import har
 from win32 import _gdiplus
 from win32 import _handle
 from win32 import _utils
@@ -624,18 +623,7 @@ def _test_chroma():
 
 
 def _test():
-    req = request.Request(request.Method.GET, url='https://github.com',
-                          data='text', auth=('user', 'pass'),
-                          headers={'header_name': 'header_val'},
-                          params=(('param_key', 'param_val'), ('param_key', 'param_val2'), ('no_val', '')),
-                          cookies=[request.get_cookie('cookie_key', 'cookie_val', expires=6969)])
-    print(req)
-    req_ser = har.encode_request(req)
-    # pprint.pprint(req_ser, sort_dicts=False)
-    print(typed.isinstance_ex(req_ser, har.TRequest))
-    req_ = har.decode_request(req_ser)
-    print(req_)
-    print(req == req_)
+    pass
 
 
 @contextlib.contextmanager

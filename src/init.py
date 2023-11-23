@@ -22,7 +22,8 @@ import consts
 # noinspection PyUnresolvedReferences
 def target(reset: multiprocessing.managers.ListProxy,
            restart: multiprocessing.managers.ValueProxy):
-    logging.basicConfig()
+    if not consts.FLAG_FANCY_DEBUG:
+        logging.basicConfig()
     start = time.monotonic()
     import main
     main.START = start

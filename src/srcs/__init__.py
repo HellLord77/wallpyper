@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.3.2'
+__version__ = '0.3.3'
 
 import binascii
 import copy
@@ -9,6 +9,7 @@ import fractions
 import functools
 import hashlib
 import itertools
+import logging
 import os
 import tempfile
 import urllib.parse
@@ -30,8 +31,10 @@ from libs import files
 from libs import mimetype
 from libs import request
 from libs import utils
+from libs.request import har
 
-KEY: Optional[bytes | str] = None
+logger = logging.getLogger(__name__)
+
 SOURCES: dict[str, type[Source]] = {}
 
 CONFIG_ORIENTATIONS = '_orientations_'
@@ -87,7 +90,7 @@ class Hash:
 
 @dataclasses.dataclass
 class File:
-    request: str | request.Request
+    request: str | har.TRequest | request.Request
     name: str = ''
     # noinspection PyUnresolvedReferences
     size: int = request.RETRIEVE_UNKNOWN_SIZE
@@ -104,10 +107,14 @@ class File:
         cls.__eq__ = cls.__eq__
 
     def __post_init__(self):
-        if isinstance(self.request, str):
-            self.request = request.Request(request.Method.GET, self.request)
+        if not isinstance(self.request, request.Request):
+            if isinstance(self.request, str):
+                self.request = request.Request(request.Method.GET, self.request)
+            else:
+                self.request = har.decode_request(self.request)
         if self.request.params is not None:
-            self.request.url = request.encode_params(self.request.url, self.request.params)
+            self.request.url = request.encode_params(
+                self.request.url, self.request.params)
             self.request.params = None
         # TODO BasicAuth
         if not self.name:
@@ -145,13 +152,16 @@ class File:
 
     @classmethod
     def fromdict(cls, data: dict[str, Any]) -> Optional[File]:
-        request_ = utils.decrypt(data.pop('request'), KEY, on_error=None)
-        if request_ is not None:
-            return _reduced(cls)(request_, **data)
+        try:
+            data['request'] = har.decode_request(data['request'])
+        except BaseException as exc:
+            logger.warning(f'Failed to decode request: %s',
+                           data['request'], exc_info=exc)
+        else:
+            return _reduced(cls)(**data)
 
     def asdict(self) -> dict[str, Any]:
-        result = {'request': utils.encrypt(
-            self.request, KEY, as_string=True), 'name': self.name}
+        result = {'request': har.encode_request(self.request), 'name': self.name}
         if self.size != request.RETRIEVE_UNKNOWN_SIZE:
             result['size'] = self.size
         if self.url and self.url != self.request.url and self.is_simple():
@@ -194,9 +204,9 @@ class File:
 
     def is_simple(self) -> bool:
         return (self.request.method == request.Method.GET and
-                self.request.headers is None and self.request.files is None and
-                self.request.data is None and self.request.params is None and
-                self.request.auth is None and self.request.cookies is None and
+                not self.request.headers and self.request.files is None and
+                self.request.data is None and not self.request.params and
+                self.request.auth is None and not self.request.cookies and
                 self.request.json is None and self.request.unredirected_hdrs is None)
 
     # noinspection PyUnresolvedReferences

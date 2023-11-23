@@ -1,5 +1,18 @@
-ALL_DISPLAY = 'DISPLAY'
-URL_GOOGLE = 'https://www.google.com/searchbyimage/upload'
+FLAG_FANCY_DEBUG = False
+FLAG_BLOCKER_NAME = True
+FLAG_CONSOLE_VIEW = True
+FLAG_ERROR_HOOK = False
+FLAG_OPEN_WITH = True
+FLAG_ROTATE_IMAGE = False
+FLAG_SEARCH_GOOGLE = False
+FLAG_SYSTRAY_PIN = False
+FLAG_TOOLTIP_ICON = False
+FLAG_UNSAFE_CACHE = False
+FLAG_DISPLAY_SINGLE = False
+FLAG_DISPLAY_EXTRA = True
+FLAG_MENUITEM_ICON = True
+FLAG_CONFIG_DIR = True
+FLAG_HARD_RESTART = False
 
 MAX_SKIP_AMT = 9
 MAX_NOTIFY_LEN = 256
@@ -17,7 +30,7 @@ _ICON = 'windows-11-color'
 AUTHOR = 'HellLord'
 NAME = 'Wallpyper'
 
-ARG_WAIT = 'wait'
+ARG_WAIT = 'wait'  # TODO argparse
 
 CONFIG_FIRST_RUN = '_first_run'
 CONFIG_RECENT_IMAGES = '_recent_images'

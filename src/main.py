@@ -25,7 +25,6 @@ from typing import Optional
 from typing import TypedDict
 
 import __feature__
-import __flag__
 import consts
 # noinspection PyUnresolvedReferences
 import exts as _
@@ -52,7 +51,8 @@ from libs import utils
 
 logger = logging.getLogger(__name__)
 
-UUID = srcs.KEY = f'{consts.AUTHOR}.{consts.NAME}'
+UUID = f'{consts.AUTHOR}.{consts.NAME}'
+ALL_DISPLAY = 'DISPLAY'
 RES_FMT = os.path.join(os.path.dirname(__file__), 'res', '{}')
 CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.json'
 # CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.json')  # TODO
@@ -119,7 +119,7 @@ TCONFIG = TypedDict('TCONFIG', {
 DEFAULT_CONFIG: TCONFIG = {
     consts.CONFIG_FIRST_RUN: True,
     consts.CONFIG_RECENT_IMAGES: [],
-    consts.CONFIG_ACTIVE_DISPLAY: consts.ALL_DISPLAY,
+    consts.CONFIG_ACTIVE_DISPLAY: ALL_DISPLAY,
     consts.CONFIG_ACTIVE_SOURCE: 'folder',
     consts.CONFIG_ANIMATE_ICON: True,
     consts.CONFIG_AUTO_START: False,
@@ -166,6 +166,7 @@ def fix_config(saving: bool = False):
     _fix_config(validator.ensure_contains_name, consts.CONFIG_ROTATE_BY, win32.display.Rotate)
     _fix_config(validator.ensure_truthy, consts.CONFIG_SAVE_DIR)
     _fix_config(validator.ensure_contains, consts.CONFIG_TRANSITION_DURATION, TRANSITION_DURATIONS)
+    # noinspection PyUnresolvedReferences
     _fix_config(validator.ensure_contains, consts.CONFIG_TRANSITION_EASE, (
         ease.name for ease in itertools.islice(easings.Ease, None, 7)))
     _fix_config(validator.ensure_contains_name, consts.CONFIG_TRANSITION_STYLE, win32.display.Transition)
@@ -198,7 +199,7 @@ def create_menu():
     with gui.set_menu(gui.add_submenu(_text('MENU_ACTIONS'), icon=RES_FMT.format(consts.RES_ACTIONS))):
         gui.add_menu_item(_text('LABEL_STOP'), on_click=functools.partial(
             STOP.set, True)).set_icon(RES_FMT.format(consts.RES_STOP))
-        if __flag__.CONSOLE_VIEW:
+        if consts.FLAG_CONSOLE_VIEW:
             gui.add_menu_item(_text('LABEL_CONSOLE'), on_click=on_toggle_console).set_icon(
                 RES_FMT.format(consts.RES_CONSOLE))
         with gui.set_menu(gui.add_submenu(_text('MENU_LINKS'), icon=RES_FMT.format(consts.RES_LINKS))):
@@ -212,16 +213,16 @@ def create_menu():
             gui.add_menu_item(_text('LABEL_REMOVE_START_MENU'), on_click=on_remove_start_shortcut).set_icon(
                 RES_FMT.format(consts.RES_UNLINK))
             gui.add_separator()
-            gui.add_menu_item(_text('LABEL_PIN'), enable=__flag__.SYSTRAY_PIN,
+            gui.add_menu_item(_text('LABEL_PIN'), enable=consts.FLAG_SYSTRAY_PIN,
                               on_click=on_pin_to_taskbar).set_icon(RES_FMT.format(consts.RES_PIN))
-            gui.add_menu_item(_text('LABEL_UNPIN'), enable=__flag__.SYSTRAY_PIN,
+            gui.add_menu_item(_text('LABEL_UNPIN'), enable=consts.FLAG_SYSTRAY_PIN,
                               on_click=on_unpin_from_taskbar).set_icon(RES_FMT.format(consts.RES_UNPIN))
             gui.add_separator()
             item_unpin_start = gui.add_menu_item(
-                _text('LABEL_UNPIN_START'), enable=__flag__.SYSTRAY_PIN, on_click=on_unpin_from_start)
+                _text('LABEL_UNPIN_START'), enable=consts.FLAG_SYSTRAY_PIN, on_click=on_unpin_from_start)
             item_unpin_start.set_icon(RES_FMT.format(consts.RES_UNPIN))
             gui.add_menu_item(
-                _text('LABEL_PIN_START'), enable=__flag__.SYSTRAY_PIN, on_click=functools.partial(
+                _text('LABEL_PIN_START'), enable=consts.FLAG_SYSTRAY_PIN, on_click=functools.partial(
                     on_pin_to_start, item_unpin_start.enable), args=(gui.MenuItemMethod.ENABLE,),
                 position=-1).set_icon(RES_FMT.format(consts.RES_PIN))
         gui.add_separator()
@@ -248,7 +249,7 @@ def create_menu():
                                          args=(gui.MenuItemMethod.SET_TOOLTIP,))
             item_dir.set_icon(RES_FMT.format(consts.RES_SAVE_DIR))
             on_modify_save(item_dir.set_tooltip, CURRENT_CONFIG[consts.CONFIG_SAVE_DIR])
-        if __flag__.ROTATE_IMAGE:
+        if consts.FLAG_ROTATE_IMAGE:
             gui.add_submenu_radio(_text('MENU_ROTATE'), {rotate.name: _text(
                 f'ROTATE_{rotate.name}') for rotate in win32.display.Rotate},
                                   CURRENT_CONFIG, consts.CONFIG_ROTATE_BY,
@@ -273,6 +274,7 @@ def create_menu():
                                   on_click=functools.partial(on_transition_style, item_duration_enable),
                                   position=-1, icon=RES_FMT.format(consts.RES_TRANSITION_STYLE))
             gui.add_separator()
+            # noinspection PyUnresolvedReferences
             item_ease_enable = gui.add_submenu_radio(
                 _text('MENU_EASE'), {ease.name: _text(f'EASE_{ease.name}')
                                      for ease in itertools.islice(easings.Ease, None, 7)},
@@ -363,7 +365,7 @@ def load_config(path: str = CONFIG_PATH):
         except BaseException as exc:
             logger.error('Failed loading config: file<%s>', path, exc_info=exc)
             try_alert_error(exc, True)
-    if __flag__.CONFIG_DIR:
+    if consts.FLAG_CONFIG_DIR:
         dir_, ext = os.path.splitext(path)
         if os.path.isdir(dir_):
             for file_ in os.listdir(dir_):
@@ -427,7 +429,7 @@ def try_reapply_wallpaper(_: Optional[bool] = None, force: bool = False):
 
 
 def try_alert_error(exc: BaseException, force: bool = False):
-    if force or (__flag__.ERROR_HOOK and not pyinstall.FROZEN):
+    if force or (consts.FLAG_ERROR_HOOK and not pyinstall.FROZEN):
         threading.Thread(target=win32.alert_error, args=(type(
             exc), f'Process {multiprocessing.current_process().name}:\n' + ''.join(
             traceback.TracebackException.from_exception(exc).format()))).start()
@@ -452,7 +454,7 @@ def on_shown(_: gui.Event):
 
 def get_displays() -> Iterable[str]:
     _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
-    return DISPLAYS if CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAY] == consts.ALL_DISPLAY else (
+    return DISPLAYS if CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAY] == ALL_DISPLAY else (
         CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAY],)
 
 
@@ -516,10 +518,10 @@ def download_image(image: srcs.File) -> Optional[str]:
         STOP.clear()
         try:
             if ((image.request.url == request.from_path(path) or
-                 (image.checksize(path) and (__flag__.UNSAFE_CACHE or image.checksum(path))) or
+                 (image.checksize(path) and (consts.FLAG_UNSAFE_CACHE or image.checksum(path))) or
                  image.download(path, query_download)) and (image.checksize(path) is not False and (
-                    __flag__.UNSAFE_CACHE or image.checksum(path)) is not False) and
-                    image.fill(path, not __flag__.UNSAFE_CACHE)):
+                    consts.FLAG_UNSAFE_CACHE or image.checksum(path)) is not False) and
+                    image.fill(path, not consts.FLAG_UNSAFE_CACHE)):
                 return path
         finally:
             PROGRESS[0] = -1
@@ -571,8 +573,8 @@ on_save_image = functools.partial(save_image, select=True)
 def search_image(path: str) -> bool:
     searched = False
     with gui.try_animate_icon(_text('STATUS_SEARCH')):
-        response = request.post(consts.URL_GOOGLE, files={
-            'encoded_image': path}, allow_redirects=False)
+        response = request.post('https://www.google.com/searchbyimage/upload',
+                                files={'encoded_image': path}, allow_redirects=False)
         if response.is_redirect:
             searched = webbrowser.open(response.headers[request.Header.LOCATION])
     return searched
@@ -675,7 +677,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                     gui.add_menu_item(_text('LABEL_OPEN'), on_click=functools.partial(
                         on_image, os.startfile, image, _text('LABEL_OPEN'),
                         _text('FAIL_OPEN'))).set_icon(RES_FMT.format(consts.RES_OPEN))
-                    if __flag__.OPEN_WITH:
+                    if consts.FLAG_OPEN_WITH:
                         gui.add_menu_item(_text('LABEL_OPEN_WITH'), on_click=functools.partial(
                             on_image, win32.open_file_with_ex, image, _text('LABEL_OPEN_WITH'),
                             _text('FAIL_OPEN_WITH'))).set_icon(RES_FMT.format(consts.RES_OPEN_WITH))
@@ -694,7 +696,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                     gui.add_menu_item(_text('LABEL_COPY_URL'), enable=simple, on_click=functools.partial(
                         on_copy_url, image.request.url)).set_icon(RES_FMT.format(consts.RES_COPY_URL))
                     gui.add_separator()
-                    if __flag__.SEARCH_GOOGLE:
+                    if consts.FLAG_SEARCH_GOOGLE:
                         gui.add_menu_item(_text('LABEL_GOOGLE'), on_click=functools.partial(
                             on_image, search_image, image, _text('LABEL_GOOGLE'),
                             _text('FAIL_SEARCH'))).set_icon(RES_FMT.format(consts.RES_GOOGLE))
@@ -711,7 +713,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                 consts.FMT_RES_DIGIT.format(index + 1)), submenu=submenu)
             item_image.set_tooltip(_text('TOOLTIP_FMT_IMAGE').format(
                 files.Size(image.size), image.size), image.name, _temp(
-                image.name) if __flag__.TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
+                image.name) if consts.FLAG_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
             item_image.set_uid(image.name)
     for uid, item_image in items.items():
         if uid and uid not in RECENT:
@@ -759,7 +761,7 @@ def notify_blocked(_: Optional[bool | str] = None, auto: bool = True):
         if not all(win32.display.is_desktop_unblocked(*displays).values()):
             count = itertools.count(1)
             text = '\n'.join(f'{_text(next(count))}. {_get_monitor_name(monitor, DISPLAYS)}' +
-                             f': {_get_blocker_name(blocker[1])}' if __flag__.BLOCKER_NAME else '' for monitor, blocker
+                             f': {_get_blocker_name(blocker[1])}' if consts.FLAG_BLOCKER_NAME else '' for monitor, blocker
                              in win32.display.get_desktop_blocker(*displays).items() if blocker is not None)
             try_show_notification(_text('BLOCKED_TITLE'), text, force=True)
         elif not auto:
@@ -782,16 +784,16 @@ def on_display_change(item: win32.gui.MenuItem, update: int, _: Optional[gui.Gui
     submenu.clear_items()
     with gui.set_menu(submenu):
         size = win32.display.get_display_size()
-        monitors = {consts.ALL_DISPLAY: f'{_text(0)}. {_text("DISPLAY_ALL")}\t{_text(size[0])} × {_text(size[1])}'}
+        monitors = {ALL_DISPLAY: f'{_text(0)}. {_text("DISPLAY_ALL")}\t{_text(size[0])} × {_text(size[1])}'}
         for index, monitor in enumerate(DISPLAYS, 1):
             monitors[monitor] = (f'{_text(index)}. {_get_monitor_name(monitor, DISPLAYS)}'
                                  f'\t{_text(DISPLAYS[monitor][1][0])} × {_text(DISPLAYS[monitor][1][1])}')
         gui.add_submenu_radio(item, monitors, CURRENT_CONFIG, consts.CONFIG_ACTIVE_DISPLAY, on_click=notify_blocked)
-        if __flag__.DISPLAY_SINGLE:
+        if consts.FLAG_DISPLAY_SINGLE:
             enable = len(DISPLAYS) > 1
             for submenu_item in submenu:
                 submenu_item.enable(enable)
-        if __flag__.DISPLAY_EXTRA:
+        if consts.FLAG_DISPLAY_EXTRA:
             gui.add_separator()
             gui.add_menu_item(_text('LABEL_DISPLAY_UPDATE'), on_click=functools.partial(
                 on_display_change, item, 1)).set_icon(RES_FMT.format(consts.RES_DISPLAY_UPDATE))
@@ -905,7 +907,7 @@ def on_reset(main_: bool = True, source: bool = True):
 
 
 def on_restart(hard: bool = False):
-    if hard or __flag__.HARD_RESTART or not __feature__.RESTART_SOFT:
+    if hard or consts.FLAG_HARD_RESTART or not __feature__.RESTART_SOFT:
         args = list(pyinstall.get_launch_args())
         args.extend(sys.argv[1:])
         if consts.ARG_WAIT not in args:
@@ -974,7 +976,7 @@ def apply_auto_start(auto_start: bool) -> bool:
 def start():
     singleton.init(UUID, consts.NAME, consts.ARG_WAIT in sys.argv, functools.partial(
         print, 'Crash'), functools.partial(print, 'Wait'), functools.partial(print, 'Exit'))
-    if __flag__.DEBUG_APP:
+    if consts.FLAG_FANCY_DEBUG:
         log.redirect_stdout(LOG_PATH, True) if pyinstall.FROZEN else log.write_on_exception(LOG_PATH)
         log.init((r'^exts', r'^srcs', r'^win32'), level=log.Level.DEBUG, check_comp=False)
     win32.display.TEMP_WALLPAPER_DIR = _temp()
@@ -983,7 +985,7 @@ def start():
     sys.modules['request'] = sys.modules['libs.request']  # FIXME https://github.com/cython/cython/issues/3867
     load_config()
     gui.init(consts.NAME)
-    gui.enable_menuitem_icon(__flag__.MENUITEM_ICON)
+    gui.enable_menuitem_icon(consts.FLAG_MENUITEM_ICON)
     create_menu()
     gui.enable_animated_icon(CURRENT_CONFIG[consts.CONFIG_ANIMATE_ICON])
     apply_auto_start(CURRENT_CONFIG[consts.CONFIG_AUTO_START])
@@ -1002,7 +1004,7 @@ def stop():
 
 
 def main() -> NoReturn:
-    if __flag__.ERROR_HOOK:
+    if consts.FLAG_ERROR_HOOK:
         utils.hook_except(win32.alert_error, True)
     try:
         start()
