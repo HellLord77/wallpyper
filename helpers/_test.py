@@ -326,6 +326,12 @@ def _test_cfg_json():
     print(config_ == config__)
 
 
+def _test_ua():
+    from libs import typed, useragents
+    ua = useragents.load()
+    assert typed.isinstance_ex(ua, list[tuple[float, useragents.UserAgent]])
+
+
 def _test_winrt():
     src = r'D:\MMDs\洛天依  -  倾杯.mp4'
     dst = r'D:\test.mp4'
@@ -623,7 +629,7 @@ def _test_chroma():
 
 
 def _test():
-    pass
+    _test_ua()
 
 
 @contextlib.contextmanager
