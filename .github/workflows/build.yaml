@@ -1,10 +1,10 @@
-on: [ push, workflow_dispatch ]
+on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: [ "3.12" ]
+        python-version: ["3.11", "3.12", "3.13-dev"]
     steps:
       - name: Fetch repository
         uses: actions/checkout@v4
@@ -12,6 +12,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+          check-latest: true
       - name: Install dependencies
         run: .\build.ps1 install
       - name: Build project
@@ -24,5 +25,5 @@ jobs:
         # run: .\build.ps1 push
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ github.event.repository.name }}
+          name: ${{ github.event.repository.name }}-${{ matrix.python-version }}
           path: dist/*
