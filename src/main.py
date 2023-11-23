@@ -3,6 +3,7 @@ import collections
 import datetime
 import functools
 import itertools
+import json
 import logging
 import multiprocessing
 import os
@@ -111,6 +112,7 @@ TCONFIG = TypedDict('TCONFIG', {
     consts.CONFIG_RESTORE_IMAGE: bool,
     consts.CONFIG_ROTATE_BY: str,
     consts.CONFIG_SAVE_CONFIG: bool,
+    consts.CONFIG_ENCRYPT_CONFIG: bool,
     consts.CONFIG_SAVE_DIR: str,
     consts.CONFIG_SKIP_RECENT: bool,
     consts.CONFIG_TRANSITION_DURATION: float,
@@ -140,6 +142,7 @@ DEFAULT_CONFIG: TCONFIG = {
     consts.CONFIG_RESTORE_IMAGE: False,
     consts.CONFIG_ROTATE_BY: win32.display.Rotate.NONE.name,
     consts.CONFIG_SAVE_CONFIG: False,
+    consts.CONFIG_ENCRYPT_CONFIG: False,
     consts.CONFIG_SAVE_DIR: os.path.join(win32.PICTURES_DIR, consts.NAME),
     consts.CONFIG_SKIP_RECENT: False,
     consts.CONFIG_TRANSITION_DURATION: TRANSITION_DURATIONS[2],
@@ -194,7 +197,7 @@ def create_menu():
         on_clear, item_recent.enable), menu=item_recent).set_icon(RES_FMT.format(consts.RES_CLEAR))
     _update_recent_menu(item_recent)
     gui.add_separator()
-    gui.add_submenu(_text('MENU_SOURCE_SETTINGS'), uid=consts.UID_SOURCE_SETTINGS)
+    gui.add_submenu(_text('MENU_SOURCE_CONFIG'), uid=consts.UID_SOURCE_SETTINGS)
     gui.add_separator()
     with gui.set_menu(gui.add_submenu(_text('MENU_ACTIONS'), icon=RES_FMT.format(consts.RES_ACTIONS))):
         gui.add_menu_item(_text('LABEL_STOP'), on_click=functools.partial(
@@ -230,7 +233,7 @@ def create_menu():
         gui.add_menu_item(_text('LABEL_CLEAR_CACHE'), on_click=on_clear_cache).set_icon(
             RES_FMT.format(consts.RES_CLEAR_CACHE))
         gui.add_menu_item(_text('LABEL_RESTART'), on_click=on_restart).set_icon(RES_FMT.format(consts.RES_RESTART))
-    with gui.set_menu(gui.add_submenu(_text('MENU_SETTINGS'), icon=RES_FMT.format(consts.RES_SETTINGS))):
+    with gui.set_menu(gui.add_submenu(_text('MENU_CONFIG'), icon=RES_FMT.format(consts.RES_SETTINGS))):
         with gui.set_menu(gui.add_submenu(_text('MENU_AUTO'), icon=RES_FMT.format(consts.RES_AUTO))):
             gui.add_menu_item_check(_text('LABEL_CHANGE_START'), CURRENT_CONFIG,
                                     consts.CONFIG_CHANGE_START).set_tooltip(_text('TOOLTIP_CHANGE_START'))
@@ -243,7 +246,8 @@ def create_menu():
                 f'MAXIMIZED_{action}') for action in MAXIMIZED_ACTIONS}, CURRENT_CONFIG,
                                   consts.CONFIG_MAXIMIZED_ACTION, icon=RES_FMT.format(consts.RES_MAXIMIZED))
             gui.add_separator()
-            gui.add_menu_item_check(_text('LABEL_AUTO_SAVE'), CURRENT_CONFIG, consts.CONFIG_AUTO_SAVE).set_tooltip(
+            gui.add_menu_item_check(_text('LABEL_AUTO_SAVE'),
+                                    CURRENT_CONFIG, consts.CONFIG_AUTO_SAVE).set_tooltip(
                 _text('TOOLTIP_AUTO_SAVE'))
             item_dir = gui.add_menu_item(_text('LABEL_SAVE_DIR'), on_click=on_modify_save,
                                          args=(gui.MenuItemMethod.SET_TOOLTIP,))
@@ -311,7 +315,11 @@ def create_menu():
         gui.add_menu_item_check(_text('LABEL_RESTORE'), CURRENT_CONFIG, consts.CONFIG_RESTORE_IMAGE)
         gui.add_menu_item_check(_text('LABEL_CACHE'), CURRENT_CONFIG, consts.CONFIG_KEEP_CACHE)
         gui.add_menu_item_check(_text('LABEL_START'), CURRENT_CONFIG, consts.CONFIG_AUTO_START)
-        gui.add_menu_item_check(_text('LABEL_SETTINGS_AUTO_SAVE'), CURRENT_CONFIG, consts.CONFIG_SAVE_CONFIG)
+        item_encrypt_enable = gui.add_menu_item_check(
+            _text('LABEL_CONFIG_ENCRYPT'), CURRENT_CONFIG,
+            consts.CONFIG_ENCRYPT_CONFIG, CURRENT_CONFIG[consts.CONFIG_SAVE_CONFIG]).enable
+        gui.add_menu_item_check(_text('LABEL_CONFIG_SAVE'), CURRENT_CONFIG,
+                                consts.CONFIG_SAVE_CONFIG, on_click=item_encrypt_enable, position=-1)
         gui.add_separator()
         with gui.set_menu(gui.add_submenu(_text('MENU_RESET'), __feature__.RESTART_SOFT,
                                           icon=RES_FMT.format(consts.RES_SETTINGS_RESET))):
@@ -357,24 +365,42 @@ def filter_image(image: srcs.File) -> bool:
     return True
 
 
+def _loads_config(data: str, loader: config.JSONConfig):
+    data_ = json.loads(data)
+    if isinstance(data_, str):
+        data = utils.decrypt(data_, UUID)
+        if data is utils.DEFAULT:
+            logger.error('Failed decrypting config')
+            return
+    loader.loads(data)
+
+
 def load_config(path: str = CONFIG_PATH):
     loader = config.JSONConfig()
     if os.path.isfile(path):
         try:
-            loader.load(path)
+            with open(path) as file_:
+                data = file_.read()
         except BaseException as exc:
-            logger.error('Failed loading config: file<%s>', path, exc_info=exc)
-            try_alert_error(exc, True)
+            logger.info('Missing config: file<%s>', path, exc_info=exc)
+        else:
+            try:
+                _loads_config(data, loader)
+            except BaseException as exc:
+                logger.error('Failed loading config: file<%s>',
+                             path, exc_info=exc)
     if consts.FLAG_CONFIG_DIR:
         dir_, ext = os.path.splitext(path)
         if os.path.isdir(dir_):
             for file_ in os.listdir(dir_):
-                if file_.endswith(ext) and os.path.isfile(path_ := os.path.join(dir_, file_)):
+                if file_.endswith(ext) and os.path.isfile(
+                        path_ := os.path.join(dir_, file_)):
                     loader_ = config.JSONConfig()
                     try:
                         loader_.load(path_)
                     except BaseException as exc:
-                        logger.warning('Failed loading config: dir<%s>', path_, exc_info=exc)
+                        logger.warning('Failed loading config: dir<%s>',
+                                       path_, exc_info=exc)
                     else:
                         loader[file_.removesuffix(ext)] = dict(loader_)
     for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
@@ -382,9 +408,17 @@ def load_config(path: str = CONFIG_PATH):
             current_config = loader.get(name)
             if isinstance(current_config, dict):
                 source.CURRENT_CONFIG.update(current_config)
-        typed.intersection_update(source.CURRENT_CONFIG, source.DEFAULT_CONFIG, source.TCONFIG)
+        typed.intersection_update(source.CURRENT_CONFIG,
+                                  source.DEFAULT_CONFIG, source.TCONFIG)
         source.fix_config()
-    RESET[:] = ()
+    RESET[:] = ()  # FIXME https://github.com/python/cpython/issues/103134
+
+
+def _try_encrypt_config(dumped: str, force: bool = False) -> str:
+    if force or CURRENT_CONFIG[consts.CONFIG_ENCRYPT_CONFIG]:
+        dumped = json.dumps(utils.encrypt(json.dumps(json.loads(
+            dumped), separators=(',', ':')), UUID, as_string=True))
+    return dumped
 
 
 def try_save_config(path: str = CONFIG_PATH, force: bool = False) -> bool:
@@ -395,7 +429,14 @@ def try_save_config(path: str = CONFIG_PATH, force: bool = False) -> bool:
             if section := {var: source.CURRENT_CONFIG[var] for var, val in sorted(
                     source.DEFAULT_CONFIG.items()) if source.CURRENT_CONFIG[var] != val}:
                 dumper[name] = section
-        dumper.dump(path, '\t')
+        try:
+            dumped = _try_encrypt_config(dumper.dumps())
+            with open(path, 'w') as file_:
+                file_.write(dumped)
+        except BaseException as exc:
+            logger.error('Failed saving config: file<%s>', path, exc_info=exc)
+            try_show_notification(_text('LABEL_CONFIG_SAVE'),
+                                  _text('FAIL_CONFIG_SAVE'))
         return os.path.isfile(path)
     return True
 
@@ -414,6 +455,7 @@ def try_remove_temp(force: bool = False) -> bool:
 def try_show_notification(title: str, text: str = '',
                           icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE,
                           force: bool = False) -> bool:
+    logger.info('Showing notification: title<%s> text<%s>', title, text)
     if force or CURRENT_CONFIG[consts.CONFIG_NOTIFY_ERROR]:
         end_time = time.monotonic() + consts.MAX_NOTIFY_SEC
         while end_time > time.monotonic() and not gui.SYSTEM_TRAY.is_shown():
@@ -957,7 +999,7 @@ def on_quit():
     gui.disable_events()
     max_threads = 1 + (threading.current_thread() is not threading.main_thread())
     time.sleep(consts.POLL_FAST_SEC)
-    if threading.active_count() > max_threads:  # TODO better
+    if threading.active_count() > max_threads:  # TODO rewrite
         gui.try_animate_icon(_text('STATUS_QUIT')).__enter__()
         try_show_notification(_text('LABEL_QUIT'), _text('FAIL_QUIT'), force=True)
         end_time = time.monotonic() + win32.get_max_shutdown_time()

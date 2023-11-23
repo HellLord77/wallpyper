@@ -11,7 +11,7 @@ FLAG_UNSAFE_CACHE = False
 FLAG_DISPLAY_SINGLE = False
 FLAG_DISPLAY_EXTRA = True
 FLAG_MENUITEM_ICON = True
-FLAG_CONFIG_DIR = True
+FLAG_CONFIG_DIR = False
 FLAG_HARD_RESTART = False
 
 MAX_SKIP_AMT = 9
@@ -55,6 +55,7 @@ CONFIG_REAPPLY_IMAGE = 'reapply_wallpaper'
 CONFIG_RESTORE_IMAGE = 'restore_wallpaper'
 CONFIG_ROTATE_BY = 'rotate_by'
 CONFIG_SAVE_CONFIG = 'save_settings'
+CONFIG_ENCRYPT_CONFIG = 'encrypt_settings'
 CONFIG_SAVE_DIR = 'save_dir'
 CONFIG_SKIP_RECENT = 'skip_recent'
 CONFIG_TRANSITION_DURATION = 'transition_duration'

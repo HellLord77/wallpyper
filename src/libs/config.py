@@ -417,7 +417,6 @@ class INIConfig(_Config):
         flat = _configparser()
         with _open(path_or_file) as file:
             flat.read_file(file)
-        # noinspection PyTypeChecker
         self.__init__(self._load(collections.deque(flat[_CONFIG].items())))
 
 
@@ -504,7 +503,6 @@ else:
             self.update(yaml.full_load(data))
 
 
-    # noinspection PyTypeChecker
     yaml.add_representer(YAMLConfig, yaml.representer.SafeRepresenter.represent_dict)
 
 Config = JSONConfig
