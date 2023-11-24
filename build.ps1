@@ -1,4 +1,4 @@
-$Version = "0.3.12"
+$Version = "0.3.13"
 ################################################################################
 $PythonOptimize = 2  # FIXME https://github.com/pyinstaller/pyinstaller/issues/3379
 $PythonHashSeed = 0
@@ -78,8 +78,8 @@ $CodeRunBeforeRemote = @(
 	"download()"
 	"from src.libs.mimetype import download"
 	"download()"
-	"from src.libs.request.cloudflare import download"
-	"download()"
+	# "from src.libs.request.cloudflare import download"
+	# "download()"  # FIXME https://github.com/VeNoMouS/cloudscraper/blob/master/cloudscraper/user_agent/browsers.json#L7909
 	"from src.libs.spinners import download"
 	"download()"
 	"from src.libs.urischemes import download"
@@ -143,10 +143,6 @@ $NuitkaRemoveBuild = $True
 $RemoveOnThrow = $True
 $mypycCacheDir = ".mypy_cache"
 $PatSemVer = "(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
-################################################################################
-$IsPython64Bit = $null
-$ExtSuffix = $null
-$CythonSources = $null
 
 function Get-IntFromBytes([byte[]]$Bytes, [System.Numerics.BigInteger[]]$Range = $null) {
 	$Integer = [System.Numerics.BigInteger]::new($Bytes)
@@ -157,6 +153,17 @@ function Get-IntFromBytes([byte[]]$Bytes, [System.Numerics.BigInteger[]]$Range =
 function ToArray($Object) {
 	if ($Object -isnot [array]) { $Object = @($Object) }
 	return @($Object)
+}
+
+function Get-Memoized([System.Management.Automation.FunctionInfo]$Function) {
+	$Memo = @{}
+	{
+		if (-not $Memo.ContainsKey("$args")) {
+			Write-Host "[Memoize] $Function $args"
+			$Memo.Add("$args", (& $Function.ScriptBlock $args))
+		}
+		return $Memo["$args"]
+	}.GetNewClosure()
 }
 
 function Get-InsertedArray([array]$Array, $Index, $Value) {
@@ -279,10 +286,11 @@ function Install-PackageChoco($Package, $Command = "", $Force = $False) {
 	return (Get-Command $Command).Path
 }
 
-function Start-PythonCode([string[]]$Lines, [bool]$Verbose = $True) {
+function Start-PythonCode([string[]]$Lines, [bool]$Verbose = $True, [bool]$Throw = $True) {
 	$Code = $Lines -Join "; "
 	if ($Verbose) { Write-Host "[python] $Code" }
-	return python -c $Code
+	try { return python -c $Code }
+	finally { if (-not $? -and $Throw) { throw } }
 }
 
 function Get-ProjectName {
@@ -290,19 +298,17 @@ function Get-ProjectName {
 		else { Split-Path -Path (Get-Location) -Leaf } ) -Leaf
 }
 
-function Get-IsPython64Bit {  # TODO $Global is only cleared when the pwsh process exits
-	if ($null -eq $Global:IsPython64Bit) {
-		$Global:IsPython64Bit = [System.Convert]::ToBoolean((Start-PythonCode $CodePythonIs64Bit $False))
-	}
-	return $Global:IsPython64Bit
+function Get-IsPython64Bit {
+	return [System.Convert]::ToBoolean((Start-PythonCode $CodePythonIs64Bit $False))
 }
 
+$GetIsPython64Bit = Get-Memoized (Get-Command Get-IsPython64Bit)
+
 function Get-ExtSuffix {
-	if ($null -eq $Global:ExtSuffix) {
-		$Global:ExtSuffix = Start-PythonCode $CodeExtSuffix $False
-	}
-	return $Global:ExtSuffix
+	return Start-PythonCode $CodeExtSuffix $False
 }
+
+$GetExtSuffix = Get-Memoized (Get-Command Get-ExtSuffix)
 
 function Get-ModuleGraph([bool]$Smart = $ModuleGraphSmart) {
 	if ($Smart) {
@@ -350,7 +356,7 @@ function Get-PyInstallerArgs {
 		}
 	}
 	$BaseSrcDir = Split-Path (Split-Path $EntryPoint -Parent) -Leaf
-	foreach ($Data in $($Datas + $(If (Get-IsPython64Bit) { $Datas64 } else { $Datas32 }))) {
+	foreach ($Data in $($Datas + $(If (& $GetIsPython64Bit) { $Datas64 } else { $Datas32 }))) {
 		$DataSrc = Join-Path $BaseSrcDir $Data
 		if ($Data.Contains(";")) {
 			$DataParts = $DataSrc -Split ";"
@@ -389,7 +395,7 @@ function Get-PyInstallerArgsReduced([string[]]$ArgList) {
 
 function Remove-pyd([string[]]$Sources, [bool]$Verbose, [bool]$Throw) {
 	foreach ($Source in $Sources) {
-		$Path = $Source.Substring(0, $Source.LastIndexOf(".")) + $(Get-ExtSuffix)
+		$Path = $Source.Substring(0, $Source.LastIndexOf(".")) + (& $GetExtSuffix)
 		try {
 			Remove-Item $Path -Force
 			if ($Verbose) { Write-Host "[Removed] $Path" }
@@ -399,29 +405,29 @@ function Remove-pyd([string[]]$Sources, [bool]$Verbose, [bool]$Throw) {
 }
 
 function Get-CythonSources {
-	if ($null -eq $Global:CythonSources) {
-		$Global:CythonSources = @()
-		$CodeGlob = @() + $CodeGlobTemplate
-		foreach ($CythonSourceGlob in $CythonSourceGlobs) {
-			$CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonSourceGlob
-			foreach ($Source in (Start-PythonCode $CodeGlob $False) -Split ";") {
-				$Global:CythonSources += $Source -Replace "\\", "/"
-			}
-		}
-		foreach ($CythonExcludeGlob in $CythonExcludeGlobs) {
-			$CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonExcludeGlob
-			foreach ($Exclude in (Start-PythonCode $CodeGlob $False) -Split ";") {
-				$Global:CythonSources = Get-RemovedItemArray $Global:CythonSources ($Exclude -Replace "\\", "/") ([int]::MaxValue)
-			}
+	$CythonSources = @()
+	$CodeGlob = @() + $CodeGlobTemplate
+	foreach ($CythonSourceGlob in $CythonSourceGlobs) {
+		$CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonSourceGlob
+		foreach ($Source in (Start-PythonCode $CodeGlob $False) -Split ";") {
+			$CythonSources += $Source -Replace "\\", "/"
 		}
 	}
-	return $Global:CythonSources
+	foreach ($CythonExcludeGlob in $CythonExcludeGlobs) {
+		$CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonExcludeGlob
+		foreach ($Exclude in (Start-PythonCode $CodeGlob $False) -Split ";") {
+			$CythonSources = Get-RemovedItemArray $CythonSources ($Exclude -Replace "\\", "/") ([int]::MaxValue)
+		}
+	}
+	return ToArray $CythonSources
 }
 
+$GetCythonSources = Get-Memoized (Get-Command Get-CythonSources)
+
 function Remove-Cython([bool]$Verbose = $False, [bool]$Throw = $True) {
-	Remove-pyd (Get-CythonSources) $Verbose $Throw
+	Remove-pyd (& $GetCythonSources) $Verbose $Throw
 	if ($CythonRemoveC) {
-		foreach ($Source in Get-CythonSources) {
+		foreach ($Source in & $GetCythonSources) {
 			$Base = Source.Substring(0, $Source.LastIndexOf("."))
 			foreach ($Ext in @("c", "cpp")) {
 				$Path = "$Base.$Ext"

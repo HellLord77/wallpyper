@@ -116,8 +116,8 @@ if __debug__:
     def download():
         import urllib.parse
         import urllib.request
-        # urllib.request.urlretrieve(urllib.parse.urljoin(
-        #     'https://raw.githubusercontent.com/VeNoMouS/cloudscraper/master/cloudscraper/user_agent/',
-        #     _PATH), os.path.join(os.path.dirname(__file__), _PATH))
+        urllib.request.urlretrieve(urllib.parse.urljoin(
+            'https://raw.githubusercontent.com/VeNoMouS/cloudscraper/master/cloudscraper/user_agent/',
+            _PATH), os.path.join(os.path.dirname(__file__), _PATH))
         load.cache_clear()
         load()

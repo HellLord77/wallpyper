@@ -630,7 +630,7 @@ def _test_chroma():
 
 
 def _test():
-    _test_ua()
+    pass
 
 
 @contextlib.contextmanager
@@ -677,6 +677,6 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_winrt()
     # _test_hook()
     # _test_chroma()
-    _test()
-    # _test_winmd()
+    # _test()
+    _test_winmd()
     sys.exit()
