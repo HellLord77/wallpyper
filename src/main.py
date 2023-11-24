@@ -2,6 +2,7 @@ import atexit
 import collections
 import datetime
 import functools
+import importlib.resources
 import itertools
 import json
 import logging
@@ -54,7 +55,7 @@ logger = logging.getLogger(__name__)
 
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
 ALL_DISPLAY = 'DISPLAY'
-RES_FMT = os.path.join(os.path.dirname(__file__), 'res', '{}')
+RES_FMT = str(importlib.resources.files(__name__) / 'res' / '{}')
 CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.json'
 # CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.json')  # TODO
 LOG_PATH = files.replace_ext(CONFIG_PATH, 'log')

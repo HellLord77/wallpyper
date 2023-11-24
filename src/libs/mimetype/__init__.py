@@ -1,6 +1,7 @@
 __version__ = '0.0.2'  # https://github.com/jshttp/mime-types
 
 import functools
+import importlib.resources
 import json
 import os
 from typing import Any
@@ -66,8 +67,7 @@ def get_type(path_or_extension: str = None) -> Optional[str]:
 
 @functools.cache
 def load() -> dict[str, dict[str, bool | str | list[str]]]:
-    with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
-        return json.load(file)
+    return json.load((importlib.resources.files(__name__) / _PATH).open(encoding='utf-8'))
 
 
 if __debug__:
@@ -76,6 +76,6 @@ if __debug__:
         import urllib.request
         urllib.request.urlretrieve(urllib.parse.urljoin(
             'https://raw.githubusercontent.com/jshttp/mime-db/master/',
-            _PATH), os.path.join(os.path.dirname(__file__), _PATH))
+            _PATH), str(importlib.resources.files(__name__) / _PATH))
         load.cache_clear()
         load()

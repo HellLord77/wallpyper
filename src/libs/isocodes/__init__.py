@@ -2,6 +2,7 @@ __version__ = '0.0.5'  # https://salsa.debian.org/iso-codes-team/iso-codes
 
 import collections
 import functools
+import importlib.resources
 import json
 import os
 from typing import Optional
@@ -37,9 +38,8 @@ class _ISOMeta(type):
 
     @functools.cache
     def load(cls) -> list[dict[str, str]]:
-        path = os.path.join(os.path.dirname(__file__), f'iso_{cls._BASE_.__name__[4:].replace("_", "-")}.json')
-        with open(path, encoding='utf-8') as file:
-            return json.load(file)[os.path.basename(path)[4:-5]]
+        path = importlib.resources.files(__name__) / f'iso_{cls._BASE_.__name__[4:].replace("_", "-")}.json'
+        return json.load(path.open(encoding='utf-8'))[os.path.basename(str(path))[4:-5]]
 
 
 class ISO6392(metaclass=_ISOMeta):
@@ -144,8 +144,8 @@ if __debug__:
         for obj in gc.get_objects():
             if isinstance(obj, _ISOMeta):
                 # noinspection PyProtectedMember
-                path = os.path.join(os.path.dirname(__file__),
-                                    f'iso_{obj._BASE_.__name__[4:].replace("_", "-")}.json')
+                path = str(importlib.resources.files(__name__) /
+                           f'iso_{obj._BASE_.__name__[4:].replace("_", "-")}.json')
                 urllib.request.urlretrieve(urllib.parse.urljoin(
                     'https://salsa.debian.org/iso-codes-team/iso-codes/-/raw/main/data/',
                     os.path.basename(path)), path)

@@ -1,9 +1,9 @@
 __version__ = '0.0.3'  # https://github.com/sindresorhus/cli-spinners
 
 import functools
+import importlib.resources
 import itertools
 import json
-import os
 from typing import Iterator
 
 _PATH = 'spinners.json'
@@ -16,8 +16,7 @@ def get(spinner: str) -> tuple[float, Iterator[str]]:
 
 @functools.cache
 def load() -> dict[str, dict[str, int | list[str]]]:
-    with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
-        return json.load(file)
+    return json.load((importlib.resources.files(__name__) / _PATH).open(encoding='utf-8'))
 
 
 if __debug__:
@@ -26,6 +25,6 @@ if __debug__:
         import urllib.request
         urllib.request.urlretrieve(urllib.parse.urljoin(
             'https://raw.githubusercontent.com/sindresorhus/cli-spinners/main/',
-            _PATH), os.path.join(os.path.dirname(__file__), _PATH))
+            _PATH), str(importlib.resources.files(__name__) / _PATH))
         load.cache_clear()
         load()

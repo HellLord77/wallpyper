@@ -3,7 +3,7 @@ __version__ = '0.0.2'  # https://www.iana.org/assignments/uri-schemes/uri-scheme
 import csv
 import enum
 import functools
-import os
+import importlib.resources
 from typing import Iterator
 from typing import NamedTuple
 from typing import Optional
@@ -57,11 +57,11 @@ def get(scheme_or_uri: bytes | str) -> Optional[URIScheme]:
 
 @functools.cache
 def load() -> tuple[URIScheme, ...]:
-    with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
-        reader = csv.reader(file)
-        next(reader)
-        return tuple(URIScheme(row[0], row[
-            2], URIStatus(row[3])) for row in reader)
+    reader = csv.reader((importlib.resources.files(
+        __name__) / _PATH).open(encoding='utf-8'))
+    next(reader)
+    return tuple(URIScheme(row[0], row[
+        2], URIStatus(row[3])) for row in reader)
 
 
 if __debug__:
@@ -70,6 +70,6 @@ if __debug__:
         import urllib.request
         urllib.request.urlretrieve(urllib.parse.urljoin(
             'https://www.iana.org/assignments/uri-schemes/',
-            _PATH), os.path.join(os.path.dirname(__file__), _PATH))
+            _PATH), str(importlib.resources.files(__name__) / _PATH))
         load.cache_clear()
         load()

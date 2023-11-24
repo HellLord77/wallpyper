@@ -3,8 +3,8 @@ __version__ = '0.0.2'  # https://github.com/github/gemoji
 import collections
 import enum
 import functools
+import importlib.resources
 import json
-import os
 import sys
 import traceback
 from typing import NamedTuple
@@ -82,14 +82,13 @@ def format(string: str, strict: bool = True) -> str:
 def load() -> tuple[dict[str, Emoji], dict[str, str]]:
     emojis = {}
     aliases = {}
-    with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
-        for emoji in json.load(file):
-            emoji__ = Emoji(emoji_ := emoji['emoji'], emoji['description'], Category(
-                emoji['category']), tuple(emoji['aliases']), tuple(emoji['tags']), float(
-                emoji['unicode_version'] or 0.0), float(emoji['ios_version'] or 0.0))
-            emojis[emoji_] = emoji__
-            for alias in emoji__.aliases:
-                aliases[alias] = emoji_
+    for emoji in json.load((importlib.resources.files(__name__) / _PATH).open(encoding='utf-8')):
+        emoji__ = Emoji(emoji_ := emoji['emoji'], emoji['description'], Category(
+            emoji['category']), tuple(emoji['aliases']), tuple(emoji['tags']), float(
+            emoji['unicode_version'] or 0.0), float(emoji['ios_version'] or 0.0))
+        emojis[emoji_] = emoji__
+        for alias in emoji__.aliases:
+            aliases[alias] = emoji_
     return emojis, aliases
 
 
@@ -99,6 +98,6 @@ if __debug__:
         import urllib.request
         urllib.request.urlretrieve(urllib.parse.urljoin(
             'https://raw.githubusercontent.com/github/gemoji/master/db/',
-            _PATH), os.path.join(os.path.dirname(__file__), _PATH))
+            _PATH), str(importlib.resources.files(__name__) / _PATH))
         load.cache_clear()
         load()

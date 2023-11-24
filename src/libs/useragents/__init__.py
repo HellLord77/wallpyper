@@ -2,8 +2,8 @@ __version__ = '0.1.1'  # https://github.com/intoli/user-agents
 
 import enum
 import functools
+import importlib.resources
 import json
-import os
 import random
 from typing import Container
 from typing import Iterator
@@ -127,27 +127,27 @@ def _set_enum(mapping: MutableMapping, key: str,
 @functools.cache
 def load() -> list[tuple[float, UserAgent]]:
     useragents = []
-    with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
-        for useragent in json.load(file):
-            useragent: dict
-            _set(useragent, 'appName', 'app_name')
-            if (connection := useragent.setdefault('connection')) is not None:
-                connection['effective_type'] = EffectiveType(connection.pop('effectiveType'))
-                _set(connection, 'downlinkMax', 'downlink_max')
-                _set_enum(connection, 'type', Type)
-                useragent['connection'] = Connection(**connection)
-            _set(useragent, 'language')
-            _set(useragent, 'oscpu')
-            useragent['platform'] = Platform(useragent['platform'])
-            useragent['plugins_length'] = useragent.pop('pluginsLength')
-            useragent['screen_height'] = useragent.pop('screenHeight')
-            useragent['screen_width'] = useragent.pop('screenWidth')
-            useragent['user_agent'] = useragent.pop('userAgent')
-            useragent['vendor'] = Vendor(useragent['vendor'])
-            useragent['device_category'] = DeviceCategory(useragent.pop('deviceCategory'))
-            useragent['viewport_height'] = useragent.pop('viewportHeight')
-            useragent['viewport_width'] = useragent.pop('viewportWidth')
-            useragents.append((useragent.pop('weight'), UserAgent(**useragent)))
+    for useragent in json.load((importlib.resources.files(
+            __name__) / _PATH).open(encoding='utf-8')):
+        useragent: dict
+        _set(useragent, 'appName', 'app_name')
+        if (connection := useragent.setdefault('connection')) is not None:
+            connection['effective_type'] = EffectiveType(connection.pop('effectiveType'))
+            _set(connection, 'downlinkMax', 'downlink_max')
+            _set_enum(connection, 'type', Type)
+            useragent['connection'] = Connection(**connection)
+        _set(useragent, 'language')
+        _set(useragent, 'oscpu')
+        useragent['platform'] = Platform(useragent['platform'])
+        useragent['plugins_length'] = useragent.pop('pluginsLength')
+        useragent['screen_height'] = useragent.pop('screenHeight')
+        useragent['screen_width'] = useragent.pop('screenWidth')
+        useragent['user_agent'] = useragent.pop('userAgent')
+        useragent['vendor'] = Vendor(useragent['vendor'])
+        useragent['device_category'] = DeviceCategory(useragent.pop('deviceCategory'))
+        useragent['viewport_height'] = useragent.pop('viewportHeight')
+        useragent['viewport_width'] = useragent.pop('viewportWidth')
+        useragents.append((useragent.pop('weight'), UserAgent(**useragent)))
     return useragents
 
 
@@ -156,8 +156,9 @@ if __debug__:
         import urllib.parse
         import urllib.request
         import gzip
-        with open(os.path.join(os.path.dirname(__file__), _PATH), 'wb') as file:
-            file.write(gzip.decompress(urllib.request.urlopen(urllib.parse.urljoin(
-                'https://github.com/intoli/user-agents/raw/main/src/', f'{_PATH}.gz')).read()))
+        (importlib.resources.files(__name__) / _PATH).open('wb').write(
+            gzip.decompress(urllib.request.urlopen(urllib.parse.urljoin(
+                'https://github.com/intoli/user-agents/raw/main/src/',
+                f'{_PATH}.gz')).read()))
         load.cache_clear()
         load()
