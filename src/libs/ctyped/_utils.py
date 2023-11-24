@@ -75,7 +75,6 @@ if _LEGACY_LAZY_MODULE:
 else:
     _getattribute_lock = _functools.lru_cache(lambda _: _threading.Lock())
 
-
     # noinspection PyUnresolvedReferences,PyProtectedMember
     class _LazyModule(_importlib_util._LazyModule):
         def __getattribute__(self, name):  # FIXME cannot handle threaded loading

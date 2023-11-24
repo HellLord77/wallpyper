@@ -39,7 +39,7 @@ class _ISOMeta(type):
     @functools.cache
     def load(cls) -> list[dict[str, str]]:
         path = importlib.resources.files(__name__) / f'iso_{cls._BASE_.__name__[4:].replace("_", "-")}.json'
-        return json.load(path.open(encoding='utf-8'))[os.path.basename(str(path))[4:-5]]
+        return json.load(path.open(encoding='utf-8'))[path.name[4:-5]]
 
 
 class ISO6392(metaclass=_ISOMeta):
@@ -144,8 +144,8 @@ if __debug__:
         for obj in gc.get_objects():
             if isinstance(obj, _ISOMeta):
                 # noinspection PyProtectedMember
-                path = str(importlib.resources.files(__name__) /
-                           f'iso_{obj._BASE_.__name__[4:].replace("_", "-")}.json')
+                path = os.path.join(os.path.dirname(__file__),
+                                    f'iso_{obj._BASE_.__name__[4:].replace("_", "-")}.json')
                 urllib.request.urlretrieve(urllib.parse.urljoin(
                     'https://salsa.debian.org/iso-codes-team/iso-codes/-/raw/main/data/',
                     os.path.basename(path)), path)

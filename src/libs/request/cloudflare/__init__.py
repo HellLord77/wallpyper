@@ -113,10 +113,11 @@ def load() -> dict[str, dict]:
 
 if __debug__:
     def download():
+        import os
         import urllib.parse
         import urllib.request
         urllib.request.urlretrieve(urllib.parse.urljoin(
             'https://raw.githubusercontent.com/VeNoMouS/cloudscraper/master/cloudscraper/user_agent/',
-            _PATH), str(importlib.resources.files(__name__) / _PATH))
+            _PATH), os.path.join(os.path.dirname(__file__), _PATH))
         load.cache_clear()
         load()

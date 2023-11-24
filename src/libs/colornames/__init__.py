@@ -223,10 +223,11 @@ def load() -> dict[str, str]:
 
 if __debug__:
     def download():
+        import os
         import urllib.parse
         import urllib.request
         urllib.request.urlretrieve(urllib.parse.urljoin(
             'https://raw.githubusercontent.com/meodai/color-names/master/dist/',
-            _PATH), str(importlib.resources.files(__name__) / _PATH))
+            _PATH), os.path.join(os.path.dirname(__file__), _PATH))
         load.cache_clear()
         load()

@@ -66,10 +66,11 @@ def load() -> tuple[URIScheme, ...]:
 
 if __debug__:
     def download():
+        import os
         import urllib.parse
         import urllib.request
         urllib.request.urlretrieve(urllib.parse.urljoin(
             'https://www.iana.org/assignments/uri-schemes/',
-            _PATH), str(importlib.resources.files(__name__) / _PATH))
+            _PATH), os.path.join(os.path.dirname(__file__), _PATH))
         load.cache_clear()
         load()

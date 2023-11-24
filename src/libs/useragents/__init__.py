@@ -153,12 +153,12 @@ def load() -> list[tuple[float, UserAgent]]:
 
 if __debug__:
     def download():
+        import gzip
+        import os
         import urllib.parse
         import urllib.request
-        import gzip
-        (importlib.resources.files(__name__) / _PATH).open('wb').write(
-            gzip.decompress(urllib.request.urlopen(urllib.parse.urljoin(
-                'https://github.com/intoli/user-agents/raw/main/src/',
-                f'{_PATH}.gz')).read()))
+        with open(os.path.join(os.path.dirname(__file__), _PATH), 'wb') as file:
+            file.write(gzip.decompress(urllib.request.urlopen(urllib.parse.urljoin(
+                'https://github.com/intoli/user-agents/raw/main/src/', f'{_PATH}.gz')).read()))
         load.cache_clear()
         load()
