@@ -8,7 +8,7 @@ import gui
 import validator
 from libs import request
 from libs import sgml
-from libs import utils
+from libs import typ
 from . import File
 from . import Source
 
@@ -18,7 +18,7 @@ URL_BROWSE = request.join_url(URL_BASE, 'browse')
 
 CONFIG_PAGE = 'page'
 
-_PAGE = utils.MutableInt()
+_PAGE = typ.MutableInt()
 
 
 class SimpleDesktops(Source):

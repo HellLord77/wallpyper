@@ -14,7 +14,7 @@ from typing import Optional
 
 import win32
 from libs import callables
-from libs import utils
+from libs import typ
 from win32 import gui
 
 ANIMATION_PATH = ''
@@ -22,7 +22,7 @@ GUI = win32.gui.Gui.__new__(win32.gui.Gui)
 SYSTEM_TRAY = win32.gui.SystemTray.__new__(win32.gui.SystemTray)
 MENU = win32.gui.Menu.__new__(win32.gui.Menu)
 
-_ANIMATED_ICON = utils.MutableBool(True)
+_ANIMATED_ICON = typ.MutableBool(True)
 _TOOLTIPS: collections.deque[str] = collections.deque()
 _MAIN_MENU = object()
 _MAIN_MENUS: dict[int, list[gui.Menu]] = {threading.get_ident(): [MENU]}

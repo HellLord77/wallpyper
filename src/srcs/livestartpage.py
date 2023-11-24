@@ -9,7 +9,7 @@ from typing import TypedDict
 import gui
 import validator
 from libs import request
-from libs import utils
+from libs import typ
 from . import ImageFile
 from . import Source
 
@@ -22,7 +22,7 @@ CONFIG_CURSOR = 'cursor'
 
 CATEGORIES = 36, 34, 44
 
-_CURSOR = utils.MutableInt()
+_CURSOR = typ.MutableInt()
 
 
 class LiveStartPage(Source):

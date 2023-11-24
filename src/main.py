@@ -47,6 +47,7 @@ from libs import request
 from libs import singleton
 from libs import spinners
 from libs import timer
+from libs import typ
 from libs import typed
 from libs import utils
 
@@ -80,8 +81,8 @@ START: float = 0.0
 RESET: MutableSequence[str] = []
 PROGRESS = [-1, request.RETRIEVE_UNKNOWN_SIZE]
 DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
-STOP = utils.MutableBool()
-RESTART = utils.MutableBool()
+STOP = typ.MutableBool()
+RESTART = typ.MutableBool()
 TIMER = timer.Timer.__new__(timer.Timer)
 RECENT: collections.deque[srcs.File] = collections.deque(
     maxlen=consts.MAX_RECENT_LEN)
@@ -487,7 +488,8 @@ def _key_source(source: tuple[str, type[srcs.Source]]) -> tuple[int, tuple[str, 
 def on_shown(_: gui.Event):
     if CURRENT_CONFIG[consts.CONFIG_FIRST_RUN]:
         CURRENT_CONFIG[consts.CONFIG_FIRST_RUN] = not try_show_notification(
-            _text('FIRST_TITLE'), _text('FIRST_TEXT'), RES_FMT.format(consts.RES_ICON), True)
+            _text('FIRST_TITLE'), _text('FIRST_TEXT'),
+            RES_FMT.format(consts.RES_ICON), True)
     if CURRENT_CONFIG[consts.CONFIG_CHANGE_START]:
         on_change(*TIMER.target.args)
     elif CURRENT_CONFIG[consts.CONFIG_RESTORE_IMAGE]:

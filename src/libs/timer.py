@@ -1,4 +1,4 @@
-__version__ = '0.0.6'  # TODO remove (?)
+__version__ = '0.0.7'  # TODO deprecate
 
 import ctypes
 import functools
@@ -104,10 +104,11 @@ class Timer:
         self._clean_timers()
 
 
-def start_once(interval: Optional[float], target: Callable) -> Timer:
-    return Timer(0 if interval is None else interval, target, True, True)
+def start_once(target: Callable, interval: float = 0.0) -> Timer:
+    return Timer(interval, target, True, True)
 
 
 def on_thread(target: Callable) -> Callable:
+    # noinspection PyTypeChecker
     return functools.wraps(target)(lambda *args, **kwargs: start_once(
-        None, functools.partial(target, *args, **kwargs)))
+        functools.partial(target, *args, **kwargs)))

@@ -630,7 +630,12 @@ def _test_chroma():
 
 
 def _test():
-    pass
+    from libs import typ
+    print(typ.to_bool('"True"', False))
+    print(typ.to_bool('"true"', False))
+    print(typ.to_bool('"0"', False))
+    print(typ.to_bool('0', False))
+    print(typ.to_int('"1.6"', False))
 
 
 @contextlib.contextmanager
@@ -677,6 +682,6 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_winrt()
     # _test_hook()
     # _test_chroma()
-    # _test()
-    _test_winmd()
+    _test()
+    # _test_winmd()
     sys.exit()

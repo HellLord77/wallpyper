@@ -135,7 +135,7 @@ def _format_dict(dict_: Mapping[str, Any], prefix: str = '', suffix: str = '\n')
 
 def _on_trace(frame: FrameType, event: str, arg) -> Optional[Callable]:
     if frame.f_code is logging.shutdown.__code__:
-        _on_trace.__code__ = (lambda *args, **kwargs: None).__code__
+        _on_trace.__code__ = (lambda *_, **__: None).__code__
     else:
         frame.f_trace_lines = False
         path = frame.f_code.co_filename

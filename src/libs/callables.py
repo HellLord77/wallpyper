@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 import collections
 import functools
@@ -13,10 +13,13 @@ import sys
 import threading
 import time
 import weakref
+from types import NoneType
 from typing import Any
 from typing import Callable
 from typing import Container
+from typing import Iterable
 from typing import Iterator
+from typing import Mapping
 from typing import NoReturn
 from typing import Optional
 
@@ -40,7 +43,9 @@ def _get_params(args: tuple, kwargs: dict[str, Any],
 
 
 class _Callable(Callable):
-    def __init__(self, func: Callable):
+    def __init__(self, func: Optional[Callable]):
+        if func is None:
+            raise TypeError(f'{NoneType.__name__!r} object is not callable')
         self.__func__ = func
         super().__init__()
 
@@ -121,7 +126,7 @@ class FilteredCallable(_Callable):
         else:
             return functools.partial(cls, **kwargs)
 
-    def __init__(self, func: Callable,
+    def __init__(self, func: Optional[Callable] = None, *,
                  args: Container[int] = (), kwargs: Container[str] = ()):
         self._args = args
         self._kwargs = kwargs
@@ -254,7 +259,7 @@ class TimedCacheCallable(_Callable):
         else:
             return functools.partial(cls, **kwargs)
 
-    def __init__(self, func: Callable,
+    def __init__(self, func: Optional[Callable] = None, *,
                  secs: float = math.inf, size: Optional[int] = None):
         self._timeout = secs
         self._cache = collections.deque(maxlen=size)
@@ -283,3 +288,57 @@ class TimedCacheCallable(_Callable):
             return bool(self._cache)
         finally:
             self._cache.clear()
+
+
+def _call_pre_post(func: Callable, args: Iterable, kwargs: Mapping[str, Any],
+                   res, pipe_res: bool, unpack_res: bool) -> Any:
+    if pipe_res:
+        if unpack_res:
+            if isinstance(res, Mapping):
+                return func(**res)
+            elif isinstance(res, Iterable):
+                return func(*res)
+        return func(res)
+    return func(*args, **kwargs)
+
+
+class PreCallable(_Callable):
+    def __new__(cls, *args, **kwargs):
+        if args:
+            return super().__new__(cls)
+        else:
+            return functools.partial(cls, **kwargs)
+
+    def __init__(self, func: Optional[Callable] = None, *,
+                 pre_func: Callable = lambda *_, **__: None,
+                 pipe_res: bool = False, unpack_res: bool = False):
+        self._pre_func = pre_func
+        self._pipe_res = pipe_res
+        self._unpack_res = unpack_res
+        super().__init__(func)
+
+    def __call__(self, *args, **kwargs):
+        return _call_pre_post(self.__func__, args, kwargs, self._pre_func(
+            *args, **kwargs), self._pipe_res, self._unpack_res)
+
+
+class PostCallable(_Callable):
+    def __new__(cls, *args, **kwargs):
+        if args:
+            return super().__new__(cls)
+        else:
+            return functools.partial(cls, **kwargs)
+
+    def __init__(self, func: Optional[Callable] = None, *,
+                 post_func: Callable = lambda *_, **__: None,
+                 pipe_res: bool = False, unpack_res: bool = False):
+        self._post_func = post_func
+        self._pipe_res = pipe_res
+        self._unpack_res = unpack_res
+        super().__init__(func)
+
+    def __call__(self, *args, **kwargs):
+        res = self.__func__(*args, **kwargs)
+        _call_pre_post(self._post_func, args, kwargs, res,
+                       self._pipe_res, self._unpack_res)
+        return res
