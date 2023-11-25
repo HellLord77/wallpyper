@@ -599,7 +599,7 @@ function Write-MEGA {
 		Install-PackageChoco "megacmd" "mega-help"
 	}
 	mega-login $Env:MEGA_USERNAME $Env:MEGA_PASSWORD
-	mega-put dist (Join-Path "$( Get-ProjectName )-cp$( $Env:PYTHON_VERSION -Replace "\.", """" )" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
+	mega-put dist (Join-Path "$(Get-ProjectName)-cp$( $Env:PYTHON_VERSION -Replace "\.", """" )-$Env:ARCHITECTURE" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
 	mega-logout
 }
 

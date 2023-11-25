@@ -5,6 +5,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.11", "3.12"]
+        architecture: ["x86", "x64"]
     steps:
       - name: Fetch repository
         uses: actions/checkout@v4
@@ -12,6 +13,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.architecture }}
           check-latest: true
       - name: Install dependencies
         run: .\build.ps1 install
@@ -22,8 +24,9 @@ jobs:
         #   MEGA_USERNAME: ${{ secrets.MEGA_USERNAME }}
         #   MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
         #   PYTHON_VERSION: ${{ matrix.python-version }}
+        #   ARCHITECTURE: ${{ matrix.architecture }}
         # run: .\build.ps1 push
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.python-version }}
+          name: ${{ github.event.repository.name }}-${{ matrix.python-version }}-${{ matrix.architecture }}
           path: dist/*
