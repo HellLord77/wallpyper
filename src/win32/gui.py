@@ -709,8 +709,8 @@ class Menu(_Control):
     def __len__(self):
         return len(self._items)
 
-    def __getitem__(self, pos: int | slice) -> MenuItem | tuple[MenuItem]:
-        items = self._items[pos]
+    def __getitem__(self, pos: int | slice) -> MenuItem | tuple[MenuItem, ...]:
+        items: MenuItem | list[MenuItem] = self._items[pos]
         return tuple(items) if isinstance(pos, slice) else items
 
     def __delitem__(self, pos_or_item: int | slice | MenuItem) -> bool:
@@ -926,7 +926,7 @@ class MenuItem(_Control):
 
     def _get_image(self, res_or_path_or_bitmap: int | str | _gdiplus.Bitmap,
                    index: int, resize: bool) -> int:
-        if not isinstance(res_or_path_or_bitmap, int):  # FIXME checkable item cannot have image/icon
+        if not isinstance(res_or_path_or_bitmap, int):  # FIXME check item cannot have image/icon
             bitmap = _load_bitmap(res_or_path_or_bitmap)
             if bitmap:
                 if resize and not (bitmap.get_width() == bitmap.get_height() == _MENU_ITEM_IMAGE_SIZE):

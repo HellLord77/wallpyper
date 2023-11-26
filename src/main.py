@@ -25,10 +25,10 @@ from typing import NoReturn
 from typing import Optional
 from typing import TypedDict
 
-import __feature__
 import consts
 # noinspection PyUnresolvedReferences
 import exts as _
+import features
 import gui
 import langs
 import pipe
@@ -322,7 +322,7 @@ def create_menu():
         gui.add_menu_item_check(_text('LABEL_CONFIG_SAVE'), CURRENT_CONFIG,
                                 consts.CONFIG_SAVE_CONFIG, on_click=item_encrypt_enable, position=-1)
         gui.add_separator()
-        with gui.set_menu(gui.add_submenu(_text('MENU_RESET'), __feature__.RESTART_SOFT,
+        with gui.set_menu(gui.add_submenu(_text('MENU_RESET'), features.RESTART_SOFT,
                                           icon=RES_FMT.format(consts.RES_SETTINGS_RESET))):
             gui.add_menu_item(_text('LABEL_RESET_SOURCE'), on_click=functools.partial(
                 on_reset, False)).set_icon(RES_FMT.format(consts.RES_RESET_SOURCE))
@@ -951,7 +951,7 @@ def on_reset(main_: bool = True, source: bool = True):
 
 
 def on_restart(hard: bool = False):
-    if hard or consts.FLAG_HARD_RESTART or not __feature__.RESTART_SOFT:
+    if hard or consts.FLAG_HARD_RESTART or not features.RESTART_SOFT:
         args = list(pyinstall.get_launch_args())
         args.extend(sys.argv[1:])
         if consts.ARG_WAIT not in args:

@@ -32,12 +32,12 @@ $ExtraArgs = @()
 $CythonSourceGlobs = @(
     "src/libs/request/**/*.py"
     "src/libs/{colornames,emojis,isocodes,mimetype,spinners,urischemes,useragents}/__init__.py"
-# "src/libs/ctyped/interface/**/*.py"
-# "src/libs/ctyped/lib/*.py"  # FIXME https://github.com/cython/cython/issues/3838
+    # "src/libs/ctyped/interface/**/*.py"
+    # "src/libs/ctyped/lib/*.py"  # FIXME https://github.com/cython/cython/issues/3838
     "src/libs/ctyped/lib/__init__.py"
-# "src/libs/ctyped/type/*.py"
+    # "src/libs/ctyped/type/*.py"
     "src/libs/ctyped/{const,enum,winrt}/*.py"
-# "src/libs/ctyped/{_utils,struct,union}.py"
+    # "src/libs/ctyped/{_utils,struct,union}.py"
     "src/libs/ctyped/{__init__,handle,macro}.py"
     "src/{plat,srcs,win32}/**/*.py"
     "src/{exts,langs,libs}/*.py"
@@ -78,8 +78,8 @@ $CodeRunBeforeRemote = @(
     "download()"
     "from src.libs.mimetype import download"
     "download()"
-# "from src.libs.request.cloudflare import download"
-# "download()"  # FIXME https://github.com/VeNoMouS/cloudscraper/blob/master/cloudscraper/user_agent/browsers.json#L7909
+    # "from src.libs.request.cloudflare import download"
+    # "download()"  # FIXME https://github.com/VeNoMouS/cloudscraper/blob/master/cloudscraper/user_agent/browsers.json#L7909
     "from src.libs.spinners import download"
     "download()"
     "from src.libs.urischemes import download"
@@ -295,7 +295,7 @@ function Start-PythonCode([string[]]$Lines, [bool]$Verbose = $True, [bool]$Throw
 
 function Get-ProjectName {
     return Split-Path $( if ($IsRemote) { $Env:GITHUB_REPOSITORY }
-    else { Split-Path -Path (Get-Location) -Leaf } ) -Leaf
+        else { Split-Path -Path (Get-Location) -Leaf } ) -Leaf
 }
 
 function Get-IsPython64Bit {
@@ -322,7 +322,8 @@ function Get-ModuleGraph([bool]$Smart = $ModuleGraphSmart) {
         $Modules = (Start-PythonCode $CodeModuleGraphSmartProcess $False) -Split ";"
         $Modules = Get-RemovedItemArray $Modules (Resolve-Path $EntryPoint).ToString()
     }
-    else {  # TODO ? fix (ignores hooks)
+    else {
+        # TODO ? fix (ignores hooks)
         $CodeModuleGraph = @() + $CodeModuleGraphTemplate
         $CodeModuleGraph[4] = $CodeModuleGraphTemplate[4] -f $EntryPoint
         foreach ($Exclude in $Excludes) {
@@ -388,6 +389,17 @@ function Get-ReducedModuleGraphArgs([string[]]$ArgList, [bool]$Verbose = $False)
         if ($Verbose) { Write-Host "[Reduced] $Module" }
     }
     return ToArray $ArgList
+}
+
+function Remove-PyInstaller([bool]$Verbose = $False, [bool]$Throw = $True) {
+    $Paths = @("build", "dist", "*.spec")
+    foreach ($Path in $Paths) {
+        try {
+            Remove-Item $Path -Force -Recurse
+            if ($Verbose) { Write-Host "[Removed] $Path" }
+        }
+        catch { if ($Throw) { throw } }
+    }
 }
 
 function Remove-pyd([string[]]$Sources, [bool]$Verbose, [bool]$Throw) {
@@ -495,7 +507,8 @@ function Install-Requirements {
     if (Test-Path requirements.txt -PathType Leaf) { python -m pip install -r requirements.txt }
 }
 
-function Remove-All([bool]$Verbose = $True, [bool]$Throw = $False) {
+function Remove-All([bool]$PyInstaller = $False, [bool]$Verbose = $True, [bool]$Throw = $False) {
+    if ($PyInstaller) { Remove-PyInstaller $Verbose $Throw }
     Remove-Cython $Verbose $Throw
     Remove-Nuitka $Verbose $Throw
     Remove-mypyc $Verbose $Throw
@@ -518,7 +531,7 @@ function Write-Build {
             }
         }
 
-        Remove-All $False
+        Remove-All -Verbose $False
         $PyInstallerArgs = Get-PyInstallerArgs
         if ($CythonSourceGlobs) {
             $CythonArgs = Get-CythonArgs
@@ -585,7 +598,7 @@ function Write-Build {
         if ($CodeRunAfter) { Start-PythonCode $CodeRunAfter }
         if ($IsRemote -and $CodeRunAfterRemote) { Start-PythonCode $CodeRunAfterRemote }
     }
-    finally { if ($RemoveOnThrow) { Remove-All $False } }
+    finally { if ($RemoveOnThrow) { Remove-All -Verbose $False } }
 }
 
 function Write-MEGA {
@@ -607,7 +620,7 @@ $ErrorActionPreference = "Stop"
 if ($Args) {
     switch ($Args[0]) {
         "install" { Install-Requirements; Break }
-        "clean" { Remove-All; Break }
+        "clean" { Remove-All $True; Break }
         "build" { Write-Build; Break }
         "push" { Write-MEGA; Break }
         Default { throw }
