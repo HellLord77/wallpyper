@@ -76,13 +76,13 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         cls._on_editorial(item_search.enable, items_order, cls.CURRENT_CONFIG[CONFIG_EDITORIAL])
         with gui.set_menu(item_search):
             gui.add_submenu_radio(cls._text('MENU_FILTER'), {
-                filter_: cls._text(f'UNSPLASH_FILTER_{filter_}')
+                filter_: cls._text(f'FILTER_{filter_}')
                 for filter_ in FILTERS}, cls.CURRENT_CONFIG, CONFIG_FILTER)
             gui.add_submenu_radio(cls._text('MENU_COLOR'), {
-                color: cls._text(f'UNSPLASH_COLOR_{color}')
+                color: cls._text(f'COLOR_{color}')
                 for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
             gui.add_submenu_radio(cls._text('MENU_ORIENTATION'), {
-                orientation: cls._text(f'UNSPLASH_ORIENTATION_{orientation}')
+                orientation: cls._text(f'ORIENTATION_{orientation}')
                 for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
 
     @classmethod

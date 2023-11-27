@@ -242,7 +242,8 @@ def add_submenu_radio(label_or_submenu_item: str | win32.gui.MenuItem, items: Ma
                       on_click: Optional[Callable] = None, args: Optional[Iterable[MenuItemAttribute]] = None,
                       position: Optional[int] = None, icon: Optional[int | str] = None,
                       menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
-    submenu_item = _get_submenu(label_or_submenu_item, enable, position, icon, menu)
+    submenu_item = _get_submenu(label_or_submenu_item,
+                                enable, position, icon, menu)
     if on_click is None:
         wrapped = mapping.__setitem__
     else:
@@ -255,8 +256,49 @@ def add_submenu_radio(label_or_submenu_item: str | win32.gui.MenuItem, items: Ma
     args = MenuItemProperty.UID, *(() if args is None else args)
     submenu = submenu_item.get_submenu()
     for uid_, label in items.items():
-        add_menu_item(label, win32.gui.MenuItemType.RADIO, val == uid_, uid=uid_,
-                      on_click=on_click_, args=args, menu=submenu)
+        add_menu_item(label, win32.gui.MenuItemType.RADIO, val == uid_,
+                      uid=uid_, on_click=on_click_, args=args, menu=submenu)
+    return submenu_item
+
+
+def _add_submenu_tree_radio(items: Mapping[str, str | tuple[str, Mapping]], val: str, on_click: Callable,
+                            args: Iterable[MenuItemAttribute], items_: list[MenuItem], menu: win32.gui.Menu):
+    for uid_, label in items.items():
+        if isinstance(label, str):
+            items_.append(add_menu_item(label, win32.gui.MenuItemType.RADIO, val == uid_,
+                                        uid=uid_, on_click=on_click, args=args, menu=menu))
+        else:
+            submenu = add_submenu(label[0], menu=menu).get_submenu()
+            _add_submenu_tree_radio(label[1], val, on_click,
+                                    args, items_, submenu)
+
+
+def add_submenu_tree_radio(label_or_submenu_item: str | win32.gui.MenuItem, items: Mapping[str, str | tuple[str, Mapping]],
+                           mapping: MutableMapping[str, str], key: str, enable: bool = True,
+                           on_click: Optional[Callable] = None, args: Optional[Iterable[MenuItemAttribute]] = None,
+                           position: Optional[int] = None, icon: Optional[int | str] = None,
+                           menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
+    submenu_item = _get_submenu(label_or_submenu_item, enable, position, icon, menu)
+
+    def wrapped(uid: str):
+        mapping[key] = uid
+        for item_ in items_:
+            item_.check(uid == item_.get_uid(), True)
+
+    args_ = MenuItemProperty.UID,
+    if on_click is None:
+        on_click_ = wrapped
+    else:
+        @functools.wraps(on_click)
+        def on_click_(uid_: int | str, *args__):
+            wrapped(uid_)
+            return on_click(uid_, *args__)
+
+        args_ += (() if args is None else args)
+
+    items_ = []
+    _add_submenu_tree_radio(items, mapping[key], on_click_,
+                            args_, items_, submenu_item.get_submenu())
     return submenu_item
 
 
