@@ -6,6 +6,7 @@ import itertools
 import json
 import logging
 import multiprocessing
+import operator
 import os
 import pickle
 import re
@@ -291,11 +292,25 @@ def create_menu():
                                         on_click=functools.partial(on_easing_direction, item_ease_enable))
                 gui.add_menu_item_check(_text('EASE_DIRECTION_OUT'), CURRENT_CONFIG, consts.CONFIG_EASE_OUT,
                                         on_click=functools.partial(on_easing_direction, item_ease_enable))
-        # noinspection PyTypeChecker
-        gui.add_submenu_radio(_text('MENU_SOURCE'), {name: source.NAME for name, source in sorted(
-            srcs.SOURCES.items(), key=_key_source)}, CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE,
-                              on_click=on_source, icon=RES_FMT.format(consts.RES_SOURCE))
-        on_source(CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE])
+        item_source = gui.add_submenu(_text('MENU_SOURCE'), icon=RES_FMT.format(consts.RES_SOURCE))
+        on_source_ = functools.partial(on_source, [])
+        if consts.FLAG_FLAT_SOURCES:
+            gui.add_submenu_radio(item_source, {uid: source.NAME for uid, source in sorted(
+                srcs.SOURCES.items(), key=_key_source)}, CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE, on_click=on_source_)
+        else:
+            sources: dict[str, dict] = {'': {}}
+            for uid, source in srcs.SOURCES.items():
+                sources_ = sources
+                parts = uid.split('.')
+                for index in range(len(parts) - 1):
+                    uid_ = '.'.join(parts[:index + 1])
+                    if uid_ not in sources_:
+                        sources_[uid_] = {'': {}}
+                    sources_ = sources_[uid_]
+                sources_[''][uid] = source
+            with gui.set_menu(item_source):
+                _create_source_menu(sources, on_source_)
+        on_source_(CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE])
         item_display = gui.add_submenu(_text('MENU_DISPLAY'), icon=RES_FMT.format(consts.RES_DISPLAY))
         gui.GUI.bind(gui.GuiEvent.DISPLAY_CHANGE, functools.partial(on_display_change, item_display))
         on_display_change(item_display, 0)
@@ -364,6 +379,16 @@ def filter_image(image: srcs.File) -> bool:
     if CURRENT_CONFIG[consts.CONFIG_SKIP_RECENT] and image in RECENT:
         return False
     return True
+
+
+def _create_source_menu(sources: dict[str, dict], on_source_: functools.partial):
+    for uid, source in sorted(sources.pop('').items(), key=_key_source):
+        on_source_.args[0].append(gui.add_menu_item(
+            source.NAME, gui.MenuItemType.RADIO,
+            uid=uid, on_click=on_source_, args=(gui.MenuItemProperty.UID,)))
+    for uid, sources_ in sources.items():
+        with gui.set_menu(gui.add_submenu(srcs.CATEGORIES[uid].NAME)):
+            _create_source_menu(sources_, on_source_, )
 
 
 def _loads_config(data: str, loader: config.JSONConfig):
@@ -968,7 +993,11 @@ def on_transition_style(enable: Callable[[bool], bool], transition: str):
     enable(transition != win32.display.Transition.DISABLED.name)
 
 
-def on_source(name: str):
+@callables.PreCallable(pre_func=callables.FilteredCallable(functools.partial(
+    operator.setitem, CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE), args=(0,)))
+def on_source(items: list[gui.MenuItem], name: str):
+    for item_ in items:
+        item_.check(name == item_.get_uid(), True)
     item = gui.get_menu_item_by_uid(consts.UID_SOURCE_SETTINGS, False, gui.MENU)
     source = srcs.SOURCES[name]
     icon = os.path.isfile(source.ICON)

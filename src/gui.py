@@ -111,6 +111,9 @@ def _get_menu(menu: win32.gui.Menu | win32.gui.MenuItem) -> win32.gui.Menu:
     return menu
 
 
+get_default_menu = functools.partial(_get_menu, _MAIN_MENU)
+
+
 def _get_position(position: Optional[int], menu: win32.gui.Menu) -> int:
     if position is None:
         position = menu.get_item_count()
@@ -124,7 +127,8 @@ def add_menu_item(label: str = '', kind: int = win32.gui.MenuItemType.NORMAL, ch
                   args: Optional[Iterable[MenuItemAttribute]] = None, on_thread: bool = True, position: Optional[int] = None,
                   menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
     menu = _get_menu(menu)
-    menu_item = menu.insert_item(_get_position(position, menu), label, enable=enable, check=check, type=kind)
+    menu_item = menu.insert_item(_get_position(
+        position, menu), label, enable=enable, check=check, type=kind)
     if uid is not None:
         menu_item.set_uid(uid)
     if on_click is not None:

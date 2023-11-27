@@ -22,9 +22,8 @@ def _yaml_to_json(yml: str) -> str:
     ).replace('\n', '","').replace(': ', '":"') + '"}'
 
 
-# noinspection PyAbstractClass
 class GelbooruSource(Source, source=False):
-    pass
+    NAME = 'Gelbooru'
 
 
 from . import (

@@ -36,6 +36,7 @@ from libs.request import har
 logger = logging.getLogger(__name__)
 
 SOURCES: dict[str, type[Source]] = {}
+CATEGORIES: dict[str, type[Source]] = {}
 
 CONFIG_ORIENTATIONS = '_orientations_'
 CONFIG_RATINGS = '_ratings_'
@@ -298,9 +299,9 @@ class Source:
     _ratings: bool
 
     def __init_subclass__(cls, source: bool = True):
+        uid = cls.__module__.removeprefix(Source.__module__ + '.')
         if source:
-            uid = cls.__module__.removeprefix(Source.__module__ + '.')
-            if not cls.NAME:
+            if cls.NAME == cls.__base__.NAME:
                 cls.NAME = cls.__name__
             cls.ICON = os.path.join(os.path.dirname(
                 __file__), 'res', f'{uid}.{cls.ICON}')
@@ -310,17 +311,17 @@ class Source:
             tconfig = cls.TCONFIG
             default_config = cls.DEFAULT_CONFIG
             for base in bases[bases.index(Source)::-1]:
-                # noinspection PyUnresolvedReferences
                 tconfig_ = base.TCONFIG
                 tconfig.__required_keys__ |= tconfig_.__required_keys__
                 tconfig.__optional_keys__ |= tconfig_.__optional_keys__
-                # noinspection PyUnresolvedReferences
                 default_config.update(base.DEFAULT_CONFIG)
             cls.CURRENT_CONFIG = {}
             cls._orientations = CONFIG_ORIENTATIONS in cls.DEFAULT_CONFIG
             cls._ratings = CONFIG_RATINGS in cls.DEFAULT_CONFIG
             cls.get_image = callables.LastCacheCallable(cls.get_image)
             SOURCES[uid] = cls
+        else:
+            CATEGORIES[uid] = cls
 
     # noinspection PyShadowingNames
     @classmethod

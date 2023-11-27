@@ -77,6 +77,7 @@ def _tag_sort(sort: str, order: str) -> Iterator[str]:
 
 
 class GelbooruV02Source(GelbooruSource, source=False):
+    NAME = 'Beta 0.2'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
         CONFIG_STATIC: bool,

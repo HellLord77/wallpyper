@@ -64,6 +64,7 @@ class GelbooruV01Hash(Hash):
 
 
 class GelbooruV01Source(GelbooruSource, source=False):
+    NAME = 'Beta 0.1'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
         CONFIG_MODE: str,

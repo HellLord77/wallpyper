@@ -1104,8 +1104,9 @@ class MenuItem(_Control):
         # noinspection PyProtectedMember
         return self._menu._hmenu.check_radio_item(pos, first_pos, last_pos, True)
 
-    def check(self, check: bool = True) -> bool:
-        return (self._check_radio() if check else not self.is_checked()) if self.is_radio() else self._check(check)
+    def check(self, check: bool = True, uncheck_radio: bool = False) -> bool:
+        return (self._check_radio() if check else not self.is_checked()) if not (
+                check or uncheck_radio) and self.is_radio() else self._check(check)
 
     def set_checked_icon(self, res_or_path: Optional[int | str] = None, resize: bool = True) -> bool:
         return self._set_check_icons(res_or_path, self._hbmps[2], resize)
