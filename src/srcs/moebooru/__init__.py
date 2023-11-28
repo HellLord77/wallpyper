@@ -95,7 +95,6 @@ def _param_time(day: int, month: int, year: int) -> Iterator[tuple[str, str]]:
 
 
 class MoebooruSource(Source, source=False):
-    NAME = 'Moebooru'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
         CONFIG_MODE: str,

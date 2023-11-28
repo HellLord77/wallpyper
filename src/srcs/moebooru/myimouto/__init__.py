@@ -2,7 +2,7 @@ from .. import MoebooruSource
 
 
 class MyImoutoSource(MoebooruSource, source=False):
-    NAME = 'MyImouto'
+    pass
 
 
 from . import (

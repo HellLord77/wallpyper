@@ -174,8 +174,8 @@ class Wallscloud(Source):
                 'div', classes='size').get_data().split('x'))
             yield ImageFile(url_wall_link, name, url=url, width=width, height=height)
 
-    @classmethod
-    def _on_mode(cls, enable_category: Callable[[bool], bool], enable_top: Callable[[bool], bool],
+    @staticmethod
+    def _on_mode(enable_category: Callable[[bool], bool], enable_top: Callable[[bool], bool],
                  enable_color: Callable[[bool], bool], enable_orientation: Callable[[bool], bool],
                  enable_time: Callable[[bool], bool], enable_sort: Callable[[bool], bool],
                  enable_order: Callable[[bool], bool], mode: str):
@@ -187,8 +187,8 @@ class Wallscloud(Source):
         enable_sort(mode in (MODES[0], MODES[3]))
         enable_order(mode in (MODES[0], MODES[3]))
 
-    @classmethod
-    def _on_color(cls, item_latest: gui.MenuItem, enable_color: Callable[[bool], bool], color: str):
+    @staticmethod
+    def _on_color(item_latest: gui.MenuItem, enable_color: Callable[[bool], bool], color: str):
         no_color = color == COLORS[0]
         if no_color:
             item_latest.check()

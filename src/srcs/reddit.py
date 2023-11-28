@@ -155,6 +155,6 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
             return False
         return super().filter_image(image)
 
-    @classmethod
-    def _on_sort(cls, enable: Callable[[bool], bool], sort: str):
+    @staticmethod
+    def _on_sort(enable: Callable[[bool], bool], sort: str):
         enable(sort in (SORTS[2], SORTS[3]))

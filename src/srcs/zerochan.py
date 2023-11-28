@@ -116,6 +116,6 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
                             width=json_item['width'], height=json_item[
                     'height'], sketchy='Ecchi' in json_item['tags'], md5=json_item['hash'])
 
-    @classmethod
-    def _on_sort(cls, enable: Callable[[bool], bool], sort: str):
+    @staticmethod
+    def _on_sort(enable: Callable[[bool], bool], sort: str):
         enable(sort == SORTS[1])

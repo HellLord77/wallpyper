@@ -109,6 +109,6 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
             yield ImageFile(photo['src']['original'], url=photo['url'],
                             width=photo['width'], height=photo['height'])
 
-    @classmethod
-    def _on_curated(cls, enable: Callable[[bool], bool], curated: bool):
+    @staticmethod
+    def _on_curated(enable: Callable[[bool], bool], curated: bool):
         enable(not curated)

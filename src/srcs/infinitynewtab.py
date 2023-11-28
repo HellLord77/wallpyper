@@ -135,8 +135,8 @@ class InfinityNewTab(Source):
             width, height = map(int, _RE_RESOLUTION.split(photo['dimensions'].replace('px', '')))
             yield ImageFile(photo['src']['rawSrc'], width=width, height=height)
 
-    @classmethod
-    def _on_mode(cls, enable_order: Callable[[bool], bool],
+    @staticmethod
+    def _on_mode(enable_order: Callable[[bool], bool],
                  enable_color: Callable[[bool], bool],
                  enable_label: Callable[[bool], bool],
                  enable_source: Callable[[bool], bool], mode: str):

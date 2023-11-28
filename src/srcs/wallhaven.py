@@ -182,6 +182,6 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
             item.enable((not disable or not item.is_checked()) and (
                     index != 2 or bool(cls.CURRENT_CONFIG[CONFIG_KEY])))
 
-    @classmethod
-    def _on_sorting(cls, enable: Callable[[bool], bool], sorting: str):
+    @staticmethod
+    def _on_sorting(enable: Callable[[bool], bool], sorting: str):
         enable(sorting == SORTINGS[5])

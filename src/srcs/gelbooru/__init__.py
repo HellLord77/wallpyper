@@ -23,7 +23,7 @@ def _yaml_to_json(yml: str) -> str:
 
 
 class GelbooruSource(Source, source=False):
-    NAME = 'Gelbooru'
+    pass
 
 
 from . import (

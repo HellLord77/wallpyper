@@ -164,6 +164,6 @@ class Fonstola(Source):
                             f'{dribble[0].get_data()}.{path.split(".", 3)[-1]}',
                             url=url_dribble, width=width, height=height)
 
-    @classmethod
-    def _on_list(cls, enable_category: Callable[[bool], bool], list_: str):
+    @staticmethod
+    def _on_list(enable_category: Callable[[bool], bool], list_: str):
         enable_category(list_ == LISTS[2])

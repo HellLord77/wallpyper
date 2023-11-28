@@ -280,19 +280,19 @@ class WallpapersWide(Source):
             yield ImageFile(request.join_url(URL_DOWNLOAD, f'{path[1:-6]}-{resolution}.jpg'),
                             f'{link[0].get_data()}.jpg', url=url_wallpaper, width=width, height=height)
 
-    @classmethod
-    def _on_clear(cls, item_ratio_: gui.MenuItem, item_resolution_: gui.MenuItem):
+    @staticmethod
+    def _on_clear(item_ratio_: gui.MenuItem, item_resolution_: gui.MenuItem):
         item_ratio_.check()
         item_ratio_.trigger(gui.MenuItemEvent.LEFT_UP)
         item_resolution_.check()
         item_resolution_.trigger(gui.MenuItemEvent.LEFT_UP)
 
-    @classmethod
-    def _on_ratio(cls, enable_resolution: Callable[[bool], bool], ratio: str):
+    @staticmethod
+    def _on_ratio(enable_resolution: Callable[[bool], bool], ratio: str):
         enable_resolution(ratio == RATIOS[0])
 
-    @classmethod
-    def _on_gallery(cls, enable_category: Callable[[bool], bool],
+    @staticmethod
+    def _on_gallery(enable_category: Callable[[bool], bool],
                     enable_resolution: Callable[[bool], bool], gallery: str):
         enable_category(gallery == GALLERIES[7])
         enable_resolution(gallery == GALLERIES[8])

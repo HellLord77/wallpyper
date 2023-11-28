@@ -191,8 +191,8 @@ class WallpaperAbyss(Source):
                 'HD Wallpaper | Background Image').strip() + basename, url=request.encode_params(
                 URL_INFO, {'i': basename.split('.', 1)[0]}), width=width, height=height)
 
-    @classmethod
-    def _on_method(cls, enable_resolution_filter: Callable[[bool], bool],
+    @staticmethod
+    def _on_method(enable_resolution_filter: Callable[[bool], bool],
                    enable_resolution_equals: Callable[[bool], bool], enable_sorting: Callable[[bool], bool],
                    enable_resolution: Callable[[bool], bool], enable_license: Callable[[bool], bool],
                    enable_color: Callable[[bool], bool], enable_category: Callable[[bool], bool], method: str):

@@ -110,8 +110,8 @@ class WallpaperTip(Source):
                 request.split_url(link['href'])[-1].split('_', 1)[0], os.path.splitext(name)[0]),
                             width=width, height=height)
 
-    @classmethod
-    def _on_mode(cls, enable_resolution: Callable[[bool], bool],
+    @staticmethod
+    def _on_mode(enable_resolution: Callable[[bool], bool],
                  enable_device: Callable[[bool], bool],
                  enable_color: Callable[[bool], bool], mode: str):
         search = mode == MODES[1]

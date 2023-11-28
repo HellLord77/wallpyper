@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.3.3'
+__version__ = '0.3.4'
 
 import binascii
 import copy
@@ -321,6 +321,8 @@ class Source:
             cls.get_image = callables.LastCacheCallable(cls.get_image)
             SOURCES[uid] = cls
         else:
+            if cls.NAME == cls.__base__.NAME:
+                cls.NAME = cls.__name__.removesuffix(Source.__name__)
             CATEGORIES[uid] = cls
 
     # noinspection PyShadowingNames

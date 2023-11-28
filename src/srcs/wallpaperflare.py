@@ -131,8 +131,8 @@ class WallpaperFlare(Source):
             yield ImageFile(html.find('img', _ATTRS_SRC)['src'], url=url_item, width=int(
                 info[0][0].get_data()), height=int(info[1][0].get_data()))
 
-    @classmethod
-    def _on_search(cls, enable_mobile: Callable[[bool], bool],
+    @staticmethod
+    def _on_search(enable_mobile: Callable[[bool], bool],
                    enable_sort: Callable[[bool], bool], search: bool):
         enable_mobile(search)
         enable_sort(search)

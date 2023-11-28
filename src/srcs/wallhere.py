@@ -144,6 +144,6 @@ class WallHere(Source):
             yield ImageFile(data['contentUrl'], url=url_item, width=int(data['width'][:-2]), height=int(
                 data['height'][:-2]), sketchy='item-sketchy' in classes, nsfw='item-nsfw' in classes)
 
-    @classmethod
-    def _on_random(cls, enable: Callable[[bool], bool], random: bool):
+    @staticmethod
+    def _on_random(enable: Callable[[bool], bool], random: bool):
         enable(not random)

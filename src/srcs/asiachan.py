@@ -105,6 +105,6 @@ class AsiaChan(Source):
                             height=int(json_item['height'].removesuffix('px')),
                             sketchy='Suggestive' in item['tags'])
 
-    @classmethod
-    def _on_sort(cls, enable: Callable[[bool], bool], sort: str):
+    @staticmethod
+    def _on_sort(enable: Callable[[bool], bool], sort: str):
         enable(sort == SORTS[1])
