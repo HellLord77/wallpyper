@@ -27,7 +27,7 @@ def get_launch_args() -> tuple[str, ...]:
 def clean_temp() -> bool:
     cleaned = True
     base = os.path.dirname(TEMP_DIR) or tempfile.gettempdir()
-    logger.info('Cleaning temporary directory: %s', base)
+    logger.debug('Cleaning temporary directory: %s', base)
     for dir_ in glob.iglob(os.path.join(base, f'_MEI{"[0-9]" * 6}')):
         path = os.path.join(base, dir_)
         if os.path.isdir(path) and path != TEMP_DIR:

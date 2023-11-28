@@ -353,25 +353,30 @@ def _temp(*paths: str) -> str:
 
 
 def get_image() -> Optional[srcs.File]:
-    source = srcs.SOURCES[CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE]]
+    name = CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE]
+    source = srcs.SOURCES[name]
     params = {key: val for key, val in source.CURRENT_CONFIG.items()
               if not key.startswith('_')}
     first_image = None
     for _ in range(consts.MAX_SKIP_AMT):
         try:
             next_image = next(source.get_image(**params))
-        except:  # NOQA: E722
+        except BaseException as exc:
+            logger.error('Unhandled exception in source.get_image: %s<%s>',
+                         name, source.VERSION, exc_info=exc)
             source.get_image.reset()
-            raise
+            try_alert_error(exc, True)
+            break
         if next_image is None or (filter_image(
                 next_image) and source.filter_image(next_image)):
             return next_image
+        logger.info('Filtered image: %s', next_image)
         print(f'[❎] Filter: {next_image}')
         if first_image is None:
             first_image = next_image
         elif first_image == next_image:
-            # TODO respect CURRENT_CONFIG
-            return next_image
+            logger.debug('Detected filter loop: %s', next_image)
+            break
 
 
 def filter_image(image: srcs.File) -> bool:
@@ -470,7 +475,7 @@ def try_remove_temp(force: bool = False) -> bool:
 def try_show_notification(title: str, text: str = '',
                           icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE,
                           force: bool = False) -> bool:
-    logger.info('Showing notification: title<%s> text<%s>', title, text)
+    logger.debug('Showing notification: title<%s> text<%s>', title, text)
     if force or CURRENT_CONFIG[consts.CONFIG_NOTIFY_ERROR]:
         end_time = time.monotonic() + consts.MAX_NOTIFY_SEC
         while end_time > time.monotonic() and not gui.SYSTEM_TRAY.is_shown():
@@ -564,14 +569,16 @@ def download_image(image: srcs.File) -> Optional[str]:
     with gui.try_animate_icon(_text('STATUS_DOWNLOAD')):
         path = _temp(image.name)
         PROGRESS[:] = 0, request.RETRIEVE_UNKNOWN_SIZE
+        logger.info('Downloaded image: %s', image)
         print(f'[🟩] Download: {image}')
         if PIPE or win32.console.is_present():
             print_progress()
         STOP.clear()
         try:
             if ((image.request.url == request.from_path(path) or
-                 (image.checksize(path) and (consts.FLAG_UNSAFE_CACHE or image.checksum(path))) or
-                 image.download(path, query_download)) and (image.checksize(path) is not False and (
+                 (image.checksize(path) and (consts.FLAG_UNSAFE_CACHE or image.checksum(
+                     path))) or image.download(path, query_download)) and (
+                    image.checksize(path) is not False and (
                     consts.FLAG_UNSAFE_CACHE or image.checksum(path)) is not False) and
                     image.fill(path, not consts.FLAG_UNSAFE_CACHE)):
                 return path
@@ -690,7 +697,8 @@ def on_image(callback: callables.SingletonCallable[[str], bool],
         try:
             success = callback(path)
         except BaseException as exc:
-            logger.error('Unhandled exception in function: %s<%s>', callback.__name__, path, exc_info=exc)
+            logger.error('Unhandled exception in function: %s<%s>',
+                         callback.__name__, path, exc_info=exc)
             try_alert_error(exc, True)
     if not success:
         try_show_notification(title, text)
@@ -993,7 +1001,8 @@ def on_source(name: str):
             source.create_menu()
         except BaseException as exc:
             submenu.clear_items()
-            logger.error('Unhandled exception in source.create_menu: %s<%s>', name, source.VERSION, exc_info=exc)
+            logger.error('Unhandled exception in source.create_menu: %s<%s>',
+                         name, source.VERSION, exc_info=exc)
             try_alert_error(exc, True)
     item.enable(bool(submenu))
 
@@ -1042,8 +1051,8 @@ def start():
     gui.enable_animated_icon(CURRENT_CONFIG[consts.CONFIG_ANIMATE_ICON])
     apply_auto_start(CURRENT_CONFIG[consts.CONFIG_AUTO_START])
     gui.GUI.bind(gui.GuiEvent.NC_RENDERING_CHANGED, on_shown, True)
-    logger.info('Started process: %s<%.3fs>',
-                multiprocessing.current_process().name, time.monotonic() - START)
+    logger.debug('Started process: %s<%.3fs>',
+                 multiprocessing.current_process().name, time.monotonic() - START)
     gui.start_loop(RES_FMT.format(consts.RES_TRAY), consts.NAME,
                    functools.partial(on_change, *TIMER.target.args, auto=False))
 

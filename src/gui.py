@@ -153,7 +153,8 @@ def add_submenu(label: str, enable: bool = True, uid: Optional[int | str] = None
                 position: Optional[int] = None, icon: Optional[int | str] = None,
                 menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
     menu = _get_menu(menu)
-    item = menu.insert_item(_get_position(position, menu), label, submenu=win32.gui.Menu(), enable=enable)
+    item = menu.insert_item(_get_position(position, menu),
+                            label, submenu=win32.gui.Menu(), enable=enable)
     if uid is not None:
         item.set_uid(uid)
     if icon is not None:
@@ -179,7 +180,8 @@ def _get_submenu(label_or_submenu_item: str | win32.gui.MenuItem, enable: bool =
                  position: Optional[int] = None, icon: Optional[int | str] = None,
                  menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
     if isinstance(label_or_submenu_item, str):
-        label_or_submenu_item = add_submenu(label_or_submenu_item, position=position, menu=menu)
+        label_or_submenu_item = add_submenu(
+            label_or_submenu_item, position=position, menu=menu)
     if enable is not None:
         label_or_submenu_item.enable(enable)
     if icon is not None:
@@ -193,7 +195,8 @@ def add_submenu_check(label_or_submenu_item: str | win32.gui.MenuItem,
                       on_click: Optional[Callable] = None, args: Optional[Iterable[MenuItemAttribute]] = None,
                       position: Optional[int] = None, icon: Optional[int | str] = None,
                       menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
-    submenu_item = _get_submenu(label_or_submenu_item, enable, position, icon, menu)
+    submenu_item = _get_submenu(label_or_submenu_item,
+                                enable, position, icon, menu)
 
     def wrapped():
         unchecked_checked = [], []
@@ -290,7 +293,7 @@ def add_submenu_tree_radio(label_or_submenu_item: str | win32.gui.MenuItem, item
         on_click_ = wrapped
     else:
         @functools.wraps(on_click)
-        def on_click_(uid_: int | str, *args__):
+        def on_click_(uid_: str, *args__):
             wrapped(uid_)
             return on_click(uid_, *args__)
 
