@@ -886,7 +886,7 @@ class MenuItem(_Control):
     _tooltip_text: str = ''
     _tooltip_title: str = ''
     _tooltip_icon: Optional[int | _handle.HICON] = None
-    _uid: int | str = 0
+    _uid = 0
 
     def __init__(self, menu: Menu, type_: int, *, gui: Optional[Gui] = None):
         self._hwnd = self._attach(gui)
@@ -1130,10 +1130,10 @@ class MenuItem(_Control):
                 icon_res_or_path_or_bitmap = MenuItemTooltipIcon.NONE
         self._tooltip_icon = icon_res_or_path_or_bitmap
 
-    def set_uid(self, uid: int | str):
+    def set_uid(self, uid):
         self._uid = uid
 
-    def get_uid(self) -> int | str:
+    def get_uid(self) -> Any:
         return self._uid
 
 

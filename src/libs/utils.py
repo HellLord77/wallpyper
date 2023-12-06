@@ -191,7 +191,7 @@ def cycle_ex(it: Iterable, func: Optional[Callable] = None) -> Iterator:
             func()
 
 
-def get_recursive(it: Mapping | Sequence, *keys: Any, default: Any = DEFAULT) -> Any:
+def get_recursive(it: Mapping | Sequence, *keys, default = DEFAULT) -> Any:
     for key in keys:
         try:
             it = it[key]

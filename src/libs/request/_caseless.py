@@ -54,7 +54,7 @@ def getitem(mapping: Mapping[str, Any], key: str) -> Any:
         return mapping[key]
 
 
-def setitem(mapping: MutableMapping[str, Any], key: str, value: Any):
+def setitem(mapping: MutableMapping[str, Any], key: str, value):
     try:
         key = match(mapping, key)
     except ValueError:
@@ -62,7 +62,7 @@ def setitem(mapping: MutableMapping[str, Any], key: str, value: Any):
     mapping[key] = value
 
 
-def get(mapping: Mapping[str, Any], key: str, default: Any = None) -> Any:
+def get(mapping: Mapping[str, Any], key: str, default = None) -> Any:
     try:
         return getitem(mapping, key)
     except KeyError:

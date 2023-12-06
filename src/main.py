@@ -881,6 +881,7 @@ def on_remove_shortcut() -> bool:
 
 
 def on_start_shortcut() -> bool:
+    # noinspection PyTypeChecker
     if not (created := _create_shortcut(os.path.join(win32.START_DIR, consts.NAME))):
         try_show_notification(_text('LABEL_START_MENU'), _text('FAIL_START_MENU'))
     return created
