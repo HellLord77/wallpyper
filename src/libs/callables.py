@@ -141,7 +141,7 @@ class FilteredCallable(_Callable):
 
 class ReducedCallable(_Callable):
     _args: int = sys.maxsize
-    _kwargs: Optional[tuple[str]] = None
+    _kwargs: Optional[tuple[str, ...]] = None
 
     def __init__(self, func: Callable):
         params = inspect.signature(func).parameters.values()

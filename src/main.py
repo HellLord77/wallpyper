@@ -385,14 +385,15 @@ def filter_image(image: srcs.File) -> bool:
     return True
 
 
-def _loads_config(data: str, loader: config.JSONConfig):
-    data_ = json.loads(data)
-    if isinstance(data_, str):
-        data = utils.decrypt(data_, UUID)
-        if data is utils.DEFAULT:
+def _try_decrypt_config(loaded: str, force: bool = False) -> str:
+    loaded_ = json.loads(loaded)
+    if force or isinstance(loaded_, str):
+        loaded_ = utils.decrypt(loaded_, uuid.getnode())
+        if loaded_ is utils.DEFAULT:
             logger.error('Failed decrypting config')
-            return
-    loader.loads(data)
+        else:
+            loaded = loaded_
+    return loaded
 
 
 def load_config(path: str = CONFIG_PATH):
@@ -405,7 +406,7 @@ def load_config(path: str = CONFIG_PATH):
             logger.info('Missing config: file<%s>', path, exc_info=exc)
         else:
             try:
-                _loads_config(data, loader)
+                loader.loads(_try_decrypt_config(data))
             except BaseException as exc:
                 logger.error('Failed loading config: file<%s>',
                              path, exc_info=exc)
@@ -437,7 +438,7 @@ def load_config(path: str = CONFIG_PATH):
 def _try_encrypt_config(dumped: str, force: bool = False) -> str:
     if force or CURRENT_CONFIG[consts.CONFIG_ENCRYPT_CONFIG]:
         dumped = json.dumps(utils.encrypt(json.dumps(json.loads(
-            dumped), separators=(',', ':')), UUID, as_string=True))
+            dumped), separators=(',', ':')), uuid.getnode(), as_string=True))
     return dumped
 
 
