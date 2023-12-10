@@ -1,11 +1,12 @@
-on: [push, workflow_dispatch]
+name: Build
+on: [ push, workflow_dispatch ]
 jobs:
   build:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
-        architecture: ["x86", "x64"]
+        python-version: [ "3.10", "3.11", "3.12" ]
+        architecture: [ "x86", "x64" ]
     steps:
       - name: Fetch repository
         uses: actions/checkout@v4
@@ -14,18 +15,17 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
-          check-latest: true
       - name: Install dependencies
         run: .\build.ps1 install
       - name: Build project
         run: .\build.ps1
       - name: Upload ${{ env.NAME }}
-        # env:
-        #   MEGA_USERNAME: ${{ secrets.MEGA_USERNAME }}
-        #   MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
-        #   PYTHON_VERSION: ${{ matrix.python-version }}
-        #   ARCHITECTURE: ${{ matrix.architecture }}
-        # run: .\build.ps1 push
+        #        env:
+        #          MEGA_USERNAME: ${{ secrets.MEGA_USERNAME }}
+        #          MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
+        #          PYTHON_VERSION: ${{ matrix.python-version }}
+        #          ARCHITECTURE: ${{ matrix.architecture }}
+        #        run: .\build.ps1 push
         uses: actions/upload-artifact@v3
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.python-version }}-${{ matrix.architecture }}
