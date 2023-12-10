@@ -36,6 +36,7 @@ class ctyped:
 
     @staticmethod
     def char_array(string: AnyStr, size: int):
+        # noinspection PyCallingNonCallable,PyTypeChecker
         return ((ctypes.c_char if isinstance(string, bytes) else ctypes.c_wchar) * size)()
 
 
@@ -101,8 +102,8 @@ POLL_INTERVAL = 0.1
 
 
 class _NamedPipe(ctyped.type.HANDLE):
-    __size__: int
-    __base__: AnyStr
+    _size: int
+    _base: AnyStr
 
     _mode = (ctyped.const.PIPE_TYPE_BYTE | ctyped.const.PIPE_READMODE_BYTE |
              ctyped.const.PIPE_WAIT | ctyped.const.PIPE_ACCEPT_REMOTE_CLIENTS)
@@ -147,28 +148,28 @@ class _NamedPipe(ctyped.type.HANDLE):
         return closed
 
     def _wait_bytes(self, size: int = 0):
-        buff = ctyped.char_array(0 * self.__base__, size=size + 1)
-        kernel32.ReadFile(self, buff, size * self.__size__, None, None)
-        self.__base__ += buff.value
+        buff = ctyped.char_array(0 * self._base, size=size + 1)
+        kernel32.ReadFile(self, buff, size * self._size, None, None)
+        self._base += buff.value
 
     def _avail_bytes(self) -> int:
         size = ctyped.type.DWORD()
         if not kernel32.PeekNamedPipe(self, None, 0, None, ctyped.byref(size), None):
             if ctyped.const.ERROR_BROKEN_PIPE == kernel32.GetLastError():
                 raise BrokenPipeError
-        return len(self.__base__) * self.__size__ + size.value
+        return len(self._base) * self._size + size.value
 
     def read(self, size: int = -1, wait: bool = False) -> AnyStr:
         if wait:
             self._wait_bytes()
         if size == -1:
-            size = self._avail_bytes() // self.__size__ - len(self.__base__)
-        read = 0 * self.__base__
+            size = self._avail_bytes() // self._size - len(self._base)
+        read = 0 * self._base
         if size > 0:
-            buff = ctyped.char_array(0 * self.__base__, size=size + 1)
-            kernel32.ReadFile(self, buff, size * self.__size__, None, None)
-            read = self.__base__ + buff.value
-            self.__base__ = 0 * self.__base__
+            buff = ctyped.char_array(0 * self._base, size=size + 1)
+            kernel32.ReadFile(self, buff, size * self._size, None, None)
+            read = self._base + buff.value
+            self._base = 0 * self._base
         return read
 
     def write(self, text: AnyStr, flush: bool = True) -> int:
@@ -177,7 +178,7 @@ class _NamedPipe(ctyped.type.HANDLE):
             text, bytes) else text.encode('utf-16')), ctyped.byref(written), None)
         if flush:
             self.flush()
-        return written.value // self.__size__
+        return written.value // self._size
 
     def flush(self) -> bool:
         return bool(kernel32.FlushFileBuffers(self))
@@ -187,21 +188,19 @@ class _NamedPipe(ctyped.type.HANDLE):
 
 
 class BytesNamedPipe(_NamedPipe):
-    __size__ = ctyped.sizeof(ctyped.type.c_char)
-    __base__ = type(ctyped.type.c_char().value)()
+    _size = ctyped.sizeof(ctyped.type.c_char)
+    _base = type(ctyped.type.c_char().value)()
 
 
 class StringNamedPipe(_NamedPipe):
-    __size__ = ctyped.sizeof(ctyped.type.c_wchar)
-    __base__ = type(ctyped.type.c_wchar().value)()
+    _size = ctyped.sizeof(ctyped.type.c_wchar)
+    _base = type(ctyped.type.c_wchar().value)()
 
 
 class StringNamedPipeClient:
     def __init__(self, name: str):
         self._pipe = StringNamedPipe(name)
-        # noinspection PyTypeChecker
         self._stdout = contextlib.redirect_stdout(self._pipe)
-        # noinspection PyTypeChecker
         self._stderr = contextlib.redirect_stderr(self._pipe)
 
     def __bool__(self):

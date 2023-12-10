@@ -72,6 +72,7 @@ def char_array(string='', size=None):
     if size is not None:
         size -= 1
         string = string[:size] + (b'\0' if isinstance(string, bytes) else '\0') * (size - len(string))
+    # noinspection PyCallingNonCallable,PyTypeChecker
     return ((type.c_char if isinstance(string, bytes) else type.c_wchar) * (len(string) + 1))(*string)
 
 
