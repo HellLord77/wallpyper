@@ -66,6 +66,7 @@ CHANGE_INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
 TRANSITION_DURATIONS = 0.5, 1.0, 2.5, 5.0, 10.0
 MAXIMIZED_ACTIONS = 'IGNORE', 'POSTPONE', 'SKIP'
 BLOCKERS: dict[str | re.Pattern, str] = {
+    # '': 'Sucrose',
     'lwservice.exe': 'Live2DViewerEX',
     'Lively.PlayerCefSharp.exe': 'Lively Wallpaper',
     'DPPlayer.exe': 'N0va Desktop',
@@ -807,12 +808,15 @@ def on_easing_direction(enable_ease: Callable[[bool], bool], _: bool):
     try_reapply_wallpaper()
 
 
-def _get_blocker_name(blocker: str) -> str:
-    for pattern, name in BLOCKERS.items():
-        if (pattern.search(blocker) if isinstance(
-                pattern, re.Pattern) else pattern == blocker):
-            return name
-    return blocker
+def _try_get_blocker_name(blocker: str, prefix: str = ': ', force: bool = False) -> str:
+    blocker_name = ''
+    if force or consts.FLAG_BLOCKER_NAME:
+        for pattern, name in BLOCKERS.items():
+            if (pattern.search if isinstance(pattern, re.Pattern) else pattern.__eq__)(blocker):
+                blocker = name
+                break
+        blocker_name = prefix + blocker
+    return blocker_name
 
 
 @timer.on_thread
@@ -822,7 +826,7 @@ def notify_blocked(_: Optional[bool | str] = None, auto: bool = True):
         if not all(win32.display.is_desktop_unblocked(*displays).values()):
             count = itertools.count(1)
             text = '\n'.join(f'{_text(next(count))}. {_get_monitor_name(monitor, DISPLAYS)}' +
-                             f': {_get_blocker_name(blocker[1])}' if consts.FLAG_BLOCKER_NAME else '' for monitor, blocker
+                             _try_get_blocker_name(blocker[1]) for monitor, blocker
                              in win32.display.get_desktop_blocker(*displays).items() if blocker is not None)
             try_show_notification(_text('BLOCKED_TITLE'), text, force=True)
         elif not auto:

@@ -271,12 +271,12 @@ _TRANSITIONS = (
     Transition._slide_vertical, Transition._slide_horizontal, Transition._slide_reverse_vertical, Transition._slide_reverse_horizontal)
 
 
-def _spawn_workerw():
+def _spawn_desktop():
     user32.SendMessageW(user32.FindWindowW('Progman', None), 0x52C, 0, 0)
 
 
 @ctyped.type.WNDENUMPROC
-def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM) -> ctyped.type.BOOL:
+def _get_desktop_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM) -> ctyped.type.BOOL:
     if user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) and (
             hwnd_ := user32.FindWindowExW(None, hwnd, 'WorkerW', None)):
         ctyped.from_address(lparam, ctyped.type.LPARAM).value = hwnd_
@@ -284,10 +284,10 @@ def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARA
     return True
 
 
-def _get_workerw_hwnd() -> int:
+def _get_desktop_hwnd() -> int:
     hwnd = ctyped.type.LPARAM()
-    _spawn_workerw()
-    user32.EnumWindows(_get_workerw_hwnd_callback, ctyped.addressof(hwnd))
+    _spawn_desktop()
+    user32.EnumWindows(_get_desktop_hwnd_callback, ctyped.addressof(hwnd))
     return hwnd.value
 
 
@@ -425,7 +425,8 @@ def _get_window_pid(hwnd: ctyped.type.HWND) -> int:
 def get_display_blockers(*monitors: str, full_screen_only: bool = False,
                          fullscreen: bool = True) -> dict[str, tuple[str, ...]]:
     blockers = {monitor: set() for monitor in monitors}
-    rects_or_regions = {monitor: _get_monitor_rect(monitor) for monitor in monitors}
+    rects_or_regions: dict[str, ctyped.struct.RECT | _handle.HRGN] = {
+        monitor: _get_monitor_rect(monitor) for monitor in monitors}
     drives = _get_drives()
 
     if fullscreen:
@@ -441,14 +442,16 @@ def get_display_blockers(*monitors: str, full_screen_only: bool = False,
                     blockers[monitor].add(_get_window_exe_path(hwnd, drives))
             return True
     else:
-        rects_or_regions = {monitor: _handle.HRGN.from_rect(rect) for monitor, rect in rects_or_regions.items()}
+        rects_or_regions = {monitor: _handle.HRGN.from_rect(
+            rect) for monitor, rect in rects_or_regions.items()}
         explorer_pid = _get_window_pid(user32.FindWindowW('Shell_TrayWnd', None))
 
         def wind_enum_proc(hwnd: ctyped.type.HWND, _: ctyped.type.LPARAM) -> ctyped.type.BOOL:
             if explorer_pid != _get_window_pid(hwnd):
                 window_region = _handle.HRGN.from_rect(_get_window_frame_rect(hwnd))
                 for monitor, region_ in rects_or_regions.items():
-                    diff_region = _handle.HRGN.from_combination(region_, window_region, ctyped.const.RGN_DIFF)
+                    diff_region = _handle.HRGN.from_combination(
+                        region_, window_region, ctyped.const.RGN_DIFF)
                     if not region_.is_equal(diff_region):
                         rects_or_regions[monitor] = diff_region
                         blockers[monitor].add(_get_window_exe_path(hwnd, drives))
@@ -459,22 +462,22 @@ def get_display_blockers(*monitors: str, full_screen_only: bool = False,
         for monitor, region in rects_or_regions.items():
             if not region.is_empty():
                 blockers[monitor].clear()
-    for monitor, blockers_ in blockers.items():
-        blockers[monitor] = tuple(blockers_)
-    return blockers
+    return {monitor: tuple(blocker) for monitor, blocker in blockers.items()}
 
 
 def is_desktop_unblocked(*monitors: str) -> dict[str, bool]:
-    hwnd = _get_workerw_hwnd()
-    if hwnd:
-        hdc = _handle.HDC.from_hwnd(hwnd)
-        return {monitor: bool(gdi32.RectVisible(hdc, ctyped.byref(
-            ctyped.struct.RECT(*_get_monitor_x_y_w_h(monitor))))) for monitor in monitors}
-    return {monitor: True for monitor in monitors}
+    desktop_hwnd = _get_desktop_hwnd()
+    unblocked = dict.fromkeys(monitors, False)
+    if desktop_hwnd:
+        dst = _handle.HDC.from_hwnd(desktop_hwnd)
+        for monitor in monitors:
+            unblocked[monitor] = bool(gdi32.RectVisible(dst, ctyped.byref(
+                ctyped.struct.RECT(*_get_monitor_x_y_w_h(monitor)))))
+    return unblocked
 
 
 def get_desktop_blocker(*monitors: str) -> dict[str, Optional[tuple[str, str]]]:
-    blockers = {monitor: None for monitor in monitors}
+    blockers = dict.fromkeys(monitors)
     rects = {monitor: _get_monitor_rect(monitor) for monitor in monitors}
     drives = _get_drives()
 
@@ -484,7 +487,7 @@ def get_desktop_blocker(*monitors: str) -> dict[str, Optional[tuple[str, str]]]:
             blockers[monitor] = _get_window_text(hwnd), _get_window_exe_path(hwnd, drives)
         return not all(blockers.values())
 
-    user32.EnumChildWindows(_get_workerw_hwnd(), wnd_enum_proc, 0)
+    user32.EnumChildWindows(_get_desktop_hwnd(), wnd_enum_proc, 0)
     return blockers
 
 
@@ -589,12 +592,14 @@ def _is_rect_not_blocked(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: 
     return True
 
 
-def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
+def _draw_on_desktop(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
                      src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str,  # TODO investigate random skip
                      color: _gdiplus.Color, transition: Transition, duration: float, easing: Callable[[float], float]):
-    if (hwnd := _get_workerw_hwnd()) and _is_rect_not_blocked(hwnd, dst_x, dst_y, dst_w, dst_h):
-        dst = _handle.HDC.from_hwnd(hwnd)
-        src = _save_tmp_bmp(image, color, dst_w, dst_h, src_x, src_y, src_w, src_h, temp_path)
+    if (desktop_hwnd := _get_desktop_hwnd()) and _is_rect_not_blocked(
+            desktop_hwnd, dst_x, dst_y, dst_w, dst_h):
+        dst = _handle.HDC.from_hwnd(desktop_hwnd)
+        src = _save_tmp_bmp(image, color, dst_w, dst_h,
+                            src_x, src_y, src_w, src_h, temp_path)
         if transition is not Transition.DISABLED:
             # noinspection PyTypeChecker
             transitioning = random.choice(
@@ -625,7 +630,7 @@ def _set_wallpaper_iactivedesktop(path: str, fade: bool = True) -> bool:
     with ctyped.interface.COM[ShlObj_core.IActiveDesktop](ctyped.const.CLSID_ActiveDesktop) as desktop:
         if desktop:
             if fade:
-                _spawn_workerw()
+                _spawn_desktop()
             return ctyped.macro.SUCCEEDED(desktop.SetWallpaper(
                 path, 0)) and ctyped.macro.SUCCEEDED(desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL))
     return False
@@ -685,7 +690,7 @@ def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: Style = St
         temp_path = ntpath.join(TEMP_WALLPAPER_DIR, f'{_utils.sanitize_filename(monitor)}.jpg')
         with _temp_lock(temp_path):
             # noinspection PyTypeChecker
-            _draw_on_workerw(image, *monitor_x_y_w_h, *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], width, height, style),
+            _draw_on_desktop(image, *monitor_x_y_w_h, *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], width, height, style),
                              temp_path, _gdiplus.Color.from_rgba(*rgb), transition, duration, easing)
             return _set_wallpaper_idesktopwallpaper(
                 temp_path, monitor, style=style if style in (Style.TILE, Style.SPAN) else Style.FILL)

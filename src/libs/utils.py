@@ -191,7 +191,7 @@ def cycle_ex(it: Iterable, func: Optional[Callable] = None) -> Iterator:
             func()
 
 
-def get_recursive(it: Mapping | Sequence, *keys, default = DEFAULT) -> Any:
+def get_recursive(it: Mapping | Sequence, *keys, default=DEFAULT) -> Any:
     for key in keys:
         try:
             it = it[key]
@@ -379,7 +379,7 @@ def compress(datas: Mapping[str, AnyStr], compression: int = zipfile.ZIP_STORED)
 
 
 def decompress(data: bytes, *names: str, password: Optional[bytes] = None) -> Mapping[str, Optional[bytes]]:
-    datas = {name: None for name in names}
+    datas = dict.fromkeys(names)
     try:
         with zipfile.ZipFile(io.BytesIO(data)) as file:
             if not names:
