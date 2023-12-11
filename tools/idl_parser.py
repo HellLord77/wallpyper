@@ -804,7 +804,7 @@ def dump(*, p_enum: bool = False, p_struct: bool = False, p_iid: bool = False,
 
     enums = {}
     structs = {}
-    iids = {}
+    iids = {}  # FIXME missing parameterized interface iid
     interfaces = {}
     runtimeclasses = {}
 

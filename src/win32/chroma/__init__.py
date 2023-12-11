@@ -70,7 +70,7 @@ class Effect:
         if self:
             return self
 
-    def __exit__(self, *_, **__):
+    def __exit__(self, _, __, ___):
         self.__del__()
 
     def set(self) -> bool:

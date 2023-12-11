@@ -16,7 +16,8 @@ from libs import ctyped
 from libs.ctyped.enum import libclang as enum_libclang
 from libs.ctyped.lib import libclang
 
-SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt\RoMetadataApi.h'
+# SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt\RoMetadataApi.h'
+SOURCE_PATH = r'D:\Projects\zstd\lib\zstd.h'
 INCLUDES = ('<Windows.h>',)
 INCLUDE_DIRS = ()
 CLANG_DIR = r'C:\msys64\mingw64\bin'
@@ -39,7 +40,8 @@ DEFINITIONS = {
     'PASCAL': '__stdcall',
     'WINAPI_INLINE': 'WINAPI',
     'INITGUID': 1,
-    'GDIPVER': '0x0110'}
+    'GDIPVER': '0x0110',
+    'ZSTD_STATIC_LINKING_ONLY': 1}
 CLANG_INCLUDE_DIRS = r'C:\msys64\mingw64\include',
 MSVC_INCLUDE_DIRS = (
     r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared',
@@ -48,10 +50,10 @@ MSVC_INCLUDE_DIRS = (
     r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt')
 VCPKG_INCLUDE_DIRS = r'D:\Projects\vcpkg\installed\x64-windows\include',
 
-ENUM = False
+ENUM = True
 FUNCTION = False
 INTERFACE = False
-GUID = True
+GUID = False
 AST = False
 
 CLANG = False
@@ -431,6 +433,7 @@ def get_interfaces(cursor: clang.cindex.Cursor, **kwargs) -> dict[str, tuple[Opt
     for cursor in find_cursors(cursor.get_children(), clang.cindex.CursorKind.STRUCT_DECL, filter=is_interface, **kwargs):
         base = find_cursor(cursor.get_children(), clang.cindex.CursorKind.CXX_BASE_SPECIFIER)
         _, interface = interfaces[cursor.spelling] = (None if base is None else base.type), {}
+        # noinspection PyTypeChecker
         for cursor_method in find_cursors(cursor.get_children(), type=clang.cindex.TypeKind.FUNCTIONPROTO,
                                           filter=clang.cindex.Cursor.is_pure_virtual_method):
             interface.setdefault(cursor_method.spelling, []).insert(0, _get_function_data(cursor_method))
