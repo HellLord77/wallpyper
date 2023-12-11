@@ -352,7 +352,7 @@ def _test_winapp():
     from libs.ctyped.lib import Microsoft_WindowsAppRuntime_Bootstrap
     from libs.ctyped.interface.winrt.Microsoft.Windows.System import Power as Microsoft_Windows_System_Power
 
-    if ctyped.macro.SUCCEEDED(Microsoft_WindowsAppRuntime_Bootstrap.Initialize2(
+    if ctyped.macro.SUCCEEDED(Microsoft_WindowsAppRuntime_Bootstrap.MddBootstrapInitialize2(
             ctyped.const.Release.MajorMinor, ctyped.const.Release.VersionTag, ctyped.struct.PACKAGE_VERSION(
                 ctyped.union.PACKAGE_VERSION_U(ctyped.const.Runtime.Version.UInt64)),
             ctyped.enum.MddBootstrapInitializeOptions.OnNoMatch_ShowUI)):
@@ -363,7 +363,7 @@ def _test_winapp():
             with i_manager as manager:
                 if ctyped.macro.SUCCEEDED(manager.get_DisplayStatus(ctyped.byref(status))):
                     print(status)
-        Microsoft_WindowsAppRuntime_Bootstrap.Shutdown()
+        Microsoft_WindowsAppRuntime_Bootstrap.MddBootstrapShutdown()
 
 
 PageAddress = TypeVar('PageAddress', bound=int)
@@ -629,6 +629,46 @@ def _test_chroma():
         time.sleep(5)
 
 
+def _test_pool():
+    from libs.request import pool
+    for _ in range(5):
+        resp = request.get('https://www.google.com/')
+        print(resp.elapsed)
+    print('pool:')
+    sess = pool.Session()
+    for _ in range(5):
+        resp = sess.get('https://www.google.com/')
+        _ = resp.content
+        print(resp.elapsed)
+
+
+def _test_brotli():
+    from plat import brotli
+    data = os.urandom(1024 * 1024)
+    compressor = brotli.Compressor()
+    cmp = compressor.finish(data)
+    # print(cmp, len(cmp))
+    decompressor = brotli.Decompressor()
+    dcmp = decompressor.decompress(cmp)
+    # print(dcmp, len(dcmp))
+    assert data == dcmp
+    try:
+        decompressor.decompress(cmp + b'abcd1234')
+    except brotli.DecompressionError:
+        assert decompressor.unused_data
+    else:
+        raise AssertionError
+
+
+def _test_zstd():
+    # noinspection PyUnresolvedReferences
+    import exts
+    resp = request.get('https://www.facebook.com')
+    print(resp)
+    assert resp.headers[request.Header.CONTENT_ENCODING] == 'zstd'
+    print(resp.text)
+
+
 def _test():
     pass
 
@@ -677,6 +717,9 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_winrt()
     # _test_hook()
     # _test_chroma()
-    # _test()
-    _test_winmd()
+    # _test_pool()
+    # _test_brotli()
+    # _test_zstd()
+    _test()
+    # _test_winmd()
     sys.exit()

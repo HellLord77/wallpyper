@@ -126,11 +126,9 @@ class ConnectionPool(metaclass=_ConnectionPoolMeta):
     _tconn_: type = type
 
     def __init__(self, host: str, port: Optional[int] = None,
-                 timeout: Optional[float] = None, size: int = 1,
-                 block: bool = False, **conn_kwargs):
+                 size: int = 1, block: bool = False, **conn_kwargs):
         self._host = host
         self._port = self._port_ if port is None else port
-        self.timeout = timeout
         self._pool = queue.LifoQueue(size)
         for _ in range(size):
             self._pool.put(None)
@@ -152,7 +150,7 @@ class ConnectionPool(metaclass=_ConnectionPoolMeta):
     def __enter__(self):
         return self
 
-    def __exit__(self, *_, **__):
+    def __exit__(self, _, __, ___):
         self.close()
 
     @classmethod
@@ -192,8 +190,7 @@ class HTTPConnectionPool(ConnectionPool):
             else:
                 conn = None
         if conn is None:
-            conn = self._tconn_(self._host, self._port,
-                                self.timeout, **self.conn_kwargs)
+            conn = self._tconn_(self._host, self._port, **self.conn_kwargs)
         else:
             # noinspection PyProtectedMember
             response = conn._HTTPConnection__response
@@ -246,7 +243,7 @@ class ConnectionPoolManager:
     def __enter__(self):
         return self
 
-    def __exit__(self, *_, **__):
+    def __exit__(self, _, __, ___):
         self.close()
 
     @property

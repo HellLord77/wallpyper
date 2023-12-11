@@ -265,6 +265,7 @@ GLUtesselatorObj = GLUtesselator
 GLUtriangulatorObj = GLUtesselator
 # wtypes
 BSTR = __obj
+# libclang
 # BuildSystem
 CXVirtualFileOverlay = __obj
 CXModuleMapDescriptor = __obj
@@ -293,6 +294,15 @@ CXIdxClientASTFile = __obj
 CXIndexAction = __obj
 # Rewrite
 CXRewriter = __obj
+# zstd
+# pool
+POOL_ctx_s = __obj
+# zstd
+ZSTD_CCtx_s = __obj
+ZSTD_DCtx_s = __obj
+ZSTD_CDict_s = __obj
+ZSTD_DDict_s = __obj
+ZSTD_CCtx_params_s = __obj
 
 __interface = c_void_p
 IUnknown = __interface
@@ -699,6 +709,16 @@ CorsairEventHandler: _Callable[..., _Callable[
 # MysticLight_Test(C++)
 CallbackDelegate: _Callable[..., _Callable[
     [], c_void]] = _callable()
+
+# zstd
+# zstd
+ZSTD_allocFunction: _Callable[..., _Callable[
+    [c_void_p, c_size_t], c_void_p]] = _callable()
+ZSTD_freeFunction: _Callable[..., _Callable[
+    [c_void_p, c_void_p], c_void]] = _callable()
+ZSTD_sequenceProducer_F: _Callable[..., _Callable[
+    [c_void_p, _Pointer[_struct.ZSTD_Sequence], c_size_t, c_void_p,
+     c_size_t, c_void_p, c_size_t, c_int, c_size_t], c_size_t]] = _callable()
 
 
 def _setattr(self: _PyCSimpleType, name: str, value):

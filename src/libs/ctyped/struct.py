@@ -20,6 +20,7 @@ from .const import iCUESDK as _const_iCUESDK
 from .enum import ChromaSDK as _enum_ChromaSDK
 from .enum import iCUESDK as _enum_iCUESDK
 from .enum import libclang as _enum_libclang
+from .enum import zstd as _enum_zstd
 
 if None:
     from dataclasses import dataclass as _struct
@@ -4842,6 +4843,141 @@ class ChromaSDK:
     @_struct
     class FChromaSDKGuid:
         Data: RZEFFECTID
+
+
+# zstd
+# zstd
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_CCtx:
+    _: _type.ZSTD_CCtx_s
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_DCtx:
+    _: _type.ZSTD_DCtx_s
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_bounds:
+    error: _type.c_size_t
+    lowerBound: _type.c_int
+    upperBound: _type.c_int
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_inBuffer:
+    src: _type.c_void_p
+    size: _type.c_size_t
+    pos: _type.c_size_t
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_outBuffer:
+    dst: _type.c_void_p
+    size: _type.c_size_t
+    pos: _type.c_size_t
+
+
+ZSTD_CStream = ZSTD_CCtx
+ZSTD_DStream = ZSTD_DCtx
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_CDict:
+    _: _type.ZSTD_CDict_s
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_DDict:
+    _: _type.ZSTD_DDict_s
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_CCtx_params:
+    _: _type.ZSTD_CCtx_params_s
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_Sequence:
+    offset: _type.c_uint
+    litLength: _type.c_uint
+    matchLength: _type.c_uint
+    rep: _type.c_uint
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_compressionParameters:
+    windowLog: _type.c_uint
+    chainLog: _type.c_uint
+    hashLog: _type.c_uint
+    searchLog: _type.c_uint
+    minMatch: _type.c_uint
+    targetLength: _type.c_uint
+    strategy: _enum_zstd.ZSTD_strategy
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_frameParameters:
+    contentSizeFlag: _type.c_uint
+    checksumFlag: _type.c_uint
+    noDictIDFlag: _type.c_uint
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_parameters:
+    cParams: ZSTD_compressionParameters
+    fParams: ZSTD_frameParameters
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_frameHeader:
+    frameContentSize: _type.c_ulonglong
+    windowSize: _type.c_ulonglong
+    blockSizeMax: _type.c_uint
+    frameType: _enum_zstd.ZSTD_frameType_e
+    headerSize: _type.c_uint
+    dictID: _type.c_uint
+    checksumFlag: _type.c_uint
+    _reserved1: _type.c_uint
+    _reserved2: _type.c_uint
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_customMem:
+    customAlloc: _type.ZSTD_allocFunction
+    customFree: _type.ZSTD_freeFunction
+    opaque: _type.c_void_p
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_threadPool:
+    _: _type.POOL_ctx_s
+
+
+# noinspection PyPep8Naming
+@_struct
+class ZSTD_frameProgression:
+    ingested: _type.c_ulonglong
+    consumed: _type.c_ulonglong
+    produced: _type.c_ulonglong
+    flushed: _type.c_ulonglong
+    currentJobID: _type.c_uint
+    nbActiveWorkers: _type.c_uint
 
 
 class Microsoft:

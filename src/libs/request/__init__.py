@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.2.12'
+__version__ = '0.2.13'
 
 import base64
 import bz2
@@ -42,7 +42,7 @@ from typing import Sequence
 
 from . import _caseless
 
-CONTENT_CHUNK_SIZE = 10 * 1024
+CONTENT_CHUNK_SIZE = 2 ** 16
 RETRIEVE_UNKNOWN_SIZE = 0
 
 Status = http.HTTPStatus
@@ -566,6 +566,7 @@ def default_accept_encoding(*encodings: str) -> str:
 
 def default_accept_language(*languages: str | tuple[str | Iterable[str], float]) -> str:
     accept_languages = []
+    # noinspection PyTypeChecker
     for language in itertools.chain(((('en-US', 'en'), 0.9),), languages):
         if not isinstance(language, str):
             language, quality = language
@@ -860,7 +861,7 @@ class Response:
         self.headers = getattr(raw, 'headers', http.client.HTTPMessage())
         self.raw = raw
         self.url = getattr(raw, 'url', '')
-        self.encoding = None
+        self.encoding = 'utf-8'  # TODO get from header, default to utf-8
         self.reason = getattr(raw, 'reason', '')
         self.cookies = http.cookiejar.CookieJar()
         if isinstance(raw, http.client.HTTPResponse):
@@ -881,7 +882,7 @@ class Response:
     def __enter__(self) -> Response:
         return self
 
-    def __exit__(self, *_, **__):
+    def __exit__(self, _, __, ___):
         self.close()
 
     @property
@@ -906,13 +907,9 @@ class Response:
         if self.is_redirect:
             return self._next
 
-    @property
-    def apparent_encoding(self) -> str:
-        return 'utf-8'
-
     def iter_content(self, chunk_size: int = 1) -> Iterator[bytes]:
-        while chunk := self.read(chunk_size):
-            yield chunk
+        while not self.closed:
+            yield self.read(chunk_size)
 
     @functools.cached_property
     def content(self) -> bytes:
@@ -921,8 +918,7 @@ class Response:
     @property
     def text(self) -> str:
         try:
-            return self.content.decode(
-                self.encoding or self.apparent_encoding, 'replace')
+            return self.content.decode(self.encoding, 'replace')
         except LookupError:
             return self.content.decode(errors='replace')
 
@@ -942,15 +938,21 @@ class Response:
             raise urllib.error.HTTPError(
                 self.url, self.status_code, self.reason, self.headers, self.raw)
 
+    @property
+    def closed(self) -> bool:
+        return self.raw.closed
+
     def close(self):
         self.raw.close()
 
     def read(self, amt: Optional[int] = None, decode_content: bool = True) -> bytes:
         data = self.raw.read(amt)
+        if not data:
+            self.close()
         if decode_content and self._decoder is not None:
             data = self._decoder.decompress(data)
-            if not data:
-                data = self._decoder.flush()
+            if amt is None or (amt and not data):
+                data += self._decoder.flush()
         return data
 
 
