@@ -68,9 +68,12 @@ class Decompressor(metaclass=_Brotli):
         self.unused_data = b''
 
     def __del__(self):
-        if self._obj:
+        if self:
             brotlidec.BrotliDecoderDestroyInstance(self._obj)
             self._obj = None
+
+    def __bool__(self):
+        return bool(self._obj)
 
     def __enter__(self) -> Decompressor:
         return self
@@ -145,9 +148,12 @@ class _Compressor(metaclass=_Brotli):
             self.set_lgblock(lgblock)
 
     def __del__(self):
-        if self._obj:
+        if self:
             brotlienc.BrotliEncoderDestroyInstance(self._obj)
             self._obj = None
+
+    def __bool__(self):
+        return bool(self._obj)
 
     def __enter__(self) -> _Compressor:
         return self
@@ -208,7 +214,7 @@ class _Compressor(metaclass=_Brotli):
                             available_out), ctyped.cast(buff_out, _PTR), ctyped.Pointer.NULL):
                     raise CompressionError()
                 # noinspection PyTypeChecker
-                ret += bytes(itertools.islice(buff_out, None, size_out - available_out.value))  # TODO char_array
+                ret += bytes(itertools.islice(buff_out, None, size_out - available_out.value))
                 if available or self.has_more_output():
                     if not available_out:
                         size_out = available_out.value = next(sizes, _BLOCK_SIZES[-1])

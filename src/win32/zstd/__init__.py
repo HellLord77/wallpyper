@@ -75,9 +75,12 @@ class Decompressor(metaclass=_Zstd):
         self.unused_data = b''
 
     def __del__(self):
-        if self._obj:
+        if self:
             libzstd.ZSTD_freeDCtx(self._obj)
             self._obj = None
+
+    def __bool__(self):
+        return bool(self._obj)
 
     def __enter__(self) -> Decompressor:
         return self
@@ -161,9 +164,12 @@ class Compressor(metaclass=_Zstd):
             self.checksum_flag = checksum
 
     def __del__(self):
-        if self._obj:
+        if self:
             libzstd.ZSTD_freeCCtx(self._obj)
             self._obj = None
+
+    def __bool__(self):
+        return bool(self._obj)
 
     def __enter__(self) -> Compressor:
         return self

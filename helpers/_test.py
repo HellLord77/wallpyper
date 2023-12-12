@@ -629,6 +629,14 @@ def _test_chroma():
         time.sleep(5)
 
 
+def _test_cue():
+    from win32.cue import game as cue_game
+
+    game = cue_game.FarCry6()
+    with game.profile.FC6_MenuMain:
+        time.sleep(5)
+
+
 def _test_pool():
     from libs.request import pool
     for _ in range(5):
@@ -670,8 +678,7 @@ def _test_zstd():
 
 
 def _test():
-    from plat import brotli
-    print(brotli.Decompressor.get_version())
+    pass
 
 
 @contextlib.contextmanager
@@ -717,10 +724,11 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_cfg_json()
     # _test_winrt()
     # _test_hook()
-    # _test_chroma()
+    _test_chroma()
+    _test_cue()
     # _test_pool()
     # _test_brotli()
     # _test_zstd()
-    _test()
+    # _test()
     # _test_winmd()
     sys.exit()

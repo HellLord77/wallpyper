@@ -1,11 +1,16 @@
 from __future__ import annotations as _
 
 import enum
+import logging
 import ntpath
 
 from libs import ctyped
 from libs.ctyped.enum import CgSDK as enum_CgSDK
 from libs.ctyped.lib import CgSDK_2019
+
+logger = logging.getLogger(__name__)
+
+FLAG_RESET_GAME = False
 
 
 def _bytes(o: bytes | str | _Profile) -> bytes:
@@ -35,11 +40,11 @@ def set_event(profile: bytes | str | _Profile) -> bool:
 
 def clear_state(*profiles: bytes | str | _Profile) -> bool:
     if profiles:
-        cleared = CgSDK_2019.CgSdkClearAllStates()
-    else:
         cleared = True
         for profile in profiles:
             cleared = CgSDK_2019.CgSdkClearState(_bytes(profile)) and cleared
+    else:
+        cleared = CgSDK_2019.CgSdkClearAllStates()
     return cleared
 
 
@@ -61,18 +66,24 @@ class _Control:
         self.__del__()
 
 
-class _Profile(enum.Enum):
+class _Profile(enum.IntEnum):
+    _game: _Game
+
     def __enter__(self) -> bool:
         return self.set()
 
     def __exit__(self, _, __, ___):
         self.clear()
 
-    def set(self, loop: bool = True):
+    def set(self, loop: bool = True) -> bool:
+        if FLAG_RESET_GAME:
+            cls = type(self)
+            name = cls.__qualname__.split('.')[0]
+            logging.debug('Setting game: %s', name)
+            cls._game = globals()[name]()
         return (set_state if loop else set_event)(self)
 
-    def clear(self):
-        return clear_state(self)
+    clear = clear_state
 
 
 class _Game:
