@@ -28,6 +28,28 @@ BrotliEncoderDestroyInstance: _Callable[[_Pointer[_struct.BrotliEncoderState]], 
 """
 Deinitializes and frees ::BrotliEncoderState instance.
 """
+BrotliEncoderPrepareDictionary: _Callable[[_enum_brotli.BrotliSharedDictionaryType,  # type
+                                           _type.c_size_t,  # data_size
+                                           _Pointer[_type.uint8_t],  # data
+                                           _type.c_int,  # quality
+                                           _type.brotli_alloc_func,  # alloc_func
+                                           _type.brotli_free_func,  # free_func
+                                           _type.c_void_p],  # opaque
+                                          _Pointer[_struct.BrotliEncoderPreparedDictionary]]
+"""
+Prepares a shared dictionary from the given file format for the encoder.
+"""
+BrotliEncoderDestroyPreparedDictionary: _Callable[[_Pointer[_struct.BrotliEncoderPreparedDictionary]],  # dictionary
+                                                  _type.c_void]
+BrotliEncoderAttachPreparedDictionary: _Callable[[_Pointer[_struct.BrotliEncoderState],  # state
+                                                  _Pointer[_struct.BrotliEncoderPreparedDictionary]],  # dictionary
+                                                 _type.c_int]
+"""
+Attaches a prepared dictionary of any type to the encoder. Can be used multiple
+times to attach multiple dictionaries. The dictionary type was determined by
+BrotliEncoderPrepareDictionary. Multiple raw prefix dictionaries and/or max 1
+serialized dictionary with custom words can be attached.
+"""
 BrotliEncoderMaxCompressedSize: _Callable[[_type.c_size_t],  # input_size
                                           _type.c_size_t]
 """
@@ -70,6 +92,19 @@ BrotliEncoderTakeOutput: _Callable[[_Pointer[_struct.BrotliEncoderState],  # sta
                                    _Pointer[_type.uint8_t]]
 """
 Acquires pointer to internal output buffer.
+"""
+BrotliEncoderEstimatePeakMemoryUsage: _Callable[[_type.c_int,  # quality
+                                                 _type.c_int,  # lgwin
+                                                 _type.c_size_t],  # input_size
+                                                _type.c_size_t]
+"""
+Returns the estimated peak memory usage (in bytes) of the BrotliCompress()
+function, not counting the memory needed for the input and output.
+"""
+BrotliEncoderGetPreparedDictionarySize: _Callable[[_Pointer[_struct.BrotliEncoderPreparedDictionary]],  # dictionary
+                                                  _type.c_size_t]
+"""
+Returns 0 if dictionary is not valid; otherwise returns allocation size.
 """
 BrotliEncoderVersion: _Callable[[],
                                 _type.uint32_t]

@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 import itertools
 import logging
@@ -36,7 +36,7 @@ class DecompressionError(Error):
 
 class CompressionError(Error):
     def __init__(self):
-        super().__init__(f'Error during compression', None)
+        super().__init__('Error during compression', None)
 
 
 def _version(version: int) -> tuple[int, int, int]:
@@ -57,7 +57,8 @@ class _Brotli(type):
         else:
             return True
 
-    def get_version(cls) -> tuple[int, int, int]:
+    @staticmethod
+    def get_version() -> tuple[int, int, int]:
         raise NotImplementedError
 
 
@@ -74,7 +75,7 @@ class Decompressor(metaclass=_Brotli):
     def __enter__(self) -> Decompressor:
         return self
 
-    def __exit__(self, *_, **__):
+    def __exit__(self, _, __, ___):
         self.__del__()
 
     def decompress(self, data: bytes) -> bytes:
@@ -198,20 +199,20 @@ class _Compressor(metaclass=_Brotli):
             available_in = ctyped.byref(available)
             next_in = ctyped.cast(ctyped.type.c_void_p(buff_in.buf), _PTR)
             sizes = iter(_BLOCK_SIZES)
-            size = next(sizes)
-            available_out = ctyped.type.c_size_t(size)
-            buff_out = ctyped.array(type=ctyped.type.uint8_t, size=size)
+            size_out = next(sizes)
+            available_out = ctyped.type.c_size_t(size_out)
+            buff_out = ctyped.array(type=ctyped.type.uint8_t, size=size_out)
             while True:
                 if not brotlienc.BrotliEncoderCompressStream(
                         self._obj, operation, available_in, next_in, ctyped.byref(
                             available_out), ctyped.cast(buff_out, _PTR), ctyped.Pointer.NULL):
                     raise CompressionError()
                 # noinspection PyTypeChecker
-                ret += bytes(itertools.islice(buff_out, None, size - available_out.value))
+                ret += bytes(itertools.islice(buff_out, None, size_out - available_out.value))  # TODO char_array
                 if available or self.has_more_output():
                     if not available_out:
-                        size = available_out.value = next(sizes, _BLOCK_SIZES[-1])
-                        buff_out = ctyped.array(type=ctyped.type.uint8_t, size=size)
+                        size_out = available_out.value = next(sizes, _BLOCK_SIZES[-1])
+                        buff_out = ctyped.array(type=ctyped.type.uint8_t, size=size_out)
                     continue
                 break
         return ret
@@ -270,9 +271,9 @@ class FontCompressor(_Compressor):
 
 
 def decompress(data: bytes) -> bytes:
-    with Decompressor() as dec:
-        ret = dec.decompress(data)
-        if (error_code := dec.get_error_code()) != enum_brotli.BrotliDecoderErrorCode.SUCCESS:
+    with Decompressor() as decompressor:
+        ret = decompressor.decompress(data)
+        if (error_code := decompressor.get_error_code()) != enum_brotli.BrotliDecoderErrorCode.SUCCESS:
             raise DecompressionError(enum_brotli.BrotliDecoderResult(error_code.value))
         return ret
 
@@ -298,8 +299,8 @@ def decompress_known(data: bytes, max_length: Optional[int] = None) -> bytes:
 
 
 def compress(data: bytes | str) -> bytes:
-    with (TextCompressor if isinstance(data, str) else Compressor)() as com:
-        return com.compress(data) + com.finish()
+    with (TextCompressor if isinstance(data, str) else Compressor)() as compressor:
+        return compressor.compress(data) + compressor.finish()
 
 
 def compress_known(data: bytes | str, max_length: Optional[int] = None,

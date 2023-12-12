@@ -4419,20 +4419,19 @@ class CXIdxEntityRefInfo:
 # brotli
 # decode
 @_struct
-class BrotliDecoderStateStruct:
-    pass
-
-
-BrotliDecoderState = BrotliDecoderStateStruct
+class BrotliDecoderState:
+    _: _type.BrotliDecoderStateStruct
 
 
 # encode
 @_struct
-class BrotliEncoderStateStruct:
-    pass
+class BrotliEncoderState:
+    _: _type.BrotliEncoderStateStruct
 
 
-BrotliEncoderState = BrotliEncoderStateStruct
+@_struct
+class BrotliEncoderPreparedDictionary:
+    _: _type.BrotliEncoderPreparedDictionaryStruct
 
 
 # iCUESDK

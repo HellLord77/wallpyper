@@ -159,3 +159,18 @@ class BrotliEncoderParameter(_Enum):
     """
     Number of bytes of input stream already processed by a different instance.
     """
+
+
+# shared_dictionary
+class BrotliSharedDictionaryType(_Enum):
+    """
+    Input data type for ::BrotliSharedDictionaryAttach.
+    """
+    RAW = 0
+    """
+    Raw LZ77 prefix dictionary.
+    """
+    SERIALIZED = 1
+    """
+    Serialized shared dictionary.
+    """

@@ -265,6 +265,12 @@ GLUtesselatorObj = GLUtesselator
 GLUtriangulatorObj = GLUtesselator
 # wtypes
 BSTR = __obj
+# brotli
+# decode
+BrotliDecoderStateStruct = __obj
+# encode
+BrotliEncoderStateStruct = __obj
+BrotliEncoderPreparedDictionaryStruct = __obj
 # libclang
 # BuildSystem
 CXVirtualFileOverlay = __obj
@@ -677,6 +683,11 @@ WAITORTIMERCALLBACK: _Callable[..., _Callable[
     [PVOID, BOOLEAN], VOID]] = WAITORTIMERCALLBACKFUNC
 
 # brotli
+# decode
+brotli_decoder_metadata_start_func: _Callable[..., _Callable[
+    [c_void_p, c_size_t], c_void]] = _callable()
+brotli_decoder_metadata_chunk_func: _Callable[..., _Callable[
+    [c_void_p, c_size_t], c_void]] = _callable()
 # types
 brotli_alloc_func: _Callable[..., _Callable[
     [c_void_p, c_size_t], c_void_p]] = _callable()

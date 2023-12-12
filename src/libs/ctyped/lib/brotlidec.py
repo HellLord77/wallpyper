@@ -16,6 +16,15 @@ BrotliDecoderSetParameter: _Callable[[_Pointer[_struct.BrotliDecoderState],  # s
 """
 Sets the specified parameter to the given decoder instance.
 """
+BrotliDecoderAttachDictionary: _Callable[[_Pointer[_struct.BrotliDecoderState],  # state
+                                          _enum_brotli.BrotliSharedDictionaryType,  # type
+                                          _type.c_size_t,  # data_size
+                                          _Pointer[_type.uint8_t]],  # data
+                                         _type.c_int]
+"""
+Adds LZ77 prefix dictionary, adds or replaces built-in static dictionary and
+transforms.
+"""
 BrotliDecoderCreateInstance: _Callable[[_type.brotli_alloc_func,  # alloc_func
                                         _type.brotli_free_func,  # free_func
                                         _type.c_void_p],  # opaque
@@ -81,6 +90,14 @@ BrotliDecoderVersion: _Callable[[],
                                 _type.uint32_t]
 """
 Gets a decoder library version.
+"""
+BrotliDecoderSetMetadataCallbacks: _Callable[[_Pointer[_struct.BrotliDecoderState],  # state
+                                              _type.brotli_decoder_metadata_start_func,  # start_func
+                                              _type.brotli_decoder_metadata_chunk_func,  # chunk_func
+                                              _type.c_void_p],  # opaque
+                                             _type.c_void]
+"""
+Sets callback for receiving metadata blocks.
 """
 
 _WinLib(__name__)

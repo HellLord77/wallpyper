@@ -670,7 +670,8 @@ def _test_zstd():
 
 
 def _test():
-    pass
+    from plat import brotli
+    print(brotli.Decompressor.get_version())
 
 
 @contextlib.contextmanager

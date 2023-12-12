@@ -17,7 +17,7 @@ from libs.ctyped.enum import libclang as enum_libclang
 from libs.ctyped.lib import libclang
 
 # SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt\RoMetadataApi.h'
-SOURCE_PATH = r'D:\Projects\zstd\lib\zstd.h'
+SOURCE_PATH = r'D:\Projects\vcpkg\installed\x64-windows\include\brotli\shared_dictionary.h'
 INCLUDES = ('<Windows.h>',)
 INCLUDE_DIRS = ()
 CLANG_DIR = r'C:\msys64\mingw64\bin'
@@ -57,8 +57,8 @@ GUID = False
 AST = False
 
 CLANG = False
-MSVC = True
-VCPKG = False
+MSVC = False
+VCPKG = True
 
 COMMENT = True
 INDENT = ' ' * 4
