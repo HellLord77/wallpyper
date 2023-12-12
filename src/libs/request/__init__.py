@@ -947,11 +947,11 @@ class Response:
 
     def read(self, amt: Optional[int] = None, decode_content: bool = True) -> bytes:
         data = self.raw.read(amt)
-        if not data:
+        if close := (amt and not data):
             self.close()
         if decode_content and self._decoder is not None:
             data = self._decoder.decompress(data)
-            if amt is None or (amt and not data):
+            if amt is None or close:
                 data += self._decoder.flush()
         return data
 
