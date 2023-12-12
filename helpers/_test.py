@@ -678,12 +678,7 @@ def _test_zstd():
 
 
 def _test():
-    from win32 import zstd
-    data = b'1234567890'
-    cmp = zstd.compress_known(data)
-    print(cmp, len(cmp))
-    dcmp = zstd.decompress_known(cmp)
-    print(dcmp, len(dcmp))
+    pass
 
 
 @contextlib.contextmanager
