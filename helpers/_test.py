@@ -678,7 +678,12 @@ def _test_zstd():
 
 
 def _test():
-    pass
+    from win32 import zstd
+    data = b'1234567890'
+    cmp = zstd.compress_known(data)
+    print(cmp, len(cmp))
+    dcmp = zstd.decompress_known(cmp)
+    print(dcmp, len(dcmp))
 
 
 @contextlib.contextmanager
@@ -724,11 +729,11 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_cfg_json()
     # _test_winrt()
     # _test_hook()
-    _test_chroma()
-    _test_cue()
+    # _test_chroma()
+    # _test_cue()
     # _test_pool()
     # _test_brotli()
     # _test_zstd()
-    # _test()
+    _test()
     # _test_winmd()
     sys.exit()

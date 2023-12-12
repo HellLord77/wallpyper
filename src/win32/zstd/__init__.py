@@ -409,10 +409,11 @@ def decompress(data: bytes, window_log_max: int = const_zstd.ZSTD_WINDOWLOG_LIMI
 def decompress_known(data: bytes) -> bytes:
     with ctyped.py_buffer(data) as buff_in:
         size_dst = libzstd.ZSTD_getDecompressedSize(buff_in.buf, buff_in.len)
-        buff_out = ctyped.char_array(b'', size_dst)
+        buff_out = ctyped.array(type=ctyped.type.c_uchar, size=size_dst)
         DecompressionError.check(zr := libzstd.ZSTD_decompress(ctyped.addressof(
             buff_out), size_dst, buff_in.buf, buff_in.len), True)
-        return buff_out[:zr]
+        # noinspection PyTypeChecker
+        return bytes(itertools.islice(buff_out, None, zr))
 
 
 def compress(data: bytes, level: int = const_zstd.ZSTD_CLEVEL_DEFAULT,
@@ -424,10 +425,11 @@ def compress(data: bytes, level: int = const_zstd.ZSTD_CLEVEL_DEFAULT,
 def compress_known(data: bytes, level: int = const_zstd.ZSTD_CLEVEL_DEFAULT) -> bytes:
     with ctyped.py_buffer(data) as buff_in:
         size_dst = libzstd.ZSTD_compressBound(buff_in.len)
-        buff_out = ctyped.char_array(b'', size_dst)
+        buff_out = ctyped.array(type=ctyped.type.c_uchar, size=size_dst)
         CompressionError.check(zr := libzstd.ZSTD_compress(ctyped.addressof(
             buff_out), size_dst, buff_in.buf, buff_in.len, level), True)
-        return buff_out[:zr]
+        # noinspection PyTypeChecker
+        return bytes(itertools.islice(buff_out, None, zr))
 
 
 ctyped.lib.add_path(os.path.join(os.path.dirname(__file__)))
