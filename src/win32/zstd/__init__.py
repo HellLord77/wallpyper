@@ -1,7 +1,8 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
+import itertools
 import logging
 import os
 from typing import Optional
@@ -118,7 +119,7 @@ class Decompressor(metaclass=_Zstd):
             src = ctyped.struct.ZSTD_inBuffer(buff_in.buf, buff_in.len)
             ref_src = ctyped.byref(src)
             size_dst = self.get_size_out()
-            buff_out = ctyped.char_array(b'', size_dst)
+            buff_out = ctyped.array(type=ctyped.type.c_uchar, size=size_dst)
             dst = ctyped.struct.ZSTD_outBuffer(ctyped.addressof(buff_out), size_dst)
             ref_dst = ctyped.byref(dst)
             last_src_pos = 0
@@ -131,7 +132,8 @@ class Decompressor(metaclass=_Zstd):
                         self.unused_data = data[last_src_pos:]
                     raise
                 last_src_pos = src.pos
-                ret += buff_out[:dst.pos]
+                # noinspection PyTypeChecker
+                ret += bytes(itertools.islice(buff_out, None, dst.pos))
                 dst.pos = 0
         return ret
 
@@ -361,13 +363,14 @@ class Compressor(metaclass=_Zstd):
             src = ctyped.struct.ZSTD_inBuffer(buff_in.buf, buff_in.len)
             ref_src = ctyped.byref(src)
             size_dst = self.get_size_out()
-            buff_out = ctyped.char_array(b'', size_dst)
+            buff_out = ctyped.array(type=ctyped.type.c_uchar, size=size_dst)
             dst = ctyped.struct.ZSTD_outBuffer(ctyped.addressof(buff_out), size_dst)
             ref_dst = ctyped.byref(dst)
             while src.pos != src.size:
                 CompressionError.check(libzstd.ZSTD_compressStream2(
                     self._obj, ref_dst, ref_src, operation), True)
-                ret += buff_out[:dst.pos]
+                # noinspection PyTypeChecker
+                ret += bytes(itertools.islice(buff_out, None, dst.pos))
                 dst.pos = 0
         return ret
 
