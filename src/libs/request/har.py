@@ -246,6 +246,7 @@ def encode_request(request: urllib.request.Request | _Request,
     if request.data is None:
         encoded['bodySize'] = 0
     else:
+        # noinspection PyTypeChecker
         encode_body(_caseless.getitem(
             request.headers, _Header.CONTENT_TYPE), request.data, encoded)
     if (auths := getattr(request, '_auths', None)) is not None:

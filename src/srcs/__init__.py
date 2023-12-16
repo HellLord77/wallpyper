@@ -41,20 +41,18 @@ CATEGORIES: dict[str, type[Source]] = {}
 CONFIG_ORIENTATIONS = '_orientations_'
 CONFIG_RATINGS = '_ratings_'
 
-EXT_VIDEO = set(itertools.chain.from_iterable(
-    exts for mime, exts in mimetype.iter_extensions() if mime.startswith('video')))
+EXT_VIDEO = set(itertools.chain.from_iterable(exts for mime, exts in mimetype.iter_extensions()
+                                              if mime.split('/', 1)[0] == 'video'))
 EXT_ANIMATED = {'apng', 'avif', 'gif', 'webp'}
-
-# noinspection PyUnresolvedReferences
-_cache = hashlib.__builtin_constructor_cache
-_reduced = functools.cache(callables.ReducedCallable)
 
 
 class Hash:
+    _cache = getattr(hashlib, '__builtin_constructor_cache')
+
     # noinspection PyShadowingBuiltins
     def __init_subclass__(cls, hash: bool = True):
         if hash:
-            _cache[cls.name] = cls
+            cls._cache[cls.name] = cls
             # noinspection PyUnresolvedReferences
             hashlib.algorithms_available.add(cls.name)
 
@@ -101,6 +99,8 @@ class File:
     sha256: Optional[bytes | str] = dataclasses.field(default=None, repr=False, kw_only=True)
     hashes: dict[str | type[Hash] | Hash, bytes | str] = dataclasses.field(
         default_factory=dict, repr=False, kw_only=True)
+
+    _reduced = functools.cache(callables.ReducedCallable)
 
     def __init_subclass__(cls):
         super().__init_subclass__()
@@ -159,7 +159,7 @@ class File:
             logger.warning(f'Failed to decode request: %s',
                            data['request'], exc_info=exc)
         else:
-            return _reduced(cls)(**data)
+            return cls._reduced(cls)(**data)
 
     def asdict(self) -> dict[str, Any]:
         result = {'request': har.encode_request(self.request), 'name': self.name}
@@ -361,7 +361,7 @@ class Source:
     @final
     def _temp(cls, *paths: str) -> str:
         return os.path.join(tempfile.gettempdir(), consts.NAME,
-                            cls.__module__.split(".", 1)[1], *paths)
+                            cls.__module__.split('.', 1)[1], *paths)
 
     @classmethod
     @callables.LastCacheCallable

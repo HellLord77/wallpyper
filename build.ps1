@@ -1,8 +1,20 @@
-$Version = "0.3.14"
+$ScriptVersion = "0.3.15"
 ################################################################################
 $PythonOptimize = 2  # FIXME https://github.com/pyinstaller/pyinstaller/issues/3379
 $PythonHashSeed = 0
 
+$EntryPoint = "src/init.py"
+$Icon = "src/res/icon.ico"
+$Version = ""
+$Manifest = ""
+$Contents = "."
+$OneFile = $False
+$NoConsole = $True
+$ElevatedProc = $False
+$RemoteProc = $False
+$UPX = $True
+$ModuleGraph = $True
+$Debug = $False
 $Datas = @(
     "libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
     "res"
@@ -15,18 +27,6 @@ $Imports = @()
 $Excludes = @()
 $HooksDirs = @("hooks")
 $RuntimeHooks = @()
-$Debug = $False
-$NoConsole = $True
-$OneFile = $False
-$ElevatedProc = $False
-$RemoteProc = $False
-$UPX = $True
-$ModuleGraph = $True
-$EntryPoint = "src/init.py"
-$Icon = "src/res/icon.ico"
-$Manifest = ""  # FIXME https://stackoverflow.com/questions/13964909/setting-uac-to-requireadministrator-using-pyinstaller-onefile-option-and-manifes
-$MainManifest = "manifest.xml"
-$Contents = "."
 $ExtraArgs = @()
 
 $CythonSourceGlobs = @(
@@ -88,6 +88,8 @@ $CodeRunBeforeRemote = @(
     "download()")
 $CodeRunAfter = @()
 $CodeRunAfterRemote = @()
+
+$UPXDir = ""
 $MinifyJsonRegExs = @(
     "src/libs/colornames/colornames.min.json"
     "src/libs/emojis/emoji.json"
@@ -96,7 +98,6 @@ $MinifyJsonRegExs = @(
     "src/libs/request/cloudflare/browsers.json"
     "src/libs/spinners/spinners.json"
     "src/libs/useragents/user-agents.json")
-$UPXDir = ""
 ################################################################################
 $CodePythonIs64Bit = @(
     "from sys import maxsize"
@@ -134,13 +135,15 @@ $CodeModuleGraphSmartTemplate = @(
     "print(';'.join(module.identifier for module in graph.iter_graph()))")
 $MinifyJsonLocal = $False
 $UPXLocal = $False
-$StripSymbols = $False
+$UpdateManifest = $True
 $ModuleGraphSmart = $True
 $ModuleGraphReduce = $True
+$StripSymbols = $False
 $CythonCPP = $False
 $CythonRemoveC = $False
 $NuitkaRemoveBuild = $True
 $RemoveOnThrow = $True
+$ForceLocal = $False
 $mypycCacheDir = ".mypy_cache"
 $PatSemVer = "(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
 
@@ -245,7 +248,7 @@ function Get-DeveloperPath {
     }
 }
 
-function MergeManifest([string]$ExePath, [string]$ManifestPath) {
+function Update-Manifest([string]$ExePath, [string]$ManifestPath) {
     $TempFile = New-TemporaryFile
     Copy-Item $ExePath -Destination $TempFile
     if (-not (Get-Command mt -ErrorAction SilentlyContinue)) { $Env:PATH += ";$(Get-DeveloperPath)" }
@@ -310,7 +313,7 @@ function Get-ExtSuffix {
 
 $GetExtSuffix = Get-Memoized (Get-Command Get-ExtSuffix)
 
-function Get-ModuleGraph([bool]$Smart = $ModuleGraphSmart) {
+function Get-ModuleGraph([bool]$Smart = $True) {
     if ($Smart) {
         $TempDir = Join-Path $Env:TEMP (New-Guid)
         New-Item $TempDir -ItemType Directory | Out-Null
@@ -337,23 +340,7 @@ function Get-ModuleGraph([bool]$Smart = $ModuleGraphSmart) {
 function Get-PyInstallerArgs {
     $ArgList = @("--noconfirm")
     if ($OneFile) { $ArgList += "--onefile" }
-    if ($Debug) { $ArgList += "--debug=all" }
-    if ($NoConsole) { $ArgList += "--windowed" }
-    if ($Manifest) { $ArgList += "--manifest=$Manifest" }
-    if ($ElevatedProc) { $ArgList += "--uac-admin" }
-    if ($RemoteProc) { $ArgList += "--uac-uiaccess" }
-    if ($Icon) { $ArgList += "--icon=$Icon" }
     if ($Contents) { $ArgList += "--contents-directory=$Contents" }
-    foreach ($Import in $Imports) { $ArgList += "--hidden-import=$Import" }
-    foreach ($Exclude in $Excludes) { $ArgList += "--exclude-module=$Exclude" }
-    foreach ($HooksDir in $HooksDirs) { $ArgList += "--additional-hooks-dir=$HooksDir" }
-    foreach ($RuntimeHook in $RuntimeHooks) { $ArgList += "--runtime-hook=$RuntimeHook" }
-    if ($ModuleGraph) {
-        $Modules = Get-ModuleGraph
-        foreach ($Module in $Modules) {
-            $ArgList += "--hidden-import=$Module"
-        }
-    }
     $BaseSrcDir = Split-Path (Split-Path $EntryPoint -Parent) -Leaf
     foreach ($Data in $($Datas + $(If (& $GetIsPython64Bit) { $Datas64 } else { $Datas32 }))) {
         $DataSrc = Join-Path $BaseSrcDir $Data
@@ -369,6 +356,28 @@ function Get-PyInstallerArgs {
         if (-not $DataDst) { $DataDst = "." }
         $ArgList += "--add-data=""$DataSrc;$DataDst"""
     }
+
+    foreach ($Import in $Imports) { $ArgList += "--hidden-import=$Import" }
+    if ($ModuleGraph) {
+        $Modules = Get-ModuleGraph $ModuleGraphSmart
+        foreach ($Module in $Modules) {
+            $ArgList += "--hidden-import=$Module"
+        }
+    }
+
+    foreach ($HooksDir in $HooksDirs) { $ArgList += "--additional-hooks-dir=$HooksDir" }
+    foreach ($RuntimeHook in $RuntimeHooks) { $ArgList += "--runtime-hook=$RuntimeHook" }
+    foreach ($Exclude in $Excludes) { $ArgList += "--exclude-module=$Exclude" }
+    if ($Debug) { $ArgList += "--debug=all" }
+    if ($StripSymbols) { $ArgList += "--strip" }
+
+    if ($NoConsole) { $ArgList += "--windowed" }
+    if ($Icon) { $ArgList += "--icon=$Icon" }
+    if ($Version) { $ArgList += "--version-file=$Version" }
+    if ($Manifest -and -not $UpdateManifest) { $ArgList += "--manifest=$Manifest" }
+    if ($ElevatedProc) { $ArgList += "--uac-admin" }
+    if ($RemoteProc) { $ArgList += "--uac-uiaccess" }
+    
     if ($UPX -and ($UPXLocal -or $IsRemote)) {
         if (-not (Get-Command upx -ErrorAction SilentlyContinue)) {
             if (-not $UPXDir) {
@@ -378,12 +387,12 @@ function Get-PyInstallerArgs {
         }
     }
     else { $ArgList += "--noupx" }
-    if ($StripSymbols) { $ArgList += "--strip" }
+
     return ToArray ($ArgList + $ExtraArgs)
 }
 
 function Get-ReducedModuleGraphArgs([string[]]$ArgList, [bool]$Verbose = $False) {
-    $Modules = Get-ModuleGraph
+    $Modules = Get-ModuleGraph $ModuleGraphSmart
     foreach ($Module in $Modules) {
         $ArgList = Get-RemovedItemArray $ArgList "--hidden-import=$Module"
         if ($Verbose) { Write-Host "[Reduced] $Module" }
@@ -589,7 +598,7 @@ function Write-Build {
             Move-Item (Join-Path $DistPath "$FullName.exe") $ExePath -Force
         }
 
-        if ($MainManifest) { MergeManifest $ExePath $MainManifest }
+        if ($Manifest -and $UpdateManifest) { Update-Manifest $ExePath $Manifest }
 
         if ($CythonRemove) { Remove-Cython }
         if ($NuitkaRemove) { Remove-Nuitka }
@@ -614,7 +623,7 @@ function Write-MEGA {
     mega-logout
 }
 
-$IsRemote = Test-Path Env:CI
+$IsRemote = -not $ForceLocal -and (Test-Path Env:CI)
 
 $ErrorActionPreference = "Stop"
 if ($Args) {
