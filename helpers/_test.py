@@ -682,16 +682,13 @@ def _test():
 
 
 @contextlib.contextmanager
-def _enum_handle_ref(reader: RoMetadataApi.IMetaDataImport) -> ContextManager[Optional[ctyped.Pointer[ctyped.type.HCORENUM]]]:
+def _enum_handle_ref(reader: RoMetadataApi.IMetaDataImport) -> ContextManager[ctyped.Pointer[ctyped.type.HCORENUM]]:
     enum_handle = ctyped.type.HCORENUM()
-    if reader:
-        try:
-            yield ctyped.byref(enum_handle)
-        finally:
-            if enum_handle:
-                reader.CloseEnum(enum_handle)
-    else:
-        yield
+    try:
+        yield ctyped.byref(enum_handle)
+    finally:
+        if enum_handle:
+            reader.CloseEnum(enum_handle)
 
 
 def _test_winmd():
@@ -729,6 +726,6 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_pool()
     # _test_brotli()
     # _test_zstd()
-    _test()
-    # _test_winmd()
+    # _test()
+    _test_winmd()
     sys.exit()
