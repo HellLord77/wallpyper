@@ -422,6 +422,7 @@ from . import (
     lwalpapers,
     pexels,
     pixabay,
+    pixiv_slideshow,
     reddit,
     shutterstock,
     simpledesktops,
