@@ -1,4 +1,4 @@
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 import copy
 import dataclasses
@@ -319,10 +319,12 @@ def _update_mapping(self: MutableMapping, val, cls, callback, key):
 
 def intersection_update(self: MutableMapping, other: Mapping, cls,
                         factory: Callable[[Any], Any] = copy.deepcopy):
-    assert isinstance_ex(other, cls)
+    if not isinstance_ex(other, cls):
+        logger.error('Mismatched type: type(%r) != %r', other, cls)
     if _issubclass_typeddict(cls):
         for key, cls_ in typing.get_type_hints(cls).items():
-            _update_mapping(self, other[key], cls_, factory, key)
+            if key in other:
+                _update_mapping(self, other[key], cls_, factory, key)
     else:
         cls_ = typing.get_args(cls)[1]
         for key, val in other.items():
