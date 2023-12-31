@@ -55,6 +55,7 @@ class MenuItemProperty(MenuItemAttribute):
 
 
 class MenuItemMethod(MenuItemAttribute):
+    BIND = win32.gui.MenuItem.bind.__name__
     ENABLE = win32.gui.MenuItem.enable.__name__
     SET_ICON = win32.gui.MenuItem.set_icon.__name__
     SET_LABEL = win32.gui.MenuItem.set_text.__name__

@@ -28,7 +28,7 @@ ORDERS = 'ascending', 'descending'
 
 class Folder(Source):
     NAME = 'Folder [offline]'
-    VERSION = '0.0.4'
+    VERSION = '0.0.5'
     ICON = 'png'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool, bool],
@@ -52,8 +52,9 @@ class Folder(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_menu_item(cls._text('MENU_DIR'), on_click=cls._on_dir, args=(
-            gui.MenuItemMethod.SET_TOOLTIP,)).set_tooltip(cls.CURRENT_CONFIG[CONFIG_DIR])
+        item_dir = (gui.add_menu_item(cls._text(
+            'MENU_DIR'), on_click=cls._on_dir, args=(gui.MenuItemMethod.BIND, gui.MenuItemMethod.SET_TOOLTIP)))
+        cls._on_dir(item_dir.bind, item_dir.set_tooltip, cls.CURRENT_CONFIG[CONFIG_DIR])
         gui.add_menu_item_check(cls._text('MENU_RECURSE'), cls.CURRENT_CONFIG, CONFIG_RECURSE)
         gui.add_separator()
         gui.add_submenu_radio(cls._text('MENU_SORT'), {sort: cls._text(
@@ -82,9 +83,11 @@ class Folder(Source):
                 path), width=width, height=height)
 
     @classmethod
-    def _on_dir(cls, set_tooltip: Callable) -> bool:
-        if (path := win32.dialog.open_folder(
-                cls.CURRENT_CONFIG[CONFIG_DIR], cls._text('MENU_DIR'))) is not None:
+    def _on_dir(cls, bind: Callable, set_tooltip: Callable, path: Optional[str] = None) -> bool:
+        if path is None:
+            path = win32.dialog.open_folder(cls.CURRENT_CONFIG[CONFIG_DIR], cls._text('MENU_DIR'))
+        if path is not None:
             cls.CURRENT_CONFIG[CONFIG_DIR] = path
+            bind(gui.MenuItemEvent.RIGHT_UP, lambda _: win32.clipboard.copy_text(path))
             set_tooltip(path)
         return bool(path)
