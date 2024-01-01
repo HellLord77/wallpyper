@@ -20,6 +20,8 @@ from .. import _yaml_to_json
 from ... import CONFIG_ORIENTATIONS
 from ... import ImageFile
 
+FLAG_RETRY_IMAGE = True
+
 URL_FMT = request.join_url('{}', 'index.php')
 
 CONFIG_STATIC = '_static'
@@ -201,8 +203,9 @@ class GelbooruV02Source(GelbooruSource, source=False):
                     yield
                     continue
             post = posts.pop(0)
-            image = (cls._get_image_api(post, session) or
-                     cls._get_image_scrape(post, session))
+            image = cls._get_image_api(post, session)
+            if FLAG_RETRY_IMAGE and image is None:
+                image = cls._get_image_scrape(post, session)
             if image is None:
                 posts.insert(0, post)
                 yield
