@@ -53,8 +53,8 @@ from libs import utils
 
 logger = logging.getLogger(__name__)
 
+DISPLAY = 'DISPLAY'
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
-ALL_DISPLAY = 'DISPLAY'
 RES_FMT = os.path.join(os.path.dirname(__file__), 'res', '{}')
 CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.json'
 # CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.json')  # TODO
@@ -123,7 +123,7 @@ TCONFIG = TypedDict('TCONFIG', {
 DEFAULT_CONFIG: TCONFIG = {
     consts.CONFIG_FIRST_RUN: True,
     consts.CONFIG_RECENT_IMAGES: [],
-    consts.CONFIG_ACTIVE_DISPLAY: ALL_DISPLAY,
+    consts.CONFIG_ACTIVE_DISPLAY: DISPLAY,
     consts.CONFIG_ACTIVE_SOURCE: 'folder',
     consts.CONFIG_ANIMATE_ICON: True,
     consts.CONFIG_AUTO_START: False,
@@ -409,8 +409,7 @@ def load_config(path: str = CONFIG_PATH):
             try:
                 loader.loads(_try_decrypt_config(data))
             except BaseException as exc:
-                logger.error('Failed loading config: file<%s>',
-                             path, exc_info=exc)
+                logger.error('Failed loading config: file<%s>', path, exc_info=exc)
     if consts.FLAG_CONFIG_DIR:
         dir_, ext = os.path.splitext(path)
         if os.path.isdir(dir_):
@@ -421,8 +420,7 @@ def load_config(path: str = CONFIG_PATH):
                     try:
                         loader_.load(path_)
                     except BaseException as exc:
-                        logger.warning('Failed loading config: dir<%s>',
-                                       path_, exc_info=exc)
+                        logger.warning('Failed loading config: dir<%s>', path_, exc_info=exc)
                     else:
                         loader[file_.removesuffix(ext)] = dict(loader_)
     for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
@@ -430,8 +428,7 @@ def load_config(path: str = CONFIG_PATH):
             current_config = loader.get(name)
             if isinstance(current_config, dict):
                 source.CURRENT_CONFIG.update(current_config)
-        typed.intersection_update(source.CURRENT_CONFIG,
-                                  source.DEFAULT_CONFIG, source.TCONFIG)
+        typed.intersection_update(source.CURRENT_CONFIG, source.DEFAULT_CONFIG, source.TCONFIG)
         source.fix_config()
     RESET[:] = ()  # FIXME https://github.com/python/cpython/issues/103134
 
@@ -457,8 +454,7 @@ def try_save_config(path: str = CONFIG_PATH, force: bool = False) -> bool:
                 file_.write(dumped)
         except BaseException as exc:
             logger.error('Failed saving config: file<%s>', path, exc_info=exc)
-            try_show_notification(_text('LABEL_CONFIG_SAVE'),
-                                  _text('FAIL_CONFIG_SAVE'))
+            try_show_notification(_text('LABEL_CONFIG_SAVE'), _text('FAIL_CONFIG_SAVE'))
         return os.path.isfile(path)
     return True
 
@@ -513,7 +509,7 @@ def on_shown(_: gui.Event):
 
 def get_displays() -> Iterable[str]:
     _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
-    return DISPLAYS if CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAY] == ALL_DISPLAY else (
+    return DISPLAYS if CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAY] == DISPLAY else (
         CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAY],)
 
 
@@ -849,11 +845,12 @@ def on_display_change(item: win32.gui.MenuItem, update: int, _: Optional[gui.Gui
     submenu.clear_items()
     with gui.set_menu(submenu):
         size = win32.display.get_display_size()
-        monitors = {ALL_DISPLAY: f'{_text(0)}. {_text("DISPLAY_ALL")}\t{_text(size[0])} × {_text(size[1])}'}
+        monitors = {DISPLAY: f'{_text(0)}. {_text("DISPLAY_ALL")}\t{_text(size[0])} × {_text(size[1])}'}
         for index, monitor in enumerate(DISPLAYS, 1):
             monitors[monitor] = (f'{_text(index)}. {_get_monitor_name(monitor, DISPLAYS)}'
                                  f'\t{_text(DISPLAYS[monitor][1][0])} × {_text(DISPLAYS[monitor][1][1])}')
-        gui.add_submenu_radio(item, monitors, CURRENT_CONFIG, consts.CONFIG_ACTIVE_DISPLAY, on_click=notify_blocked)
+        gui.add_submenu_radio(item, monitors, CURRENT_CONFIG,
+                              consts.CONFIG_ACTIVE_DISPLAY, on_click=notify_blocked)
         if consts.FLAG_DISPLAY_SINGLE:
             enable = len(DISPLAYS) > 1
             for submenu_item in submenu:
@@ -943,16 +940,13 @@ def on_unpin_from_start() -> bool:
 def on_toggle_console() -> bool:
     if PIPE:
         if not (toggled := PIPE.disconnect()):
-            try_show_notification(_text(
-                'LABEL_CONSOLE'), _text('FAIL_HIDE_CONSOLE'))
+            try_show_notification(_text('LABEL_CONSOLE'), _text('FAIL_HIDE_CONSOLE'))
     else:
-        args = *((PIPE_PATH,) if pyinstall.FROZEN else (
-            sys.executable, pipe.__file__)), str(PIPE)
+        args = *((PIPE_PATH,) if pyinstall.FROZEN else (sys.executable, pipe.__file__)), str(PIPE)
         # noinspection PyArgumentList
         os.startfile(args[0], arguments=' '.join(args[1:]))
         if not (toggled := PIPE.connect(consts.MAX_PIPE_SEC)):
-            try_show_notification(_text(
-                'LABEL_CONSOLE'), _text('FAIL_SHOW_CONSOLE'))
+            try_show_notification(_text('LABEL_CONSOLE'), _text('FAIL_SHOW_CONSOLE'))
     return toggled
 
 

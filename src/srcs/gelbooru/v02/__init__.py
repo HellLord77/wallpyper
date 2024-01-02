@@ -228,7 +228,7 @@ class GelbooruV02Source(GelbooruSource, source=False):
 
     @classmethod
     def _get_image_api(cls, post: str, session: cloudflare.Session) -> Optional[ImageFile]:
-        response_post = session.get(URL_FMT.format(cls.URL_API), {'id': post, **_PARAMS_API})
+        response_post = session.get(URL_FMT.format(cls.URL), {'id': post, **_PARAMS_API})
         if not response_post:
             return
         try:

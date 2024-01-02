@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.3.4'
+__version__ = '0.3.5'
 
 import binascii
 import copy
@@ -288,7 +288,6 @@ class Source:
     VERSION: str = '0.0.0'
     ICON: str = 'ico'
     URL: str = ''
-    URL_API: str = ''
     TCONFIG: type[TypedDict] = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
         CONFIG_RATINGS: list[bool]}, total=False)
@@ -305,8 +304,6 @@ class Source:
                 cls.NAME = cls.__name__
             cls.ICON = os.path.join(os.path.dirname(
                 __file__), 'res', f'{uid}.{cls.ICON}')
-            if not cls.URL_API:
-                cls.URL_API = cls.URL
             bases = cls.__mro__
             tconfig = cls.TCONFIG
             default_config = cls.DEFAULT_CONFIG

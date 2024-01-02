@@ -186,7 +186,7 @@ class MoebooruSource(Source, source=False):
         posts = []
         mode = params[CONFIG_MODE]
         if mode == MODES[0]:
-            url = URL_FMT_TAG.format(cls.URL_API)
+            url = URL_FMT_TAG.format(cls.URL)
             tags = set(params[CONFIG_TAGS])
             tags.update(_tag_rating(params[CONFIG_RATING]))
             tags.update(_tag_order(params[CONFIG_ORDER]))
@@ -194,10 +194,10 @@ class MoebooruSource(Source, source=False):
                 params[CONFIG_SIZE], params[CONFIG_WIDTH], params[CONFIG_HEIGHT]))
             params = {CONFIG_TAGS: ' '.join(tags)}
         elif mode == MODES[1]:
-            url = URL_FMT_POOL.format(cls.URL_API, params[CONFIG_POOL])
+            url = URL_FMT_POOL.format(cls.URL, params[CONFIG_POOL])
             params.clear()
         else:
-            url = URL_FMT_POPULAR.format(cls.URL_API, params[CONFIG_POPULARITY])
+            url = URL_FMT_POPULAR.format(cls.URL, params[CONFIG_POPULARITY])
             params = {CONFIG_PERIOD: params[CONFIG_PERIOD]} | dict(_param_time(
                 params[CONFIG_DAY], params[CONFIG_MONTH], params[CONFIG_YEAR]))
         page = 1
@@ -221,10 +221,9 @@ class MoebooruSource(Source, source=False):
             link = post['file_url']
             rating = post['rating']
             yield ImageFile(link, _RE_PREFIX.sub('', urllib.parse.unquote_plus(
-                os.path.basename(request.strip_url(link)))), post['file_size'],
-                            request.join_url(URL_FMT_INFO.format(cls.URL_API), str(post['id'])),
-                            width=post['width'], height=post['height'],
-                            sketchy=rating == 'q', nsfw=rating == 'e', md5=post['md5'])
+                os.path.basename(request.strip_url(link)))), post['file_size'], request.join_url(
+                URL_FMT_INFO.format(cls.URL), str(post['id'])), width=post['width'],
+                            height=post['height'], sketchy=rating == 'q', nsfw=rating == 'e', md5=post['md5'])
 
     @classmethod
     def _on_mode(cls, enable_post: Callable[[bool], bool],
