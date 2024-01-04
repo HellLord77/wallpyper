@@ -34,7 +34,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
         CONFIG_LOCALE: LOCALES[0]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_LOCALE, LOCALES)
         cls._fix_config(validator.ensure_contains, CONFIG_ORIENTATION, ORIENTATIONS)
 

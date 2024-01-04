@@ -100,7 +100,7 @@ class Backiee(Source):
         CONFIG_SEARCH: ''}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_ORIENTATION, ORIENTATIONS)
         cls._fix_config(validator.ensure_contains, CONFIG_LIST, LISTS)
         cls._fix_config(validator.ensure_len, CONFIG_RESOLUTIONS, 3)

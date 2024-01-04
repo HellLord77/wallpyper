@@ -65,7 +65,7 @@ class Facets(Source):
     _purchasable: dict[int, bool]
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_len, CONFIG_YEAR, len(YEARS))
         cls._fix_config(validator.ensure_contains, CONFIG_SERIES, SERIES)
 

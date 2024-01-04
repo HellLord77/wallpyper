@@ -52,7 +52,7 @@ class WallpaperTip(Source):
         CONFIG_COLOR: COLORS[12]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_MODE, MODES)
         cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION, RESOLUTIONS)
         cls._fix_config(validator.ensure_contains, CONFIG_DEVICE, DEVICES)

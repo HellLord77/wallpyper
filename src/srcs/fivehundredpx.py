@@ -54,7 +54,7 @@ class FiveHundredPx(Source):  # https://github.com/500px/legacy-api-documentatio
     _last_feature: str
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_FEATURE, FEATURES)
         cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
         cls._fix_config(validator.ensure_contains, CONFIG_SORT_DIRECTION, SORT_DIRECTIONS)

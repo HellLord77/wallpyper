@@ -59,7 +59,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         CONFIG_ORIENTATION: ORIENTATIONS[0]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_FILTER, FILTERS)
         cls._fix_config(validator.ensure_contains, CONFIG_COLOR, COLORS)
         cls._fix_config(validator.ensure_contains, CONFIG_ORIENTATION, ORIENTATIONS)

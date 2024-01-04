@@ -45,7 +45,7 @@ class UbuntuWallpapers(Source):
         CONFIG_SORT: tuple(SORTS)[1]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_subset, CONFIG_CONTEST, CONTESTS)
         cls._fix_config(validator.ensure_truthy, CONFIG_CONTEST)
         cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)

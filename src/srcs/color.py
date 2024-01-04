@@ -36,7 +36,7 @@ class Color(Source):
         CONFIG_HEIGHT: HEIGHTS[10]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_len, CONFIG_LUMINANCES, 2)
         cls._fix_config(validator.ensure_truthy, CONFIG_LUMINANCES)
         cls._fix_config(validator.ensure_contains, CONFIG_WIDTH, WIDTHS)

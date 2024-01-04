@@ -119,7 +119,7 @@ def _loader(data) -> Any:
             # noinspection PyProtectedMember
             return type_(*map(JSONConfig._load, root))
         elif dataclasses.is_dataclass(type_):
-            # noinspection PyProtectedMember
+            # noinspection PyProtectedMember,PyTypeChecker
             return type_(**dict(map(JSONConfig._load_mapping, root.items())))
     return data
 
@@ -242,6 +242,7 @@ class JSONConfig(_Config):
         elif issubclass(type_, (bool, float, int, str, NoneType)):
             return root
         elif issubclass(type_, Iterable):
+            # noinspection PyTypeChecker
             child = dict(map(cls._dump_mapping, root.items())) if issubclass(
                 type_, Mapping) else list(map(cls._dump, root))
             return child if type_ in (dict, list) else {cls._dump_type(root): child}
@@ -276,6 +277,7 @@ class JSONConfig(_Config):
             else:
                 raise TypeError(f"Node '{root!r}' is not JSON deserializable")
         elif isinstance(root, dict):
+            # noinspection PyTypeChecker
             return dict(map(cls._load_mapping, root.items()))
         elif isinstance(root, list):
             return list(map(cls._load, root))

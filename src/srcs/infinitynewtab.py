@@ -60,7 +60,7 @@ class InfinityNewTab(Source):
         CONFIG_SOURCE: SOURCES[0]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_MODE, MODES)
         cls._fix_config(validator.ensure_contains, CONFIG_ORDER, ORDERS)
         cls._fix_config(validator.ensure_contains, CONFIG_COLOR, COLORS)

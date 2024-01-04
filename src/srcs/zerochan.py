@@ -53,7 +53,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
         CONFIG_STRICT: False}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
         cls._fix_config(validator.ensure_contains, CONFIG_TIME, TIMES)
         cls._fix_config(validator.ensure_contains, CONFIG_DIMENSION, DIMENSIONS)

@@ -176,7 +176,7 @@ class WallpapersWide(Source):
         CONFIG_RESOLUTIONS: RESOLUTIONS[28]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_unordered, CONFIG_ORDER, ORDER)
         cls._fix_config(validator.ensure_contains, CONFIG_QUALITY, QUALITIES)
         cls._fix_config(validator.ensure_contains, CONFIG_GALLERY, GALLERIES)

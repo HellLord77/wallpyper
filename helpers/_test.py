@@ -727,5 +727,5 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_brotli()
     # _test_zstd()
     # _test()
-    _test_winmd()
+    _test()
     sys.exit()

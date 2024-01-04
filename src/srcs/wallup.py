@@ -57,7 +57,7 @@ class Wallup(Source):
         CONFIG_ORDER: ORDERS[1]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_subset, CONFIG_CATEGORIES, CATEGORIES)
         cls._fix_config(validator.ensure_subset, CONFIG_RESOLUTIONS, RESOLUTIONS)
         cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)

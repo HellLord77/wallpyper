@@ -59,7 +59,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
         CONFIG_LOCALE: LOCALES[0]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_ORIENTATION, ORIENTATIONS)
         cls._fix_config(validator.ensure_contains, CONFIG_SIZE, SIZES)
         cls._fix_config(validator.ensure_contains, CONFIG_COLOR, COLORS)

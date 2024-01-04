@@ -39,7 +39,7 @@ class WallpapersMug(Source):
         CONFIG_SORT: SORTS[0]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
         cls._fix_config(validator.ensure_contains, CONFIG_TAG, TAGS)
 

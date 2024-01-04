@@ -27,7 +27,7 @@ class BingSapphire(Source):
         CONFIG_QUALITY: QUALITIES[3]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_QUALITY, QUALITIES)
 
     @classmethod

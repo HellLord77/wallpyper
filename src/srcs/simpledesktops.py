@@ -33,12 +33,16 @@ class SimpleDesktops(Source):
     _set_tooltip: Callable[[str], bool]
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_positive, CONFIG_PAGE)
-        if saving:
-            cls.CURRENT_CONFIG[CONFIG_PAGE] = _PAGE.get()
-        else:
-            _PAGE.set(cls.CURRENT_CONFIG[CONFIG_PAGE])
+
+        _PAGE.set(cls.CURRENT_CONFIG[CONFIG_PAGE])
+
+    @classmethod
+    def dump_config(cls) -> TCONFIG:
+        dumped = super().dump_config()
+        dumped[CONFIG_PAGE] = _PAGE.get()
+        return dumped
 
     @classmethod
     def create_menu(cls):

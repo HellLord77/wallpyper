@@ -51,7 +51,7 @@ class Lwalpapers(Source):
         CONFIG_SORT: next(iter(SORTS))}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
 
     @classmethod

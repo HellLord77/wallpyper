@@ -41,14 +41,18 @@ class LiveStartPage(Source):
     _set_tooltip: Callable[[str], bool]
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_subset,
                         CONFIG_CATEGORY, CATEGORIES, casefold=False)
         cls._fix_config(validator.ensure_truthy, CONFIG_CATEGORY)
-        if saving:
-            cls.CURRENT_CONFIG[CONFIG_CURSOR] = _CURSOR.get()
-        else:
-            _CURSOR.set(cls.CURRENT_CONFIG[CONFIG_CURSOR])
+
+        _CURSOR.set(cls.CURRENT_CONFIG[CONFIG_CURSOR])
+
+    @classmethod
+    def dump_config(cls) -> TCONFIG:
+        dumped = super().dump_config()
+        dumped[CONFIG_CURSOR] = _CURSOR.get()
+        return dumped
 
     @classmethod
     def create_menu(cls):

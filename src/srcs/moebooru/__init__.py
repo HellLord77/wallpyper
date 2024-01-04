@@ -131,7 +131,7 @@ class MoebooruSource(Source, source=False):
         super().__init_subclass__(*args, **kwargs)
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_MODE, MODES)
         cls._fix_config(validator.ensure_len, CONFIG_RATING, 3)
         cls._fix_config(validator.ensure_truthy, CONFIG_RATING, any)
@@ -141,7 +141,7 @@ class MoebooruSource(Source, source=False):
         cls._fix_config(validator.ensure_contains, CONFIG_SIZE, SIZES)
         cls._fix_config(validator.ensure_contains, CONFIG_POPULARITY, POPULARITIES)
         cls._fix_config(validator.ensure_contains, CONFIG_PERIOD, PERIODS)
-        super().fix_config(saving)
+        super().load_config()
 
     @classmethod
     def create_menu(cls):

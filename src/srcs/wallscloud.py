@@ -78,7 +78,7 @@ class Wallscloud(Source):
         CONFIG_ORDER: ORDERS[0]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_MODE, MODES)
         cls._fix_config(validator.ensure_contains, CONFIG_CATEGORY, CATEGORIES)
         cls._fix_config(validator.ensure_contains, CONFIG_TOP, TOPS)

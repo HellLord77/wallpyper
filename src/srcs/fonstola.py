@@ -66,13 +66,13 @@ class Fonstola(Source):
         CONFIG_CATEGORY: CATEGORIES[0]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_LIST, LISTS)
         cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
         cls._fix_config(validator.ensure_contains, CONFIG_COLOR, COLORS)
         cls._fix_config(validator.ensure_contains, CONFIG_PERIOD, PERIODS)
         cls._fix_config(validator.ensure_contains, CONFIG_CATEGORY, CATEGORIES)
-        super().fix_config(saving)
+        super().load_config()
 
     @classmethod
     def create_menu(cls):

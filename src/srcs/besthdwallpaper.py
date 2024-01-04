@@ -66,11 +66,11 @@ class BestHDWallpaper(Source):
         CONFIG_RESOLUTION: RESOLUTIONS[0]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_CATEGORY, CATEGORIES)
         cls._fix_config(validator.ensure_contains,
                         CONFIG_RESOLUTION, RESOLUTIONS)
-        super().fix_config(saving)
+        super().load_config()
 
     @classmethod
     def create_menu(cls):

@@ -72,7 +72,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         CONFIG_ORDER: ORDERS[0]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_LANG, LANGS)
         cls._fix_config(validator.ensure_contains, CONFIG_TYPE, TYPES)
         cls._fix_config(validator.ensure_contains, CONFIG_ORIENTATION, ORIENTATIONS)

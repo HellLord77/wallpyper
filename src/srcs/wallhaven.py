@@ -86,7 +86,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         CONFIG_AI: True}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_len, CONFIG_CATEGORIES, 3)
         cls._fix_config(validator.ensure_truthy, CONFIG_CATEGORIES, any)
         cls._fix_config(validator.ensure_search, CONFIG_PURITY, RE_PURITY)

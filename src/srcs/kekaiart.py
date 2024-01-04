@@ -34,9 +34,9 @@ class KekaiKotaki(Source):
         CONFIG_GALLERY: GALLERIES[0]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_GALLERY, GALLERIES)
-        super().fix_config(saving)
+        super().load_config()
 
     @classmethod
     def create_menu(cls):

@@ -37,7 +37,7 @@ class Bing(Source):  # https://github.com/timothymctim/Bing-wallpapers
         CONFIG_MARKET: MARKETS[0]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_DAY, DAYS)
         cls._fix_config(validator.ensure_contains, CONFIG_MARKET, MARKETS)
         cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION, RESOLUTIONS)

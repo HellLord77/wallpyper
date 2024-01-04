@@ -44,11 +44,11 @@ class Folder(Source):
         CONFIG_ORDER: ORDERS[0]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_disk, CONFIG_DIR, False)
         cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
         cls._fix_config(validator.ensure_contains, CONFIG_ORDER, ORDERS)
-        super().fix_config(saving)
+        super().load_config()
 
     @classmethod
     def create_menu(cls):

@@ -105,10 +105,10 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
         CONFIG_TIME: TIMES[1]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
         cls._fix_config(validator.ensure_contains, CONFIG_TIME, TIMES)
-        super().fix_config(saving)
+        super().load_config()
 
     @classmethod
     def create_menu(cls):

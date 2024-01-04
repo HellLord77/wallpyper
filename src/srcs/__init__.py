@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.3.5'
+__version__ = '0.3.6'
 
 import binascii
 import copy
@@ -329,11 +329,19 @@ class Source:
         return validator(cls.CURRENT_CONFIG, cls.DEFAULT_CONFIG, key, *args, **kwargs)
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
-        for key in itertools.compress((CONFIG_ORIENTATIONS, CONFIG_RATINGS),
-                                      (cls._orientations, cls._ratings)):
-            cls._fix_config(validator.ensure_len, key, len(cls.DEFAULT_CONFIG[key]))
-            cls._fix_config(validator.ensure_truthy, key, any)
+    def load_config(cls):
+        if cls._orientations:
+            cls._fix_config(validator.ensure_len, CONFIG_ORIENTATIONS,
+                            len(cls.DEFAULT_CONFIG[CONFIG_ORIENTATIONS]))
+            cls._fix_config(validator.ensure_truthy, CONFIG_ORIENTATIONS, any)
+        if cls._ratings:
+            cls._fix_config(validator.ensure_len, CONFIG_RATINGS,
+                            len(cls.DEFAULT_CONFIG[CONFIG_RATINGS]))
+            cls._fix_config(validator.ensure_truthy, CONFIG_RATINGS, any)
+
+    @classmethod
+    def dump_config(cls) -> TCONFIG:
+        return copy.deepcopy(cls.CURRENT_CONFIG)
 
     @classmethod
     @final

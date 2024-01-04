@@ -90,7 +90,7 @@ class WallpaperAbyss(Source):
         CONFIG_CATEGORY: CATEGORIES[0]}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_METHOD, METHODS)
         cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION_FILTER, RESOLUTION_FILTERS)
         cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION_EQUALS, RESOLUTION_EQUALS)

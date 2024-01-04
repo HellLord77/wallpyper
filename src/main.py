@@ -1,5 +1,6 @@
 import atexit
 import collections
+import copy
 import datetime
 import functools
 import itertools
@@ -85,10 +86,8 @@ DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 STOP = typ.MutableBool()
 RESTART = typ.MutableBool()
 TIMER = timer.Timer.__new__(timer.Timer)
-RECENT: collections.deque[srcs.File] = collections.deque(
-    maxlen=consts.MAX_RECENT_LEN)
-PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(
-    f'{UUID}.{uuid.uuid4().hex}')
+RECENT: collections.deque[srcs.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
+PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}.{uuid.uuid4().hex}')
 
 TCONFIG = TypedDict('TCONFIG', {
     consts.CONFIG_FIRST_RUN: bool,
@@ -158,9 +157,10 @@ def _fix_config(validator: Callable, key: str, *args, **kwargs) -> bool:
     return validator(CURRENT_CONFIG, DEFAULT_CONFIG, key, *args, **kwargs)
 
 
-def fix_config(saving: bool = False):
+def load_config():
     _fix_config(validator.ensure_unique, consts.CONFIG_RECENT_IMAGES, pickle.dumps)
-    _fix_config(validator.ensure_max_len, consts.CONFIG_RECENT_IMAGES, consts.MAX_RECENT_LEN, right=True)
+    _fix_config(validator.ensure_max_len,
+                consts.CONFIG_RECENT_IMAGES, consts.MAX_RECENT_LEN, right=True)
     _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
     _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES)
     _fix_config(validator.ensure_contains, consts.CONFIG_CHANGE_INTERVAL, CHANGE_INTERVALS)
@@ -174,12 +174,17 @@ def fix_config(saving: bool = False):
     # noinspection PyUnresolvedReferences
     _fix_config(validator.ensure_contains, consts.CONFIG_TRANSITION_EASE, (
         ease.name for ease in itertools.islice(easings.Ease, None, 7)))
-    _fix_config(validator.ensure_contains_name, consts.CONFIG_TRANSITION_STYLE, win32.display.Transition)
-    if saving:
-        CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES] = [file.asdict() for file in RECENT]
-    else:
-        RECENT.extend(filter(None, (srcs.ImageFile.fromdict(
-            kwargs) for kwargs in CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES])))
+    _fix_config(validator.ensure_contains_name,
+                consts.CONFIG_TRANSITION_STYLE, win32.display.Transition)
+
+    RECENT.extend(filter(None, (srcs.ImageFile.fromdict(
+        kwargs) for kwargs in CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES])))
+
+
+def dump_config() -> TCONFIG:
+    dumped = copy.deepcopy(CURRENT_CONFIG)
+    dumped[consts.CONFIG_RECENT_IMAGES] = [file.asdict() for file in RECENT]
+    return dumped
 
 
 def _text(message: int | str, number: bool = False) -> str:
@@ -397,7 +402,7 @@ def _try_decrypt_config(loaded: str, force: bool = False) -> str:
     return loaded
 
 
-def load_config(path: str = CONFIG_PATH):
+def read_config(path: str = CONFIG_PATH):
     loader = config.JSONConfig()
     if os.path.isfile(path):
         try:
@@ -429,7 +434,7 @@ def load_config(path: str = CONFIG_PATH):
             if isinstance(current_config, dict):
                 source.CURRENT_CONFIG.update(current_config)
         typed.intersection_update(source.CURRENT_CONFIG, source.DEFAULT_CONFIG, source.TCONFIG)
-        source.fix_config()
+        source.load_config()
     RESET[:] = ()  # FIXME https://github.com/python/cpython/issues/103134
 
 
@@ -440,14 +445,16 @@ def _try_encrypt_config(dumped: str, force: bool = False) -> str:
     return dumped
 
 
-def try_save_config(path: str = CONFIG_PATH, force: bool = False) -> bool:
+def try_write_config(path: str = CONFIG_PATH, force: bool = False) -> bool:
     if force or CURRENT_CONFIG[consts.CONFIG_SAVE_CONFIG]:
         dumper = config.JSONConfig()
         for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
-            source.fix_config(True)
-            if section := {var: source.CURRENT_CONFIG[var] for var, val in sorted(
-                    source.DEFAULT_CONFIG.items()) if source.CURRENT_CONFIG[var] != val}:
-                dumper[name] = section
+            section = source.dump_config()
+            if not typed.isinstance_ex(section, source.TCONFIG):
+                logger.error('Mismatched type: type(%r) != %r', section, source.TCONFIG)
+            if section_ := {var: val_ for var, val in sorted(
+                    source.DEFAULT_CONFIG.items()) if (val_ := section[var]) != val}:
+                dumper[name] = section_
         try:
             dumped = _try_encrypt_config(dumper.dumps())
             with open(path, 'w') as file_:
@@ -471,8 +478,7 @@ def try_remove_temp(force: bool = False) -> bool:
 
 
 def try_show_notification(title: str, text: str = '',
-                          icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE,
-                          force: bool = False) -> bool:
+                          icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE, force: bool = False) -> bool:
     logger.debug('Showing notification: title<%s> text<%s>', title, text)
     if force or CURRENT_CONFIG[consts.CONFIG_NOTIFY_ERROR]:
         end_time = time.monotonic() + consts.MAX_NOTIFY_SEC
@@ -1044,7 +1050,7 @@ def start():
     pyinstall.clean_temp()
     _update_display()
     sys.modules['request'] = sys.modules['libs.request']  # FIXME https://github.com/cython/cython/issues/3867
-    load_config()
+    read_config()
     gui.init(consts.NAME)
     gui.enable_menuitem_icon(consts.FLAG_MENUITEM_ICON)
     create_menu()
@@ -1060,7 +1066,7 @@ def start():
 def stop():
     timer.Timer.kill_all()
     apply_auto_start(CURRENT_CONFIG[consts.CONFIG_AUTO_START])
-    try_save_config()
+    try_write_config()
     try_remove_temp()
 
 

@@ -69,7 +69,7 @@ class WallHere(Source):
         CONFIG_NSFW: True}
 
     @classmethod
-    def fix_config(cls, saving: bool = False):
+    def load_config(cls):
         cls._fix_config(validator.ensure_contains, CONFIG_ORDER, ORDERS)
         cls._fix_config(validator.ensure_contains, CONFIG_ORIENTATION, ORIENTATIONS)
         cls._fix_config(validator.ensure_contains, CONFIG_COLOR, COLORS)
