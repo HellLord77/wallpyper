@@ -1014,7 +1014,9 @@ class MenuItem(_Control):
         return bool(user32.SetMenuItemInfoW(self._menu.get_id(), self._id, False, ctyped.byref(info)))
 
     def set_icon(self, res_or_path_or_bitmap: int | str | _gdiplus.Bitmap, resize: bool = True) -> bool:
-        return self._set_datas(ctyped.const.MIIM_BITMAP, (self._get_image(res_or_path_or_bitmap, 0, resize),))
+        image = self._get_image(res_or_path_or_bitmap, 0, resize)
+        return (bool(not isinstance(res_or_path_or_bitmap, str) or not res_or_path_or_bitmap or image) and
+                self._set_datas(ctyped.const.MIIM_BITMAP, (image,)))
 
     def _set_check_icons(self, res_or_path_or_bitmap_checked: Optional[int | str | _gdiplus.Bitmap],
                          res_or_path_or_bitmap_unchecked: Optional[int | str | _gdiplus.Bitmap], resize: bool) -> bool:

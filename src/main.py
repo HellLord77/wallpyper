@@ -275,8 +275,9 @@ def create_menu():
                               on_click=try_reapply_wallpaper, icon=RES_FMT.format(consts.RES_ALIGNMENT))
         with gui.set_menu(gui.add_submenu(_text('MENU_TRANSITION'), icon=RES_FMT.format(consts.RES_TRANSITION))):
             item_duration_enable = gui.add_submenu_radio(
-                _text('MENU_TRANSITION_DURATION'), {duration: _text(f'DURATION_{int(duration)}')
-                                                    for duration in TRANSITION_DURATIONS}, CURRENT_CONFIG, consts.CONFIG_TRANSITION_DURATION,
+                _text('MENU_TRANSITION_DURATION'), {duration: _text(
+                    f'DURATION_{int(duration)}') for duration in TRANSITION_DURATIONS},
+                CURRENT_CONFIG, consts.CONFIG_TRANSITION_DURATION,
                 CURRENT_CONFIG[consts.CONFIG_TRANSITION_STYLE] != win32.display.Transition.DISABLED.name,
                 icon=RES_FMT.format(consts.RES_TRANSITION_DURATION)).enable
             gui.add_submenu_radio(_text('MENU_TRANSITION_STYLE'), {transition.name: _text(
@@ -289,8 +290,9 @@ def create_menu():
             item_ease_enable = gui.add_submenu_radio(
                 _text('MENU_EASE'), {ease.name: _text(f'EASE_{ease.name}')
                                      for ease in itertools.islice(easings.Ease, None, 7)},
-                CURRENT_CONFIG, consts.CONFIG_TRANSITION_EASE, CURRENT_CONFIG[consts.CONFIG_EASE_IN] or CURRENT_CONFIG[
-                    consts.CONFIG_EASE_OUT], on_click=try_reapply_wallpaper, icon=RES_FMT.format(consts.RES_EASE)).enable
+                CURRENT_CONFIG, consts.CONFIG_TRANSITION_EASE,
+                CURRENT_CONFIG[consts.CONFIG_EASE_IN] or CURRENT_CONFIG[consts.CONFIG_EASE_OUT],
+                on_click=try_reapply_wallpaper, icon=RES_FMT.format(consts.RES_EASE)).enable
             with gui.set_menu(gui.add_submenu(_text('MENU_EASE_TIMING'), position=-1,
                                               icon=RES_FMT.format(consts.RES_EASE_TIMING))):
                 gui.add_menu_item_check(_text('EASE_DIRECTION_IN'), CURRENT_CONFIG, consts.CONFIG_EASE_IN,
@@ -990,16 +992,16 @@ def on_transition_style(enable: Callable[[bool], bool], transition: str):
     enable(transition != win32.display.Transition.DISABLED.name)
 
 
-def on_source(name: str):
+def on_source(uid: str):
+    source = srcs.SOURCES[uid]
     item = gui.get_menu_item_by_uid(consts.UID_SOURCE_SETTINGS, False, gui.MENU)
-    source = srcs.SOURCES[name]
-    icon = os.path.isfile(source.ICON)
-    item.set_icon(source.ICON if icon else gui.MenuItemImage.NONE)
-    tooltip = f'{name}-{source.VERSION}'
+    if not (set_icon := item.set_icon(source.ICON)):
+        logger.warning('Missing resource: source<%s> icon<%s>', uid, source.ICON)
+    tooltip = f'{uid}-{source.VERSION}'
     if source.URL:
         tooltip += f'\n{source.URL}'
     item.set_tooltip(tooltip, source.NAME,
-                     source.ICON if icon else gui.MenuItemTooltipIcon.NONE)
+                     source.ICON if set_icon else gui.MenuItemTooltipIcon.NONE)
     submenu = item.get_submenu()
     submenu.clear_items()
     with gui.set_menu(submenu):
@@ -1008,7 +1010,7 @@ def on_source(name: str):
         except BaseException as exc:
             submenu.clear_items()
             logger.error('Unhandled exception in source.create_menu: %s<%s>',
-                         name, source.VERSION, exc_info=exc)
+                         uid, source.VERSION, exc_info=exc)
             try_alert_error(exc, True)
     item.enable(bool(submenu))
 

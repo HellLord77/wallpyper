@@ -302,8 +302,7 @@ class Source:
         if source:
             if cls.NAME == cls.__base__.NAME:
                 cls.NAME = cls.__name__
-            cls.ICON = os.path.join(os.path.dirname(
-                __file__), 'res', f'{uid}.{cls.ICON}')
+            cls.ICON = os.path.join(os.path.dirname(__file__), 'res', f'{uid}.{cls.ICON}')
             bases = cls.__mro__
             tconfig = cls.TCONFIG
             default_config = cls.DEFAULT_CONFIG
