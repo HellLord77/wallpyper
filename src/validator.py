@@ -107,9 +107,17 @@ def ensure_negative(current: dict, default: dict, key: str,
 
 
 # noinspection PyShadowingNames
-def ensure_contains_name(current: dict, default: dict, key: str,
-                         enum: type[enum.Enum], casefold: bool = True) -> bool:
-    return ensure_contains(current, default, key, (member.name for member in enum), casefold)
+def ensure_enum_name(current: dict, default: dict, key: str,
+                     enum: type[enum.Enum], casefold: bool = True) -> bool:
+    return ensure_contains(current, default, key,
+                           (member.name for member in enum), casefold)
+
+
+# noinspection PyShadowingNames
+def ensure_enum_value(current: dict, default: dict, key: str,
+                      enum: type[enum.Enum], casefold: bool = True) -> bool:
+    return ensure_contains(current, default, key,
+                           (member.value for member in enum), casefold)
 
 
 def ensure_subset(current: dict, _: dict, key: str,

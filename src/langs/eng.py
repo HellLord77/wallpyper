@@ -144,9 +144,9 @@ DURATION_2 = '2.5 Seconds'
 DURATION_5 = '5 Seconds'
 DURATION_10 = '10 Seconds'
 
-MAXIMIZED_IGNORE = 'Ignore'
-MAXIMIZED_POSTPONE = 'Postpone'
-MAXIMIZED_SKIP = 'Skip'
+MAXIMIZED_ignore = 'Ignore'
+MAXIMIZED_postpone = 'Postpone'
+MAXIMIZED_skip = 'Skip'
 
 ALIGNMENT_DEFAULT = 'Default'
 ALIGNMENT_FILL = 'Fill'

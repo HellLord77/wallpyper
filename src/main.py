@@ -2,6 +2,7 @@ import atexit
 import collections
 import copy
 import datetime
+import enum
 import functools
 import itertools
 import json
@@ -65,7 +66,6 @@ PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(
 
 CHANGE_INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
 TRANSITION_DURATIONS = 0.5, 1.0, 2.5, 5.0, 10.0
-MAXIMIZED_ACTIONS = 'IGNORE', 'POSTPONE', 'SKIP'
 BLOCKERS: dict[str | re.Pattern, str] = {
     # '': 'Sucrose',
     'lwservice.exe': 'Live2DViewerEX',
@@ -73,6 +73,16 @@ BLOCKERS: dict[str | re.Pattern, str] = {
     'DPPlayer.exe': 'N0va Desktop',
     'RazerAxon.Player.exe': 'Razer Axon',
     re.compile(r'wallpaper(?:32|64)\.exe'): 'Wallpaper Engine'}
+
+Ease = tuple(itertools.islice(easings.Ease, None, 7))
+ColorMode = tuple(itertools.islice(win32.ColorMode, 1, None))
+
+
+class MaximizedAction(enum.StrEnum):
+    IGNORE = enum.auto()
+    POSTPONE = enum.auto()
+    SKIP = enum.auto()
+
 
 # webbrowser.WindowsDefault = type('WindowsDefault', (  # FIXME picks edge
 #     webbrowser.BaseBrowser,), {'open': lambda self, *_, **__: False})
@@ -135,7 +145,7 @@ DEFAULT_CONFIG: TCONFIG = {
     consts.CONFIG_FLIP_HORIZONTAL: False,
     consts.CONFIG_FLIP_VERTICAL: False,
     consts.CONFIG_KEEP_CACHE: False,
-    consts.CONFIG_MAXIMIZED_ACTION: MAXIMIZED_ACTIONS[0],
+    consts.CONFIG_MAXIMIZED_ACTION: MaximizedAction.IGNORE.value,
     consts.CONFIG_MENU_COLOR: win32.ColorMode.AUTO.name,
     consts.CONFIG_NOTIFY_BLOCKED: False,
     consts.CONFIG_NOTIFY_ERROR: True,
@@ -164,18 +174,14 @@ def load_config():
     _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
     _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES)
     _fix_config(validator.ensure_contains, consts.CONFIG_CHANGE_INTERVAL, CHANGE_INTERVALS)
-    _fix_config(validator.ensure_contains_name, consts.CONFIG_FIT_STYLE, win32.display.Style)
-    _fix_config(validator.ensure_contains, consts.CONFIG_MAXIMIZED_ACTION, MAXIMIZED_ACTIONS)
-    _fix_config(validator.ensure_contains, consts.CONFIG_MENU_COLOR, (
-        color.name for color in itertools.islice(win32.ColorMode, 1, None)))
-    _fix_config(validator.ensure_contains_name, consts.CONFIG_ROTATE_BY, win32.display.Rotate)
+    _fix_config(validator.ensure_enum_name, consts.CONFIG_FIT_STYLE, win32.display.Style)
+    _fix_config(validator.ensure_enum_value, consts.CONFIG_MAXIMIZED_ACTION, MaximizedAction)
+    _fix_config(validator.ensure_enum_name, consts.CONFIG_MENU_COLOR, ColorMode)
+    _fix_config(validator.ensure_enum_name, consts.CONFIG_ROTATE_BY, win32.display.Rotate)
     _fix_config(validator.ensure_truthy, consts.CONFIG_SAVE_DIR)
     _fix_config(validator.ensure_contains, consts.CONFIG_TRANSITION_DURATION, TRANSITION_DURATIONS)
-    # noinspection PyUnresolvedReferences
-    _fix_config(validator.ensure_contains, consts.CONFIG_TRANSITION_EASE, (
-        ease.name for ease in itertools.islice(easings.Ease, None, 7)))
-    _fix_config(validator.ensure_contains_name,
-                consts.CONFIG_TRANSITION_STYLE, win32.display.Transition)
+    _fix_config(validator.ensure_enum_name, consts.CONFIG_TRANSITION_EASE, Ease)
+    _fix_config(validator.ensure_enum_name, consts.CONFIG_TRANSITION_STYLE, win32.display.Transition)
 
     RECENT.extend(filter(None, (srcs.ImageFile.fromdict(
         kwargs) for kwargs in CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES])))
@@ -198,7 +204,8 @@ def create_menu():
     item_change.set_icon(RES_FMT.format(consts.RES_CHANGE))
     item_recent = gui.add_submenu(_text('MENU_RECENT'), icon=RES_FMT.format(consts.RES_RECENT))
     TIMER.__init__(0, functools.partial(on_change, item_change.enable, item_recent), True)
-    gui.set_on_click(item_change, functools.partial(on_change, *TIMER.target.args, auto=False), on_thread=False)
+    gui.set_on_click(item_change, functools.partial(
+        on_change, *TIMER.target.args, auto=False), on_thread=False)
     gui.add_separator(menu=item_recent)
     gui.add_menu_item(_text('LABEL_CLEAR'), on_click=functools.partial(
         on_clear, item_recent.enable), menu=item_recent).set_icon(RES_FMT.format(consts.RES_CLEAR))
@@ -249,8 +256,9 @@ def create_menu():
                 f'INTERVAL_{interval}') for interval in CHANGE_INTERVALS},
                                   CURRENT_CONFIG, consts.CONFIG_CHANGE_INTERVAL,
                                   on_click=on_auto_change, icon=RES_FMT.format(consts.RES_INTERVAL))
-            gui.add_submenu_radio(_text('MENU_IF_MAXIMIZED'), {action: _text(
-                f'MAXIMIZED_{action}') for action in MAXIMIZED_ACTIONS}, CURRENT_CONFIG,
+            # noinspection PyUnresolvedReferences
+            gui.add_submenu_radio(_text('MENU_IF_MAXIMIZED'), {action.value: _text(
+                f'MAXIMIZED_{action}') for action in MaximizedAction}, CURRENT_CONFIG,
                                   consts.CONFIG_MAXIMIZED_ACTION, icon=RES_FMT.format(consts.RES_MAXIMIZED))
             gui.add_separator()
             gui.add_menu_item_check(_text('LABEL_AUTO_SAVE'),
@@ -288,9 +296,8 @@ def create_menu():
             gui.add_separator()
             # noinspection PyUnresolvedReferences
             item_ease_enable = gui.add_submenu_radio(
-                _text('MENU_EASE'), {ease.name: _text(f'EASE_{ease.name}')
-                                     for ease in itertools.islice(easings.Ease, None, 7)},
-                CURRENT_CONFIG, consts.CONFIG_TRANSITION_EASE,
+                _text('MENU_EASE'), {ease.name: _text(
+                    f'EASE_{ease.name}') for ease in Ease}, CURRENT_CONFIG, consts.CONFIG_TRANSITION_EASE,
                 CURRENT_CONFIG[consts.CONFIG_EASE_IN] or CURRENT_CONFIG[consts.CONFIG_EASE_OUT],
                 on_click=try_reapply_wallpaper, icon=RES_FMT.format(consts.RES_EASE)).enable
             with gui.set_menu(gui.add_submenu(_text('MENU_EASE_TIMING'), position=-1,
@@ -327,8 +334,7 @@ def create_menu():
             gui.add_menu_item_check(_text('LABEL_NOTIFY_BLOCKED'), CURRENT_CONFIG,
                                     consts.CONFIG_NOTIFY_BLOCKED, on_click=notify_blocked)
         gui.add_submenu_radio(_text('MENU_COLORS'), {mode.name: _text(
-            f'COLOR_MODE_{mode.name}') for mode in itertools.islice(
-            win32.ColorMode, 1, None)}, CURRENT_CONFIG, consts.CONFIG_MENU_COLOR,
+            f'COLOR_MODE_{mode.name}') for mode in ColorMode}, CURRENT_CONFIG, consts.CONFIG_MENU_COLOR,
                               on_click=win32.set_color_mode, icon=RES_FMT.format(consts.RES_THEME))
         win32.set_color_mode(CURRENT_CONFIG[consts.CONFIG_MENU_COLOR])
         gui.add_menu_item_check(_text('LABEL_ANIMATE'), CURRENT_CONFIG,
@@ -668,14 +674,14 @@ def on_change(enable: Callable[[bool], bool], item_recent: win32.gui.MenuItem,
               image: Optional[srcs.File] = None, auto: bool = True) -> bool:
     changed = False
     if auto:
-        if CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] != MAXIMIZED_ACTIONS[0] and all(
+        if CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] != MaximizedAction.IGNORE and all(
                 win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values()):
             while (CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] and CURRENT_CONFIG[
-                consts.CONFIG_MAXIMIZED_ACTION] == MAXIMIZED_ACTIONS[1] and
+                consts.CONFIG_MAXIMIZED_ACTION] == MaximizedAction.POSTPONE and
                    all(win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values())):
                 time.sleep(consts.POLL_SLOW_SEC)
             if (not CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] or
-                    CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] == MAXIMIZED_ACTIONS[2]):
+                    CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] == MaximizedAction.SKIP):
                 changed = True
         on_auto_change(CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL])
     if not changed and not change_wallpaper.is_running():
