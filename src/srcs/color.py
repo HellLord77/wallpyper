@@ -61,8 +61,7 @@ class Color(Source):
             file = None
             rgb = random.randrange(256), random.randrange(256), random.randrange(256)
             if bitmap := win32.get_colored_bitmap(*rgb, width, height):
-                path = cls._temp(colornames.get_nearest_color_lab(
-                    colornames.rgb_to_hex(*rgb))[1] + '.png')
+                path = cls._temp(colornames.get_nearest_color_lab(colornames.rgb_to_hex(*rgb))[1] + '.png')
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 if win32.save_image(bitmap, path):
                     file = ImageFile(request.from_path(path), width=width, height=height)

@@ -1,4 +1,4 @@
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 import contextlib
 import enum
@@ -45,7 +45,8 @@ from ._utils import sanitize_filename
 _PIN_TIMEOUT = 3
 _APPDATA_DIR = _utils.get_dir(ctyped.const.FOLDERID_RoamingAppData)
 _STARTUP_DIR = _utils.get_dir(ctyped.const.FOLDERID_Startup)
-_TASKBAR_DIR = ntpath.join(_APPDATA_DIR, 'Microsoft', 'Internet Explorer', 'Quick Launch', 'User Pinned', 'TaskBar')
+_TASKBAR_DIR = ntpath.join(_APPDATA_DIR, 'Microsoft',
+                           'Internet Explorer', 'Quick Launch', 'User Pinned', 'TaskBar')
 _STARTUP_KEY = ntpath.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 _SYS_PIN_PATH = ntpath.join(ntpath.dirname(__file__), 'syspin.exe')
 
@@ -78,8 +79,12 @@ get_dimensions_image = _gdiplus.image_get_dimensions
 save_image = _gdiplus.image_save
 
 
-def get_colored_bitmap(r: int, g: int, b: int, width: int = 32, height: int = 32) -> _gdiplus.Bitmap:
-    return _gdiplus.bitmap_from_color(_gdiplus.Color.from_rgba(r, g, b), width, height)
+def get_colored_bitmap(r: int, g: int, b: int,
+                       width: int = 32, height: int = 32, optimize: bool = True) -> _gdiplus.Bitmap:
+    args = _gdiplus.Color.from_rgba(r, g, b), width, height
+    if optimize:
+        args += ctyped.const.PixelFormat8bppIndexed, True
+    return _gdiplus.bitmap_from_color(*args)
 
 
 def set_color_mode(mode: int | str | ColorMode = ColorMode.DEFAULT, flush: bool = True):
@@ -270,7 +275,7 @@ def _get_str_dev_prop(hdevinfo: ctyped.type.HDEVINFO, dev_info_ref: ctyped.Point
         return buff.value
 
 
-def _get_str_devs_props(guid: Optional[str] = None, *devpkeys: int | tuple[str, int]) -> tuple[tuple[str, ...]]:
+def _get_str_devs_props(guid: Optional[str] = None, *devpkeys: int | tuple[str, int]) -> tuple[tuple[str, ...], ...]:
     vals = []
     guid_ref = None
     flags = ctyped.const.DIGCF_ALLCLASSES | ctyped.const.DIGCF_PRESENT
@@ -283,7 +288,8 @@ def _get_str_devs_props(guid: Optional[str] = None, *devpkeys: int | tuple[str, 
             dev_info_ref = ctyped.byref(dev_info)
             index = 0
             while setupapi.SetupDiEnumDeviceInfo(hdevinfo, index, dev_info_ref):
-                vals.append(tuple(_get_str_dev_prop(hdevinfo, dev_info_ref, devpkey) for devpkey in devpkeys))
+                vals.append(tuple(_get_str_dev_prop(
+                    hdevinfo, dev_info_ref, devpkey) for devpkey in devpkeys))
                 index += 1
     return tuple(vals)
 

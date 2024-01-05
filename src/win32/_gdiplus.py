@@ -329,7 +329,7 @@ class Graphics(_Base, ctyped.type.GpGraphics):
     # noinspection PyShadowingBuiltins
     def measure_character_ranges(self, string: str, font: ctyped.type.GpFont, count: int, x: float = 0, y: float = 0,
                                  width: float = ctyped.const.FLT_MAX, height: float = ctyped.const.FLT_MAX,
-                                 format: Optional[ctyped.type.GpStringFormat] = None) -> Optional[tuple[Region]]:
+                                 format: Optional[ctyped.type.GpStringFormat] = None) -> Optional[tuple[Region, ...]]:
         regions = tuple(Region.from_empty() for _ in range(count))
         rect = ctyped.struct.RectF(x, y, width, height)
         if _OK == GdiPlus.GdipMeasureCharacterRanges(self, string, -1, font, ctyped.byref(
@@ -1245,7 +1245,7 @@ class FontCollection(_Base, ctyped.type.GpFontCollection):
         if _OK == GdiPlus.GdipGetFontCollectionFamilyCount(self, ctyped.byref(count)):
             return count.value
 
-    def get_families(self, count: Optional[int] = None) -> Optional[tuple[FontFamily]]:
+    def get_families(self, count: Optional[int] = None) -> Optional[tuple[FontFamily, ...]]:
         if count is None:
             count = self.get_family_count()
         if count is not None:
@@ -1397,15 +1397,13 @@ def image_get_dimensions(path: str) -> Optional[tuple[int, int]]:
         return image.get_width(), image.get_height()
 
 
-def image_save(image: Image, path: str, quality: int = 100) -> bool:
-    param_val = ctyped.type.LONG(quality)
-    params = ctyped.struct.EncoderParameters(1, ctyped.array(
-        ctyped.struct.EncoderParameter(ctyped.get_guid(
-            ctyped.const.EncoderQuality), 1,
-            ctyped.enum.EncoderParameterValueType.Long.value,
-            ctyped.cast(param_val, ctyped.type.PVOID))))
+def image_save(image: Image, path: str, quality: float = 1.0) -> bool:
+    quality_val = ctyped.type.LONG(round(quality * 100))
     return image.save_to_file(path, ImageCodec.get_encoder_by_filename_extension(
-        ntpath.splitext(path)[1]).Clsid, params)
+        ntpath.splitext(path)[1]).Clsid, ctyped.struct.EncoderParameters(
+        1, ctyped.array(ctyped.struct.EncoderParameter(ctyped.get_guid(
+            ctyped.const.EncoderQuality), 1, ctyped.enum.EncoderParameterValueType.Long.value,
+            ctyped.cast(quality_val, ctyped.type.PVOID)))))
 
 
 def image_iter_frames(image: Image) -> Iterator[int]:
@@ -1422,10 +1420,18 @@ def image_get_property(image: Image, tag: int) -> Optional[ctyped.Pointer]:
                 _TAG_TYPE_TO_TYPE.get(property_item.type, ctyped.type.c_void)))
 
 
-def bitmap_from_color(color: ctyped.type.ARGB, width: int = 512, height: int = 512) -> Optional[Bitmap]:
-    if (bitmap := Bitmap.from_dimension(width, height)) and Graphics.from_image(
-            bitmap).fill_rectangle(SolidBrush.from_color(color), 0, 0, width, height):
-        return bitmap
+# noinspection PyShadowingBuiltins
+def bitmap_from_color(color: ctyped.type.ARGB, width: int = 512, height: int = 512,
+                      format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB,
+                      palette: bool | ctyped.struct.ColorPalette = False) -> Optional[Bitmap]:
+    if bitmap := Bitmap.from_dimension(width, height, format):
+        if palette:
+            if not isinstance(palette, ctyped.struct.ColorPalette):
+                palette = ctyped.struct.ColorPalette(
+                    Count=1, Entries=ctyped.array(color, type=ctyped.type.ARGB))
+            bitmap.set_palette(palette)
+        if Graphics.from_image(bitmap).clear(color):
+            return bitmap
 
 
 def bitmap_from_bitmap(bitmap: Bitmap, width: int, height: int, fit: bool = False, crop_to_fit: bool = False) -> Bitmap:
