@@ -15,16 +15,16 @@ _d1 = 2.75
 
 
 class Ease(enum.StrEnum):
-    SINE = 'sine'
-    QUAD = 'quad'
-    CUBIC = 'cubic'
-    QUART = 'quart'
-    QUINT = 'quint'
-    EXPO = 'expo'
-    CIRC = 'circ'
-    BACK = 'back'
-    ELASTIC = 'elastic'
-    BOUNCE = 'bounce'
+    SINE = enum.auto()
+    QUAD = enum.auto()
+    CUBIC = enum.auto()
+    QUART = enum.auto()
+    QUINT = enum.auto()
+    EXPO = enum.auto()
+    CIRC = enum.auto()
+    BACK = enum.auto()
+    ELASTIC = enum.auto()
+    BOUNCE = enum.auto()
 
 
 def linear(x: float) -> float:

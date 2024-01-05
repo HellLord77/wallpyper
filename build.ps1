@@ -39,7 +39,7 @@ $CythonSourceGlobs = @(
     "src/libs/ctyped/{const,enum,winrt}/*.py"
     # "src/libs/ctyped/{_utils,struct,union}.py"
     "src/libs/ctyped/{__init__,handle,macro}.py"
-    "src/{plat,srcs,win32}/**/*.py"
+    "src/{srcs,win32}/**/*.py"
     "src/{exts,langs,libs}/*.py"
     "src/*.py")
 # $CythonSourceGlobs = @()

@@ -96,14 +96,14 @@ def ensure_contains(current: dict, default: dict, key: str,
 
 # noinspection PyShadowingBuiltins
 def ensure_positive(current: dict, default: dict, key: str,
-                    max: int = sys.maxsize) -> bool:
-    return ensure_contains(current, default, key, range(1, max))
+                    strict: bool = True, max: int = sys.maxsize) -> bool:
+    return ensure_contains(current, default, key, range(strict, max))
 
 
 # noinspection PyShadowingBuiltins
 def ensure_negative(current: dict, default: dict, key: str,
-                    min: int = -sys.maxsize) -> bool:
-    return ensure_contains(current, default, key, range(-1, min, -1))
+                    strict: bool = True, min: int = -sys.maxsize) -> bool:
+    return ensure_contains(current, default, key, range(-strict, min, -1))
 
 
 # noinspection PyShadowingNames

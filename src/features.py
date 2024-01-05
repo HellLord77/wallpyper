@@ -1,6 +1,6 @@
 import multiprocessing
 
-from plat import brotli
+from win32 import brotli
 from win32 import zstd
 
 RESTART_SOFT = bool(multiprocessing.parent_process())

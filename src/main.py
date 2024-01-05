@@ -20,8 +20,11 @@ import time
 import traceback
 import uuid
 import webbrowser
+from typing import Any
 from typing import Callable
 from typing import Iterable
+from typing import Mapping
+from typing import MutableMapping
 from typing import MutableSequence
 from typing import NoReturn
 from typing import Optional
@@ -369,8 +372,7 @@ def _temp(*paths: str) -> str:
 def get_image() -> Optional[srcs.File]:
     name = CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE]
     source = srcs.SOURCES[name]
-    params = {key: val for key, val in source.CURRENT_CONFIG.items()
-              if not key.startswith('_')}
+    params = {key: val for key, val in source.CURRENT_CONFIG.items() if not key.startswith('_')}
     first_image = None
     for _ in range(consts.MAX_SKIP_AMT):
         try:
@@ -397,6 +399,15 @@ def filter_image(image: srcs.File) -> bool:
     if CURRENT_CONFIG[consts.CONFIG_SKIP_RECENT] and image in RECENT:
         return False
     return True
+
+
+def load_config_section(name: str, source: type[srcs.Source], loader: Mapping[str, Any]):
+    if name not in RESET:
+        section = loader.get(name)
+        if isinstance(section, dict):
+            source.CURRENT_CONFIG.update(section)
+    typed.intersection_update(source.CURRENT_CONFIG, source.DEFAULT_CONFIG, source.TCONFIG)
+    source.load_config()
 
 
 def _try_decrypt_config(loaded: str, force: bool = False) -> str:
@@ -437,13 +448,17 @@ def read_config(path: str = CONFIG_PATH):
                     else:
                         loader[file_.removesuffix(ext)] = dict(loader_)
     for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
-        if name not in RESET:
-            current_config = loader.get(name)
-            if isinstance(current_config, dict):
-                source.CURRENT_CONFIG.update(current_config)
-        typed.intersection_update(source.CURRENT_CONFIG, source.DEFAULT_CONFIG, source.TCONFIG)
-        source.load_config()
+        load_config_section(name, source, loader)
     RESET[:] = ()  # FIXME https://github.com/python/cpython/issues/103134
+
+
+def dump_config_section(name: str, source: type[srcs.Source], dumper: MutableMapping[str, Any]):
+    section = source.dump_config()
+    if not typed.isinstance_ex(section, source.TCONFIG):
+        logger.error('Mismatched type: type(%r) != %r', section, source.TCONFIG)
+    if section_ := {var: val_ for var, val in sorted(
+            source.DEFAULT_CONFIG.items()) if (val_ := section[var]) != val}:
+        dumper[name] = section_
 
 
 def _try_encrypt_config(dumped: str, force: bool = False) -> str:
@@ -457,12 +472,7 @@ def try_write_config(path: str = CONFIG_PATH, force: bool = False) -> bool:
     if force or CURRENT_CONFIG[consts.CONFIG_SAVE_CONFIG]:
         dumper = config.JSONConfig()
         for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
-            section = source.dump_config()
-            if not typed.isinstance_ex(section, source.TCONFIG):
-                logger.error('Mismatched type: type(%r) != %r', section, source.TCONFIG)
-            if section_ := {var: val_ for var, val in sorted(
-                    source.DEFAULT_CONFIG.items()) if (val_ := section[var]) != val}:
-                dumper[name] = section_
+            dump_config_section(name, source, dumper)
         try:
             dumped = _try_encrypt_config(dumper.dumps())
             with open(path, 'w') as file_:

@@ -26,12 +26,10 @@ from typing import Optional
 _FMT_THREAD_NAME = f'{__name__}-{__version__}-{{}}({{}})'
 
 
-def _get_params(args: tuple, kwargs: dict[str, Any],
-                typed: bool = False) -> Any:
+def _get_params(args: tuple, kwargs: dict[str, Any], typed: bool = False) -> Any:
     params = args + tuple(kwargs.items())
     if typed:
-        params += tuple(type(arg) for arg in args)
-        params += tuple(type(arg) for arg in kwargs.values())
+        params += tuple(type(arg) for arg in itertools.chain(args, kwargs.values()))
     try:
         params = hash(params)
     except TypeError:

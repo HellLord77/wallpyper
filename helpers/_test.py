@@ -651,7 +651,7 @@ def _test_pool():
 
 
 def _test_brotli():
-    from plat import brotli
+    from win32 import brotli
     data = os.urandom(1024 * 1024)
     compressor = brotli.Compressor()
     cmp = compressor.finish(data)

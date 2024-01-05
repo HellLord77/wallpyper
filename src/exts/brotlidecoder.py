@@ -2,7 +2,7 @@ import features
 
 if features.BROTLI_DECODE:
     from libs import request
-    from plat import brotli
+    from win32 import brotli
 
 
     class BrotliDecoder(request.Decoder):
