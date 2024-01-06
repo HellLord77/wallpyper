@@ -32,7 +32,7 @@ from typing import TypedDict
 
 import consts
 # noinspection PyUnresolvedReferences
-import exts as _
+import exts
 import features
 import gui
 import langs
@@ -94,13 +94,15 @@ gui.ANIMATION_PATH = RES_FMT.format(consts.RES_BUSY)
 
 START: float = 0.0
 RESET: MutableSequence[str] = []
-PROGRESS = [-1, request.RETRIEVE_UNKNOWN_SIZE]
-DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
-STOP = typ.MutableBool()
 RESTART = typ.MutableBool()
-TIMER = timer.Timer.__new__(timer.Timer)
-RECENT: collections.deque[srcs.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
-PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}.{uuid.uuid4().hex}')
+
+DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
+STOP_DOWNLOAD = typ.MutableBool()
+PROGRESS_DONE = typ.MutableInt(-1)
+PROGRESS_TOTAL = typ.MutableInt(request.RETRIEVE_UNKNOWN_SIZE)
+CHANGE_TIMER = timer.Timer.__new__(timer.Timer)
+RECENT_IMAGES: collections.deque[srcs.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
+REMOTE_PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}.{uuid.uuid4().hex}')
 
 TCONFIG = TypedDict('TCONFIG', {
     consts.CONFIG_FIRST_RUN: bool,
@@ -186,13 +188,13 @@ def load_config():
     _fix_config(validator.ensure_enum_name, consts.CONFIG_TRANSITION_EASE, Ease)
     _fix_config(validator.ensure_enum_name, consts.CONFIG_TRANSITION_STYLE, win32.display.Transition)
 
-    RECENT.extend(filter(None, (srcs.ImageFile.fromdict(
+    RECENT_IMAGES.extend(filter(None, (srcs.ImageFile.fromdict(
         kwargs) for kwargs in CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES])))
 
 
 def dump_config() -> TCONFIG:
     dumped = copy.deepcopy(CURRENT_CONFIG)
-    dumped[consts.CONFIG_RECENT_IMAGES] = [file.asdict() for file in RECENT]
+    dumped[consts.CONFIG_RECENT_IMAGES] = [file.asdict() for file in RECENT_IMAGES]
     return dumped
 
 
@@ -206,9 +208,9 @@ def create_menu():
     item_change.set_default()
     item_change.set_icon(RES_FMT.format(consts.RES_CHANGE))
     item_recent = gui.add_submenu(_text('MENU_RECENT'), icon=RES_FMT.format(consts.RES_RECENT))
-    TIMER.__init__(0, functools.partial(on_change, item_change.enable, item_recent), True)
+    CHANGE_TIMER.__init__(0, functools.partial(on_change, item_change.enable, item_recent), True)
     gui.set_on_click(item_change, functools.partial(
-        on_change, *TIMER.target.args, auto=False), on_thread=False)
+        on_change, *CHANGE_TIMER.target.args, auto=False), on_thread=False)
     gui.add_separator(menu=item_recent)
     gui.add_menu_item(_text('LABEL_CLEAR'), on_click=functools.partial(
         on_clear, item_recent.enable), menu=item_recent).set_icon(RES_FMT.format(consts.RES_CLEAR))
@@ -218,7 +220,7 @@ def create_menu():
     gui.add_separator()
     with gui.set_menu(gui.add_submenu(_text('MENU_ACTIONS'), icon=RES_FMT.format(consts.RES_ACTIONS))):
         gui.add_menu_item(_text('LABEL_STOP'), on_click=functools.partial(
-            STOP.set, True)).set_icon(RES_FMT.format(consts.RES_STOP))
+            STOP_DOWNLOAD.set, True)).set_icon(RES_FMT.format(consts.RES_STOP))
         if consts.FLAG_CONSOLE_VIEW:
             gui.add_menu_item(_text('LABEL_CONSOLE'), on_click=on_toggle_console).set_icon(
                 RES_FMT.format(consts.RES_CONSOLE))
@@ -396,7 +398,7 @@ def get_image() -> Optional[srcs.File]:
 
 
 def filter_image(image: srcs.File) -> bool:
-    if CURRENT_CONFIG[consts.CONFIG_SKIP_RECENT] and image in RECENT:
+    if CURRENT_CONFIG[consts.CONFIG_SKIP_RECENT] and image in RECENT_IMAGES:
         return False
     return True
 
@@ -508,8 +510,8 @@ def try_show_notification(title: str, text: str = '',
 
 
 def try_reapply_wallpaper(_: Optional[bool] = None, force: bool = False):
-    if (force or CURRENT_CONFIG[consts.CONFIG_REAPPLY_IMAGE]) and RECENT:
-        on_change(*TIMER.target.args, RECENT[0], False)
+    if (force or CURRENT_CONFIG[consts.CONFIG_REAPPLY_IMAGE]) and RECENT_IMAGES:
+        on_change(*CHANGE_TIMER.target.args, RECENT_IMAGES[0], False)
 
 
 def try_alert_error(exc: BaseException, force: bool = False):
@@ -526,7 +528,7 @@ def on_shown(_: gui.Event):
             _text('FIRST_TITLE'), _text('FIRST_TEXT'),
             RES_FMT.format(consts.RES_ICON), True)
     if CURRENT_CONFIG[consts.CONFIG_CHANGE_START]:
-        on_change(*TIMER.target.args)
+        on_change(*CHANGE_TIMER.target.args)
     elif CURRENT_CONFIG[consts.CONFIG_RESTORE_IMAGE]:
         try_reapply_wallpaper(force=True)
 
@@ -539,13 +541,12 @@ def get_displays() -> Iterable[str]:
 
 @timer.on_thread
 def print_progress():
-    print(console.show_cursor(False) + console.progress(
-        console.ProgressState.INDETERMINATE), end='')
+    print(console.show_cursor(False) + console.progress(console.ProgressState.INDETERMINATE), end='')
     interval, spinner = spinners.get('sand')
     len_mid = 0
     start_time = time.monotonic()
-    while (completed := PROGRESS[0]) != -1:
-        indeterminate = (total := PROGRESS[1]) == request.RETRIEVE_UNKNOWN_SIZE
+    while (completed := PROGRESS_DONE.get()) != -1:
+        indeterminate = (total := PROGRESS_TOTAL.get()) == request.RETRIEVE_UNKNOWN_SIZE
         pre = f'[{next(spinner)}] ['
         post = ']'
         if completed:
@@ -579,8 +580,9 @@ def print_progress():
 
 
 def query_download(completed: int, total: int) -> bool:
-    PROGRESS[:] = completed, total
-    if STOP.get():
+    PROGRESS_DONE.set(completed)
+    PROGRESS_TOTAL.set(total)
+    if STOP_DOWNLOAD.get():
         return False
     return True
 
@@ -590,12 +592,13 @@ def download_image(image: srcs.File) -> Optional[str]:
     try_remove_temp()
     with gui.try_animate_icon(_text('STATUS_DOWNLOAD')):
         path = _temp(image.name)
-        PROGRESS[:] = 0, request.RETRIEVE_UNKNOWN_SIZE
+        PROGRESS_DONE.clear()
+        PROGRESS_TOTAL.reset()
         logger.info('Downloaded image: %s', image)
         print(f'[🟩] Download: {image}')
-        if PIPE or win32.console.is_present():
+        if REMOTE_PIPE or win32.console.is_present():
             print_progress()
-        STOP.clear()
+        STOP_DOWNLOAD.clear()
         try:
             if ((image.request.url == request.from_path(path) or
                  (image.checksize(path) and (consts.FLAG_UNSAFE_CACHE or image.checksum(
@@ -605,7 +608,7 @@ def download_image(image: srcs.File) -> Optional[str]:
                     image.fill(path, not consts.FLAG_UNSAFE_CACHE)):
                 return path
         finally:
-            PROGRESS[0] = -1
+            PROGRESS_DONE.reset()
 
 
 @callables.SingletonCallable
@@ -620,10 +623,10 @@ def change_wallpaper(image: Optional[srcs.File] = None) -> bool:
                 try_alert_error(exc, True)
     if image is not None:
         try:
-            RECENT.remove(image)
+            RECENT_IMAGES.remove(image)
         except ValueError:
             pass
-        RECENT.appendleft(image)
+        RECENT_IMAGES.appendleft(image)
         if (path := download_image(image)) is not None:
             changed = win32.display.set_wallpapers_ex(*(win32.display.Wallpaper(
                 path, display, win32.display.Style[CURRENT_CONFIG[
@@ -699,8 +702,8 @@ def on_change(enable: Callable[[bool], bool], item_recent: win32.gui.MenuItem,
         item_recent.enable(False)
         with gui.try_animate_icon(_text('STATUS_CHANGE')):
             if ((changed := change_wallpaper(image))
-                    and CURRENT_CONFIG[consts.CONFIG_AUTO_SAVE] and RECENT):
-                on_image(save_image, RECENT[0], _text('LABEL_SAVE'), _text('FAIL_SAVE'))
+                    and CURRENT_CONFIG[consts.CONFIG_AUTO_SAVE] and RECENT_IMAGES):
+                on_image(save_image, RECENT_IMAGES[0], _text('LABEL_SAVE'), _text('FAIL_SAVE'))
         _update_recent_menu(item_recent)
         enable(True)
     if not changed:
@@ -728,7 +731,7 @@ def on_image(callback: callables.SingletonCallable[[str], bool],
 
 
 def on_clear(enable: Callable[[bool], bool]):
-    RECENT.clear()
+    RECENT_IMAGES.clear()
     enable(False)
 
 
@@ -736,7 +739,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
     menu = item.get_submenu()
     with gui.set_menu(menu):
         items = gui.get_menu_items()
-        for index, image in enumerate(RECENT):
+        for index, image in enumerate(RECENT_IMAGES):
             simple = image.is_simple()
             if image in items:
                 item_image = items[image.name]
@@ -744,7 +747,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                 menu.remove_item(item_image)
             else:
                 with gui.set_menu(gui.Menu()) as submenu:
-                    gui.add_menu_item(_text('LABEL_SET'), on_click=functools.partial(on_change, *TIMER.target.args, image, False),
+                    gui.add_menu_item(_text('LABEL_SET'), on_click=functools.partial(on_change, *CHANGE_TIMER.target.args, image, False),
                                       on_thread=False).set_icon(RES_FMT.format(consts.RES_SET))
                     gui.add_menu_item(_text('LABEL_SET_LOCK'), on_click=functools.partial(
                         on_image, win32.display.set_lock_background, image, _text('LABEL_SET_LOCK'),
@@ -798,18 +801,18 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                 image.name) if consts.FLAG_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
             item_image.set_uid(image.name)
     for uid, item_image in items.items():
-        if uid and uid not in RECENT:
+        if uid and uid not in RECENT_IMAGES:
             menu.remove_item(item_image)
-    item.enable(bool(RECENT))
+    item.enable(bool(RECENT_IMAGES))
 
 
 def on_auto_change(interval: int, after: Optional[float] = None):
     CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] = interval
     if interval:
-        TIMER.set_next_interval(interval)
-        TIMER.start(after)
+        CHANGE_TIMER.set_next_interval(interval)
+        CHANGE_TIMER.start(after)
     else:
-        TIMER.stop()
+        CHANGE_TIMER.stop()
 
 
 def on_modify_save(set_tooltip: Callable, path: Optional[str] = None) -> bool:
@@ -962,14 +965,14 @@ def on_unpin_from_start() -> bool:
 
 @callables.SingletonCallable
 def on_toggle_console() -> bool:
-    if PIPE:
-        if not (toggled := PIPE.disconnect()):
+    if REMOTE_PIPE:
+        if not (toggled := REMOTE_PIPE.disconnect()):
             try_show_notification(_text('LABEL_CONSOLE'), _text('FAIL_HIDE_CONSOLE'))
     else:
-        args = *((PIPE_PATH,) if pyinstall.FROZEN else (sys.executable, pipe.__file__)), str(PIPE)
+        args = *((PIPE_PATH,) if pyinstall.FROZEN else (sys.executable, pipe.__file__)), str(REMOTE_PIPE)
         # noinspection PyArgumentList
         os.startfile(args[0], arguments=' '.join(args[1:]))
-        if not (toggled := PIPE.connect(consts.MAX_PIPE_SEC)):
+        if not (toggled := REMOTE_PIPE.connect(consts.MAX_PIPE_SEC)):
             try_show_notification(_text('LABEL_CONSOLE'), _text('FAIL_SHOW_CONSOLE'))
     return toggled
 
@@ -1037,7 +1040,7 @@ def on_about():
 
 @timer.on_thread
 def on_quit():
-    TIMER.stop()
+    CHANGE_TIMER.stop()
     gui.GUI.unbind(win32.gui.GuiEvent.DISPLAY_CHANGE)
     gui.disable_events()
     max_threads = 1 + (threading.current_thread() is not threading.main_thread())
@@ -1047,7 +1050,7 @@ def on_quit():
         try_show_notification(_text('LABEL_QUIT'), _text('FAIL_QUIT'), force=True)
         end_time = time.monotonic() + win32.get_max_shutdown_time()
         while end_time > time.monotonic() and threading.active_count() > max_threads:
-            STOP.set(True)
+            STOP_DOWNLOAD.set(True)
             time.sleep(consts.POLL_FAST_SEC)
     gui.stop_loop()
 
@@ -1078,7 +1081,7 @@ def start():
     logger.debug('Started process: %s<%.3fs>',
                  multiprocessing.current_process().name, time.monotonic() - START)
     gui.start_loop(RES_FMT.format(consts.RES_TRAY), consts.NAME,
-                   functools.partial(on_change, *TIMER.target.args, auto=False))
+                   functools.partial(on_change, *CHANGE_TIMER.target.args, auto=False))
 
 
 def stop():

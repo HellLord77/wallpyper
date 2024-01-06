@@ -1,4 +1,4 @@
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 import ast
 import threading
@@ -11,26 +11,26 @@ _T = typing.TypeVar('_T')
 
 
 def _to_type(string: str, expected: type[_T] | tuple[type, ...]) -> _T:
-    val = ast.literal_eval(string)
-    if isinstance(val, expected):
-        return val
+    value = ast.literal_eval(string)
+    if isinstance(value, expected):
+        return value
     else:
         raise TypeError
 
 
 def to_bool(string: str, strict: bool = True) -> bool:
-    val = _to_type(string, (bool, int, str))
+    value = _to_type(string, (bool, int, str))
     if not strict:
-        if isinstance(val, int):
-            val = bool(val)
-        elif isinstance(val, str):
-            val = val.strip().lower()
-            if val in ('false', 'no', 'off', '0', 'f', 'n'):
-                val = False
-            elif val in ('true', 'yes', 'on', '1', 't', 'y'):
-                val = True
-    if isinstance(val, bool):
-        return val
+        if isinstance(value, int):
+            value = bool(value)
+        elif isinstance(value, str):
+            value = value.strip().lower()
+            if value in ('false', 'no', 'off', '0', 'f', 'n'):
+                value = False
+            elif value in ('true', 'yes', 'on', '1', 't', 'y'):
+                value = True
+    if isinstance(value, bool):
+        return value
     else:
         raise TypeError
 
@@ -48,33 +48,33 @@ def to_dict(string: str) -> dict:
 
 
 def to_float(string: str, strict: bool = True) -> float:
-    val = _to_type(string, (bool, int, float, str))
+    value = _to_type(string, (bool, int, float, str))
     if not strict:
-        if isinstance(val, (bool, int)):
-            val = float(val)
-        elif isinstance(val, str):
+        if isinstance(value, (bool, int)):
+            value = float(value)
+        elif isinstance(value, str):
             try:
-                val = float(val.strip())
+                value = float(value.strip())
             except ValueError:
                 pass
-    if isinstance(val, float):
-        return val
+    if isinstance(value, float):
+        return value
     else:
         raise TypeError
 
 
 def to_int(string: str, strict: bool = True) -> int:
-    val = _to_type(string, (bool, int, float, str))
+    value = _to_type(string, (bool, int, float, str))
     if not strict:
-        if isinstance(val, str):
+        if isinstance(value, str):
             try:
-                val = float(val.strip())
+                value = float(value.strip())
             except ValueError:
                 pass
-        if isinstance(val, (bool, float)):
-            val = int(val)
-    if isinstance(val, int):
-        return val
+        if isinstance(value, (bool, float)):
+            value = int(value)
+    if isinstance(value, int):
+        return value
     else:
         raise TypeError
 
@@ -96,127 +96,142 @@ def to_tuple(string: str) -> tuple:
 
 
 class MutableObject:
-    __slots__ = '_data', '_changed'
+    __slots__ = '_value', '_default', '_changed'
 
-    _type: type = object
+    _type: type
 
-    def __init__(self, val: Optional[bool | bytes | complex | float | int | str | tuple] = None):
-        self._data = self._type() if val is None else val
+    def __init__(self, value: Optional[bool | bytes | complex | float | int | str | tuple] = None):
+        if value is None:
+            value = self._type()
+        self._default = self._value = value
         self._changed = threading.Event()
 
     def __bool__(self):
-        return bool(self._data)
+        return bool(self._value)
 
     def __complex__(self):
-        return complex(self._data)
+        return complex(self._value)
 
     def __int__(self):
-        return int(self._data)
+        return int(self._value)
 
     def __float__(self):
-        return float(self._data)
+        return float(self._value)
+
+    def __round__(self, ndigits=None):
+        return round(self._value, ndigits)
 
     def __str__(self):
-        return str(self._data)
+        return str(self._value)
 
     def __bytes__(self):
-        return bytes(self._data)
+        return bytes(self._value)
+
+    def __format__(self, format_spec=''):
+        return format(self._value, format_spec)
 
     def __iadd__(self, other):
-        self._data += other
+        self._value += other
         self._changed.set()
         return self
 
     def __isub__(self, other):
-        self._data -= other
+        self._value -= other
         self._changed.set()
         return self
 
     def __imul__(self, other):
-        self._data *= other
+        self._value *= other
         self._changed.set()
         return self
 
     def __imatmul__(self, other):
-        self._data @= other
+        self._value @= other
         self._changed.set()
         return self
 
     def __itruediv__(self, other):
-        self._data /= other
+        self._value /= other
         self._changed.set()
         return self
 
     def __ifloordiv__(self, other):
-        self._data //= other
+        self._value //= other
         self._changed.set()
         return self
 
     def __imod__(self, other):
-        self._data %= other
+        self._value %= other
         self._changed.set()
         return self
 
     def __ipow__(self, other):
-        self._data **= other
+        self._value **= other
         self._changed.set()
         return self
 
     def __ilshift__(self, other):
-        self._data <<= other
+        self._value <<= other
         self._changed.set()
         return self
 
     def __irshift__(self, other):
-        self._data >>= other
+        self._value >>= other
         self._changed.set()
         return self
 
     def __iand__(self, other):
-        self._data &= other
+        self._value &= other
         self._changed.set()
         return self
 
     def __ixor__(self, other):
-        self._data ^= other
+        self._value ^= other
         self._changed.set()
         return self
 
     def __ior__(self, other):
-        self._data |= other
+        self._value |= other
         self._changed.set()
         return self
 
     def get(self):
-        return self._data
+        return self._value
 
-    def set(self, val):
-        self._data = val
+    def set(self, value):
+        self._value = value
         self._changed.set()
-        return val
+        return value
 
     def clear(self):
-        val = self._type()
-        self._data = val
+        value = self._value = self._type()
         self._changed.set()
-        return val
+        return value
 
-    def wait(self, timeout: Optional[float] = None, val=None) -> bool:
-        if val is None:
+    # noinspection PyTypeChecker,PyPropertyDefinition
+    value = property(get, set, clear)
+
+    def reset(self):
+        value = self._value = self._default
+        self._changed.set()
+        return value
+
+    def wait(self, timeout: Optional[float] = None, value=None) -> bool:
+        if value is None:
             self._changed.clear()
             return self._changed.wait(timeout)
         else:
             if timeout is None:
-                while self._data != val:
+                while self._value != value:
                     self._changed.clear()
                     self._changed.wait()
             else:
                 end_time = time.monotonic() + timeout
-                while self._data != val:
+                while self._value != value:
                     self._changed.clear()
                     if not self._changed.wait(end_time - time.monotonic()):
                         break
-            return self._data == val
+            return self._value == value
 
 
 class MutableBool(MutableObject):
@@ -224,6 +239,8 @@ class MutableBool(MutableObject):
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
+    value: _type
+    reset: Callable[[], _type]
 
 
 class MutableBytes(MutableObject):
@@ -231,6 +248,8 @@ class MutableBytes(MutableObject):
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
+    value: _type
+    reset: Callable[[], _type]
 
 
 class MutableComplex(MutableObject):
@@ -238,6 +257,8 @@ class MutableComplex(MutableObject):
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
+    value: _type
+    reset: Callable[[], _type]
 
 
 class MutableFloat(MutableObject):
@@ -245,6 +266,8 @@ class MutableFloat(MutableObject):
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
+    value: _type
+    reset: Callable[[], _type]
 
 
 class MutableInt(MutableObject):
@@ -252,6 +275,8 @@ class MutableInt(MutableObject):
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
+    value: _type
+    reset: Callable[[], _type]
 
 
 class MutableStr(MutableObject):
@@ -259,6 +284,8 @@ class MutableStr(MutableObject):
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
+    value: _type
+    reset: Callable[[], _type]
 
 
 class MutableTuple(MutableObject):
@@ -266,3 +293,5 @@ class MutableTuple(MutableObject):
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
+    value: _type
+    reset: Callable[[], _type]

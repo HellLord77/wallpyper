@@ -8,6 +8,7 @@ __maintainer__ = 'HellLord'
 __email__ = 'ratul.debnath.year@gmail.com'
 __status__ = 'Development'
 
+import contextlib
 import ctypes
 import itertools
 import logging
@@ -19,7 +20,6 @@ import time
 import consts
 
 
-# noinspection PyUnresolvedReferences
 def target(reset: multiprocessing.managers.ListProxy,
            restart: multiprocessing.managers.ValueProxy):
     if not consts.FLAG_FANCY_DEBUG:
@@ -28,10 +28,9 @@ def target(reset: multiprocessing.managers.ListProxy,
     import main
     main.START = start
     main.RESET = reset
-    try:
+    main.RESTART = restart
+    with contextlib.suppress(BaseException):
         main.main()
-    except SystemExit:
-        restart.value = main.RESTART.get()
 
 
 def main():

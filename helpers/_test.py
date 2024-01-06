@@ -677,6 +677,16 @@ def _test_zstd():
     print(resp.text)
 
 
+def _test_typ():
+    from libs import typ
+    bl = typ.MutableBool()
+    print(bl.get())
+    bl.value = True
+    print(bl.get())
+    del bl.value
+    print(bl.get())
+
+
 def _test():
     pass
 
@@ -726,6 +736,7 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_pool()
     # _test_brotli()
     # _test_zstd()
-    # _test()
+    # _test_typ()
     _test()
+    # _test_winmd()
     sys.exit()
