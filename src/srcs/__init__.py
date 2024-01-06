@@ -46,16 +46,24 @@ EXT_VIDEO = set(itertools.chain.from_iterable(exts for mime, exts in mimetype.it
 EXT_ANIMATED = {'apng', 'avif', 'gif', 'webp'}
 
 
-class Hash:
+class _HashMeta(type):
     _cache = getattr(hashlib, '__builtin_constructor_cache')
 
     # noinspection PyShadowingBuiltins
-    def __init_subclass__(cls, hash: bool = True):
+    def __new__(mcs, *args, hash: bool = True, **kwargs):
+        cls = super().__new__(mcs, *args, **kwargs)
         if hash:
-            cls._cache[cls.name] = cls
+            mcs._cache[cls.name] = cls
             # noinspection PyUnresolvedReferences
             hashlib.algorithms_available.add(cls.name)
+        return cls
 
+    @property
+    def name(cls) -> str:
+        return cls.__name__.lower()
+
+
+class Hash(metaclass=_HashMeta, hash=False):
     # noinspection PyUnusedLocal
     def __init__(self, data: bytes = b''):
         raise NotImplementedError
@@ -79,12 +87,6 @@ class Hash:
     @property
     def block_size(self) -> int:
         raise NotImplementedError
-
-    # noinspection PyPropertyDefinition
-    @classmethod
-    @property
-    def name(cls) -> str:
-        return cls.__name__.lower()
 
 
 @dataclasses.dataclass
