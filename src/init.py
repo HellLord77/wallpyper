@@ -20,8 +20,7 @@ import time
 import consts
 
 
-def target(reset: multiprocessing.managers.ListProxy,
-           restart: multiprocessing.managers.ValueProxy):
+def target(reset: multiprocessing.managers.ListProxy, restart: multiprocessing.managers.ValueProxy):
     if not consts.FLAG_FANCY_DEBUG:
         logging.basicConfig()
     start = time.monotonic()
@@ -42,9 +41,8 @@ def main():
     exitcode = -1
     while restart.value:
         restart.value = False
-        process = multiprocessing.Process(
-            target=target, name=f'{consts.NAME}-{__version__}-{next(counter)}',
-            args=(reset, restart), daemon=True)
+        process = multiprocessing.Process(target=target, name=f'{consts.NAME}-{__version__}-{next(counter)}',
+                                          args=(reset, restart), daemon=True)
         process.start()
         process.join()
         exitcode = process.exitcode

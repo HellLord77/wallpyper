@@ -8,6 +8,7 @@ import dataclasses
 import datetime
 import functools
 import hashlib
+import http
 import http.client
 import http.cookiejar
 import http.cookies

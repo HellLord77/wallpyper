@@ -40,7 +40,7 @@ $CythonSourceGlobs = @(
     # "src/libs/ctyped/{_utils,struct,union}.py"
     "src/libs/ctyped/{__init__,handle,macro}.py"
     "src/{srcs,win32}/**/*.py"
-    "src/{exts,langs,libs}/*.py"
+    "src/{__backport__,exts,langs,libs}/*.py"
     "src/*.py")
 # $CythonSourceGlobs = @()
 $CythonExcludeGlobs = @(
