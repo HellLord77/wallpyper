@@ -61,8 +61,8 @@ logger = logging.getLogger(__name__)
 DISPLAY = 'DISPLAY'
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
 RES_FMT = os.path.join(os.path.dirname(__file__), 'res', '{}')
-CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.json'
-# CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.json')  # TODO
+# CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.json'
+CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.json')
 LOG_PATH = files.replace_ext(CONFIG_PATH, 'log')
 PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(
     sysconfig.get_config_var('EXT_SUFFIX')), 'exe')
